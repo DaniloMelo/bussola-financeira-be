@@ -2,6 +2,7 @@ import { NestFactory } from "@nestjs/core";
 import { AppModule } from "./app.module";
 import { SwaggerModule, DocumentBuilder } from "@nestjs/swagger";
 import { ValidationPipe } from "@nestjs/common";
+import { apiReference } from "@scalar/nestjs-api-reference";
 
 async function bootstrap() {
   const app = await NestFactory.create(AppModule);
@@ -17,7 +18,7 @@ async function bootstrap() {
   );
 
   const config = new DocumentBuilder()
-    .setTitle("Bússola Financeira | API Reference")
+    .setTitle("Bússola financeira | API reference")
     .setDescription("")
     .setVersion("1.0")
     .addTag("users")
@@ -26,7 +27,14 @@ async function bootstrap() {
 
   const document = SwaggerModule.createDocument(app, config);
 
-  SwaggerModule.setup("api", app, document);
+  app.use(
+    "/reference",
+    apiReference({
+      spec: {
+        content: document,
+      },
+    }),
+  );
 
   await app.listen(process.env.PORT ?? 3001);
 }
