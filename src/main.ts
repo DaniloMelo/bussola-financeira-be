@@ -19,10 +19,10 @@ async function bootstrap() {
 
   const config = new DocumentBuilder()
     .setTitle("Bússola financeira | API reference")
-    .setDescription("")
+    .setDescription(
+      "API Para acesso ao backend da aplicação Bússola financeira",
+    )
     .setVersion("1.0")
-    .addTag("users")
-    .addTag("products")
     .build();
 
   const document = SwaggerModule.createDocument(app, config);

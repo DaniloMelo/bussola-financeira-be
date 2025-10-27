@@ -1,10 +1,10 @@
 {
   "name": "bussola-financeira-be",
   "version": "0.0.1",
-  "description": "",
-  "author": "",
+  "description": "API for accessing the backend of the 'Bússola financeira' application",
+  "author": "Danilo Melo",
   "private": true,
-  "license": "UNLICENSED",
+  "license": "MIT",
   "scripts": {
     "build": "nest build",
     "format": "prettier --write \"src/**/*.ts\" \"test/**/*.ts\"",
@@ -83,6 +83,9 @@
       "**/*.(t|j)s"
     ],
     "coverageDirectory": "../coverage",
-    "testEnvironment": "node"
+    "testEnvironment": "node",
+    "moduleNameMapper": {
+      "^src/(.*)$": "<rootDir>/$1"
+    }
   }
 }
