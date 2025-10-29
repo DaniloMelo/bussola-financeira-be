@@ -12,7 +12,7 @@
     "start:dev": "nest start --watch",
     "dev:docker": "wait-port database_dev:5432 && npm run db:sync && npm run start:dev",
     "start:debug": "nest start --debug --watch",
-    "start:prod": "node dist/main",
+    "start:prod": "node dist/src/main",
     "services:up": "docker compose up -d",
     "services:down": "docker compose down",
     "services:restart": "docker compose restart",
