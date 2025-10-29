@@ -7,6 +7,7 @@ import { CreateUserDto } from "src/teste/dto/create-user-dto";
 import { TesteModule } from "src/teste/teste.module";
 import * as request from "supertest";
 import { cleanDatabase } from "./utils/cleanDatabase";
+import { ConfigModule } from "@nestjs/config";
 
 describe("TesteController (e2e)", () => {
   let app: INestApplication;
@@ -14,7 +15,11 @@ describe("TesteController (e2e)", () => {
 
   beforeEach(async () => {
     const module: TestingModule = await Test.createTestingModule({
-      imports: [PrismaModule, TesteModule],
+      imports: [
+        PrismaModule,
+        TesteModule,
+        ConfigModule.forRoot({ isGlobal: true }),
+      ],
     }).compile();
 
     app = module.createNestApplication();

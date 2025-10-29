@@ -1,0 +1,57 @@
+name: Testes (Unitários & E2E)
+
+on:
+  push:
+    branches:
+      - "**"
+      - "!main"
+  pull_request:
+    branches:
+      - main
+
+jobs:
+  tests:
+    name: Execução de Testes
+    runs-on: ubuntu-latest
+
+    services:
+      postgres:
+        image: postgres:16.0-alpine3.18
+        env:
+          POSTGRES_USER: local_user
+          POSTGRES_PASSWORD: local_password
+          POSTGRES_DB: local_db_test
+        options: >-
+          --health-cmd "pg_isready -U local_user"
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+
+    steps:
+      - name: Checkout do Código
+        uses: actions/checkout@v4
+
+      - name: Configurar Node.js (v22)
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: "npm"
+
+      - name: Instalar Dependências
+        run: npm ci
+
+      - name: Gerar Prisma Client
+        run: npx prisma generate
+
+      - name: Rodar Testes de Unidade
+        run: npm run test
+
+      - name: Configurar Variáveis de Teste E2E
+        run: |
+          echo "NODE_ENV=test" >> $GITHUB_ENV
+          echo "POSTGRES_HOST=postgres" >> $GITHUB_ENV 
+          echo "DATABASE_URL=postgresql://local_user:local_password@postgres:5432/local_db_test?schema=public" >> $GITHUB_ENV
+
+      - name: Rodar Testes E2E
+
+        run: npm run test:e2e:ci
