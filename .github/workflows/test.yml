@@ -46,12 +46,27 @@ jobs:
       - name: Rodar Testes de Unidade
         run: npm run test
 
-      - name: Aguardar o PostgreSQL
-        uses: abigger87/wait-for-it-action@v1.0.1
-        with:
-          host: postgres:5432
-          timeout: 30s
-          wait-for-target-command: echo "PostgreSQL está pronto!"
+      - name: ⏳ Aguardar a Inicialização do PostgreSQL
+        env:
+          PGPASSWORD: local_password
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y postgresql-client
+
+          echo "Aguardando o servidor PostgreSQL no host 'postgres:5432'..."
+
+          timeout=30 
+
+          for i in $(seq 1 $timeout); do
+            if pg_isready -h postgres -p 5432 -U local_user -d local_db_test; then
+              echo "PostgreSQL está pronto para conexões!"
+              exit 0
+            fi
+            sleep 1
+          done
+
+          echo "Erro: PostgreSQL não iniciou a tempo após $timeout segundos."
+          exit 1
 
       - name: Configurar Variáveis de Teste E2E
         run: |
