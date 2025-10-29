@@ -1,4 +1,5 @@
 /* eslint-disable @typescript-eslint/unbound-method */
+
 import { Test, TestingModule } from "@nestjs/testing";
 import { TesteRepository } from "./teste.repository";
 import { TesteService } from "./teste.service";
@@ -28,24 +29,26 @@ describe("TesteService", () => {
   });
 
   it("Should successfully create a user", async () => {
-    // const userInputMockData: CreateUserDto = {
-    //   name: "John Doe",
-    //   email: "john@email.com",
-    //   password: "123456",
-    // };
-    // const userStoredMock: UserEntity = {
-    //   id: "123",
-    //   name: "John Doe",
-    //   email: "john@email.com",
-    //   password: "123456",
-    //   createdAt: new Date(Date.now()),
-    //   updatedAt: new Date(Date.now()),
-    // };
-    // jest.spyOn(testeRepository, "create").mockResolvedValue(userStoredMock);
-    // const result = await testeService.createUser(userInputMockData);
-    // expect(testeRepository.create).toHaveBeenCalledWith(userInputMockData);
-    // expect(result).toEqual(userStoredMock);
+    const userInputMockData: CreateUserDto = {
+      name: "John Doe",
+      email: "john@email.com",
+      password: "123456",
+    };
 
-    expect(1).toBe(2);
+    const userStoredMock: UserEntity = {
+      id: "123",
+      name: "John Doe",
+      email: "john@email.com",
+      password: "123456",
+      createdAt: new Date(Date.now()),
+      updatedAt: new Date(Date.now()),
+    };
+
+    jest.spyOn(testeRepository, "create").mockResolvedValue(userStoredMock);
+
+    const result = await testeService.createUser(userInputMockData);
+
+    expect(testeRepository.create).toHaveBeenCalledWith(userInputMockData);
+    expect(result).toEqual({});
   });
 });
