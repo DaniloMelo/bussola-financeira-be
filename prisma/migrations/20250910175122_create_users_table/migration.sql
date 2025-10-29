@@ -1,5 +1,5 @@
 -- CreateTable
-CREATE TABLE "public?"."users" (
+CREATE TABLE "public"."users" (
     "id" TEXT NOT NULL,
     "name" VARCHAR(255) NOT NULL,
     "email" VARCHAR(255) NOT NULL,
@@ -11,4 +11,4 @@ CREATE TABLE "public?"."users" (
 );
 
 -- CreateIndex
-CREATE UNIQUE INDEX "users_email_key" ON "public?"."users"("email");
+CREATE UNIQUE INDEX "users_email_key" ON "public"."users"("email");
