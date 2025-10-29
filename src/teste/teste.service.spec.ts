@@ -49,6 +49,6 @@ describe("TesteService", () => {
     const result = await testeService.createUser(userInputMockData);
 
     expect(testeRepository.create).toHaveBeenCalledWith(userInputMockData);
-    expect(result).toEqual({});
+    expect(result).toEqual(userStoredMock);
   });
 });
