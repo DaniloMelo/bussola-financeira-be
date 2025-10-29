@@ -47,11 +47,11 @@ jobs:
         run: npm run test
 
       - name: Aguardar o PostgreSQL
-        uses: ef-actions/wait-for-service-action@v1.1.0
+        uses: abigger87/wait-for-it-action@v1.0.1
         with:
-          host: postgres
-          port: 5432
+          host: postgres:5432
           timeout: 30s
+          wait-for-target-command: echo "PostgreSQL está pronto!"
 
       - name: Configurar Variáveis de Teste E2E
         run: |
