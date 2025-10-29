@@ -1,0 +1,80 @@
+name: Testes (Unitários & E2E)
+
+on:
+  push:
+    branches:
+      - "**"
+      - "!main"
+  pull_request:
+    branches:
+      - main
+
+jobs:
+  tests:
+    name: Execução de Testes
+    runs-on: ubuntu-latest
+
+    services:
+      postgres:
+        image: postgres:16.0-alpine3.18
+        env:
+          POSTGRES_USER: local_user
+          POSTGRES_PASSWORD: local_password
+          POSTGRES_DB: local_db_test
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd "pg_isready -U local_user"
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+
+    steps:
+      - name: Checkout do Código
+        uses: actions/checkout@v4
+
+      - name: Configurar Node.js (v22)
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: "npm"
+
+      - name: Instalar Dependências
+        run: npm ci
+
+      - name: Gerar Prisma Client
+        run: npx prisma generate
+
+      - name: Aguardar a Inicialização do PostgreSQL (Método Nativo)
+        env:
+          PGPASSWORD: local_password
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y postgresql-client
+
+          echo "Aguardando o servidor PostgreSQL no host 'localhost:5432'..."
+
+          timeout=30 
+
+          for i in $(seq 1 $timeout); do
+            if pg_isready -h localhost -p 5432 -U local_user -d local_db_test; then
+              echo "PostgreSQL está pronto para conexões!"
+              exit 0
+            fi
+            sleep 1
+          done
+
+          echo "Erro: PostgreSQL não iniciou a tempo após $timeout segundos."
+          exit 1
+
+      - name: Rodar Testes de Unidade
+        run: npm run test
+
+      - name: Configurar Variáveis de Teste E2E
+        run: |
+          echo "NODE_ENV=test" >> $GITHUB_ENV
+          echo "POSTGRES_HOST=localhost" >> $GITHUB_ENV # <--- HOST MUDOU PARA LOCALHOST
+          echo "DATABASE_URL=postgresql://local_user:local_password@localhost:5432/local_db_test?schema=public" >> $GITHUB_ENV # <--- URL MUDOU PARA LOCALHOST
+
+      - name: Rodar Testes E2E (db:sync + test:e2e)
+        run: npm run test:e2e:ci
