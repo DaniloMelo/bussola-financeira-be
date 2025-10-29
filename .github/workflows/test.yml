@@ -47,7 +47,7 @@ jobs:
         run: npm run test
 
       - name: Aguardar o PostgreSQL
-        uses: nev7n/wait-for-service-action@v1.1.0
+        uses: ef-actions/wait-for-service-action@v1.1.0
         with:
           host: postgres
           port: 5432
