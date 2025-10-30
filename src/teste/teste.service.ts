@@ -11,6 +11,7 @@ export class TesteService {
   }
 
   async readAll() {
+    console.log();
     return await this.userRepository.findAll();
   }
 }
