@@ -1,9 +1,13 @@
+/* eslint-disable @typescript-eslint/no-unsafe-assignment */
 /* eslint-disable @typescript-eslint/no-unsafe-argument */
-import { INestApplication, ValidationPipe } from "@nestjs/common";
+import {
+  INestApplication,
+  ValidationPipe,
+  VersioningType,
+} from "@nestjs/common";
 import { Test, TestingModule } from "@nestjs/testing";
 import { PrismaModule } from "src/prisma/prisma.module";
 import { PrismaService } from "src/prisma/prisma.service";
-import { CreateUserDto } from "src/teste/dto/create-user-dto";
 import { TesteModule } from "src/teste/teste.module";
 import * as request from "supertest";
 import { cleanDatabase } from "./utils/cleanDatabase";
@@ -36,6 +40,10 @@ describe("TesteController (e2e)", () => {
       }),
     );
 
+    app.enableVersioning({
+      type: VersioningType.URI,
+    });
+
     await app.init();
   });
 
@@ -44,19 +52,49 @@ describe("TesteController (e2e)", () => {
     await app.close();
   });
 
-  describe("/user (POST)", () => {
-    it("Should successfully create a user", async () => {
-      const validUser: CreateUserDto = {
+  describe("/user (POST) - v1", () => {
+    it("Should successfully create a user using v1", async () => {
+      const validUserV1 = {
         name: "John Doe",
         email: "john@email.com",
         password: "123456",
       };
 
       const response = await request(app.getHttpServer())
-        .post("/user")
-        .send(validUser);
+        .post("/v1/user")
+        .send(validUserV1);
 
-      console.log(response.body);
+      expect(response.body).toEqual({
+        id: expect.any(String),
+        name: "John Doe",
+        email: "john@email.com",
+        password: expect.any(String),
+        createdAt: expect.any(String),
+        updatedAt: expect.any(String),
+      });
+    });
+  });
+
+  describe("/user (POST) - v2", () => {
+    it("Should successfully create a user using v2", async () => {
+      const validUserV2 = {
+        userName: "John Doe",
+        userEmail: "john@email.com",
+        password: "123456",
+      };
+
+      const response = await request(app.getHttpServer())
+        .post("/v2/user")
+        .send(validUserV2);
+
+      expect(response.body).toEqual({
+        id: expect.any(String),
+        userName: "John Doe",
+        userEmail: "john@email.com",
+        password: expect.any(String),
+        createdAt: expect.any(String),
+        updatedAt: expect.any(String),
+      });
     });
   });
 });

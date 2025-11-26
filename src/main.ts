@@ -1,7 +1,7 @@
 import { NestFactory } from "@nestjs/core";
 import { AppModule } from "./app.module";
 import { SwaggerModule, DocumentBuilder } from "@nestjs/swagger";
-import { ValidationPipe } from "@nestjs/common";
+import { ValidationPipe, VersioningType } from "@nestjs/common";
 import { apiReference } from "@scalar/nestjs-api-reference";
 
 async function bootstrap() {
@@ -14,8 +14,15 @@ async function bootstrap() {
       whitelist: true,
       forbidNonWhitelisted: true,
       transform: true,
+      transformOptions: {
+        enableImplicitConversion: true,
+      },
     }),
   );
+
+  app.enableVersioning({
+    type: VersioningType.URI,
+  });
 
   const config = new DocumentBuilder()
     .setTitle("Bússola financeira | API reference")
@@ -23,6 +30,8 @@ async function bootstrap() {
       "API Para acesso ao backend da aplicação Bússola financeira",
     )
     .setVersion("1.0")
+    .addTag("users-v1")
+    .addTag("users-v2")
     .build();
 
   const document = SwaggerModule.createDocument(app, config);
