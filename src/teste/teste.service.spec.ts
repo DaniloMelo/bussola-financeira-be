@@ -3,8 +3,10 @@
 import { Test, TestingModule } from "@nestjs/testing";
 import { TesteRepository } from "./teste.repository";
 import { TesteService } from "./teste.service";
-import { CreateUserDto } from "./dto/create-user-dto";
-import { UserEntity } from "./entities/user.entitie";
+import {
+  CreateUserParams,
+  CreateUserResponse,
+} from "./interfaces/user.interface";
 
 describe("TesteService", () => {
   let testeService: TesteService;
@@ -29,13 +31,13 @@ describe("TesteService", () => {
   });
 
   it("Should successfully create a user", async () => {
-    const userInputMockData: CreateUserDto = {
+    const userInputMockData: CreateUserParams = {
       name: "John Doe",
       email: "john@email.com",
       password: "123456",
     };
 
-    const userStoredMock: UserEntity = {
+    const userStoredMock: CreateUserResponse = {
       id: "123",
       name: "John Doe",
       email: "john@email.com",
