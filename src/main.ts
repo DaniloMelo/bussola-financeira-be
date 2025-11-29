@@ -3,6 +3,10 @@ import { AppModule } from "./app.module";
 import { SwaggerModule, DocumentBuilder } from "@nestjs/swagger";
 import { ValidationPipe, VersioningType } from "@nestjs/common";
 import { apiReference } from "@scalar/nestjs-api-reference";
+import { NextFunction, Request, Response } from "express";
+import { swaggerBasicAuthMiddleware } from "./common/middlewares/swagger-basic-auth.middleware";
+
+const SWAGGER_PATH = process.env.SWAGGER_PATH || "local-swagger-docs";
 
 async function bootstrap() {
   const app = await NestFactory.create(AppModule);
@@ -37,7 +41,13 @@ async function bootstrap() {
   const document = SwaggerModule.createDocument(app, config);
 
   app.use(
-    "/reference",
+    `/${SWAGGER_PATH}`,
+    (req: Request, res: Response, next: NextFunction) =>
+      swaggerBasicAuthMiddleware(req, res, next),
+  );
+
+  app.use(
+    `/${SWAGGER_PATH}`,
     apiReference({
       spec: {
         content: document,
