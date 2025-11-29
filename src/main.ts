@@ -6,7 +6,7 @@ import { apiReference } from "@scalar/nestjs-api-reference";
 import { NextFunction, Request, Response } from "express";
 import { swaggerBasicAuthMiddleware } from "./common/middlewares/swagger-basic-auth.middleware";
 
-const SWAGGER_PATH = process.env.SWAGGER_PATH || "local-swagger-docs";
+const SWAGGER_PATH = process.env.SWAGGER_PATH;
 
 async function bootstrap() {
   const app = await NestFactory.create(AppModule);
