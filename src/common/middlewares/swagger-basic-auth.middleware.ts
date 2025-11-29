@@ -1,7 +1,7 @@
 import { NextFunction, Request, Response } from "express";
 
-const SWAGGER_USER = process.env.SWAGGER_USER || "local_swagger_user";
-const SWAGGER_PASS = process.env.SWAGGER_PASS || "local_swagger_pass";
+const SWAGGER_USER = process.env.SWAGGER_USER;
+const SWAGGER_PASS = process.env.SWAGGER_PASS;
 
 export function swaggerBasicAuthMiddleware(
   req: Request,
