@@ -20,9 +20,9 @@ model User {
 }
 
 model UserCredentials {
-  id           String   @id @default(uuid())
-  passwordHash String   @map(name: "password_hash")
-  lastLoginAt  DateTime @map(name: "last_login_at")
+  id           String    @id @default(uuid())
+  passwordHash String    @map(name: "password_hash")
+  lastLoginAt  DateTime? @map(name: "last_login_at")
 
   userId String @unique @map(name: "user_id")
 
