@@ -1,4 +1,5 @@
 import { ApiProperty } from "@nestjs/swagger";
+import { UserCredentialsDto } from "./user-credentials.dto";
 
 export class CreateUserResponseDtoV2 {
   @ApiProperty({
@@ -20,12 +21,6 @@ export class CreateUserResponseDtoV2 {
   userEmail: string;
 
   @ApiProperty({
-    description: "Hash de senha do usuaário",
-    example: "asodiaosidnaos",
-  })
-  password: string;
-
-  @ApiProperty({
     description: "Data de criação do usuário",
     example: "2025-11-26T15:19:30.534Z",
   })
@@ -36,4 +31,13 @@ export class CreateUserResponseDtoV2 {
     example: "2025-11-26T15:19:30.534Z",
   })
   updatedAt: Date;
+
+  @ApiProperty({
+    description: "Dados da tabela relacionada 'user-credentials'",
+    type: () => UserCredentialsDto,
+  })
+  userCredentials: {
+    id: string;
+    lastLoginAt: Date | null;
+  };
 }

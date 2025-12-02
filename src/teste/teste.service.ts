@@ -1,12 +1,15 @@
 import { Injectable } from "@nestjs/common";
 import { TesteRepository } from "./teste.repository";
-import { CreateUserParams } from "./interfaces/user.interface";
+import {
+  CreateUserParams,
+  CreateUserResponse,
+} from "./interfaces/user.interface";
 
 @Injectable()
 export class TesteService {
   constructor(private readonly userRepository: TesteRepository) {}
 
-  async createUser(user: CreateUserParams) {
+  async createUser(user: CreateUserParams): Promise<CreateUserResponse> {
     return await this.userRepository.create(user);
   }
 

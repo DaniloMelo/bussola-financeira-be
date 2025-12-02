@@ -1,5 +1,6 @@
 /* eslint-disable @typescript-eslint/no-unsafe-assignment */
 /* eslint-disable @typescript-eslint/no-unsafe-argument */
+
 import {
   INestApplication,
   ValidationPipe,
@@ -52,7 +53,7 @@ describe("TesteController (e2e)", () => {
     await app.close();
   });
 
-  describe("/user (POST) - v1", () => {
+  describe("/teste (POST) - v1", () => {
     it("Should successfully create a user using v1", async () => {
       const validUserV1 = {
         name: "John Doe",
@@ -61,21 +62,24 @@ describe("TesteController (e2e)", () => {
       };
 
       const response = await request(app.getHttpServer())
-        .post("/v1/user")
+        .post("/v1/teste")
         .send(validUserV1);
 
       expect(response.body).toEqual({
         id: expect.any(String),
         name: "John Doe",
         email: "john@email.com",
-        password: expect.any(String),
         createdAt: expect.any(String),
         updatedAt: expect.any(String),
+        userCredentials: {
+          id: expect.any(String),
+          lastLoginAt: null,
+        },
       });
     });
   });
 
-  describe("/user (POST) - v2", () => {
+  describe("/teste (POST) - v2", () => {
     it("Should successfully create a user using v2", async () => {
       const validUserV2 = {
         userName: "John Doe",
@@ -84,16 +88,19 @@ describe("TesteController (e2e)", () => {
       };
 
       const response = await request(app.getHttpServer())
-        .post("/v2/user")
+        .post("/v2/teste")
         .send(validUserV2);
 
       expect(response.body).toEqual({
         id: expect.any(String),
         userName: "John Doe",
         userEmail: "john@email.com",
-        password: expect.any(String),
         createdAt: expect.any(String),
         updatedAt: expect.any(String),
+        userCredentials: {
+          id: expect.any(String),
+          lastLoginAt: null,
+        },
       });
     });
   });
