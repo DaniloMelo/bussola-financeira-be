@@ -34,8 +34,8 @@ async function bootstrap() {
       "API Para acesso ao backend da aplicação Bússola financeira",
     )
     .setVersion("1.0")
-    .addTag("users-v1")
-    .addTag("users-v2")
+    .addTag("teste-v1")
+    .addTag("teste-v2")
     .build();
 
   const document = SwaggerModule.createDocument(app, config);
