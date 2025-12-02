@@ -1,5 +1,6 @@
 /* eslint-disable @typescript-eslint/no-unsafe-assignment */
 /* eslint-disable @typescript-eslint/no-unsafe-argument */
+
 import {
   INestApplication,
   ValidationPipe,
@@ -68,9 +69,12 @@ describe("TesteController (e2e)", () => {
         id: expect.any(String),
         name: "John Doe",
         email: "john@email.com",
-        password: expect.any(String),
         createdAt: expect.any(String),
         updatedAt: expect.any(String),
+        userCredentials: {
+          id: expect.any(String),
+          lastLoginAt: null,
+        },
       });
     });
   });
@@ -91,9 +95,12 @@ describe("TesteController (e2e)", () => {
         id: expect.any(String),
         userName: "John Doe",
         userEmail: "john@email.com",
-        password: expect.any(String),
         createdAt: expect.any(String),
         updatedAt: expect.any(String),
+        userCredentials: {
+          id: expect.any(String),
+          lastLoginAt: null,
+        },
       });
     });
   });

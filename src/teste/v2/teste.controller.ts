@@ -10,8 +10,8 @@ import { CreateUserDtoV2 } from "../v2/dto/create-user-dto";
 import { ApiOperation, ApiResponse, ApiTags } from "@nestjs/swagger";
 import { CreateUserResponseDtoV2 } from "./dto/create-user-response-dto";
 
-@Controller({ path: "user", version: "2" })
-@ApiTags("users-v2")
+@Controller({ path: "teste", version: "2" })
+@ApiTags("teste-v2")
 export class TesteController {
   constructor(private readonly testeService: TesteService) {}
 
@@ -38,9 +38,12 @@ export class TesteController {
       id: res.id,
       userName: res.name,
       userEmail: res.email,
-      password: res.password,
       createdAt: res.createdAt,
       updatedAt: res.updatedAt,
+      userCredentials: {
+        id: res.userCredentials?.id,
+        lastLoginAt: null,
+      },
     };
   }
 

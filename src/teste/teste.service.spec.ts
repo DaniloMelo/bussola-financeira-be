@@ -41,9 +41,12 @@ describe("TesteService", () => {
       id: "123",
       name: "John Doe",
       email: "john@email.com",
-      password: "123456",
       createdAt: new Date(Date.now()),
       updatedAt: new Date(Date.now()),
+      userCredentials: {
+        id: "321",
+        lastLoginAt: null,
+      },
     };
 
     jest.spyOn(testeRepository, "create").mockResolvedValue(userStoredMock);
