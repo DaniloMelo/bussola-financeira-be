@@ -1,8 +1,32 @@
-import { Injectable } from "@nestjs/common";
+import { BadRequestException, Injectable } from "@nestjs/common";
+import { CreateUserDtoV1 } from "./v1/dto/create-user.dto";
+import { UserRepository } from "./user.repository";
+import { HasherProtocol } from "src/common/hasher/hasher.protocol";
 
 @Injectable()
 export class UserService {
-  create() {
-    console.log("Hello from userService");
+  constructor(
+    private readonly userRepository: UserRepository,
+    private readonly hasherService: HasherProtocol,
+  ) {}
+
+  async create(userInputData: CreateUserDtoV1) {
+    const { name, email, password: userPassword } = userInputData;
+
+    const existingUser = await this.userRepository.findOneByEmail(email);
+
+    if (existingUser) {
+      throw new BadRequestException(
+        "Falha ao criar o usuário. Verifique os dados fornecidos.",
+      );
+    }
+
+    const newUser: CreateUserDtoV1 = {
+      name,
+      email,
+      password: await this.hasherService.hash(userPassword),
+    };
+
+    return this.userRepository.create(newUser);
   }
 }

@@ -1,7 +1,7 @@
 import { ApiProperty } from "@nestjs/swagger";
-import { UserCredentialsDto } from "./user-credentials.dto";
+import { UserCredentialsTesteDto } from "./user-credentials-teste.dto";
 
-export class CreateUserResponseDtoV1 {
+export class CreateUserResponseTesteDtoV2 {
   @ApiProperty({
     description: "ID (UUID) do usuário",
     example: "34eaa6f3-4ff8-4f70-8acb-44b70436891b",
@@ -12,13 +12,13 @@ export class CreateUserResponseDtoV1 {
     description: "Nome do usuário",
     example: "John Doe",
   })
-  name: string;
+  userName: string;
 
   @ApiProperty({
     description: "E-mail do usuário",
     example: "john@email.com",
   })
-  email: string;
+  userEmail: string;
 
   @ApiProperty({
     description: "Data de criação do usuário",
@@ -34,7 +34,7 @@ export class CreateUserResponseDtoV1 {
 
   @ApiProperty({
     description: "Dados da tabela relacionada 'user-credentials'",
-    type: () => UserCredentialsDto,
+    type: () => UserCredentialsTesteDto,
   })
   userCredentials: {
     id: string;
