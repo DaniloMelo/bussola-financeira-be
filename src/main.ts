@@ -5,6 +5,7 @@ import { ValidationPipe, VersioningType } from "@nestjs/common";
 import { apiReference } from "@scalar/nestjs-api-reference";
 import { NextFunction, Request, Response } from "express";
 import { swaggerBasicAuthMiddleware } from "./common/middlewares/swagger-basic-auth.middleware";
+import { AllExceptionsFilter } from "./common/filters/all-exceptions-filter.filter";
 
 const SWAGGER_PATH = process.env.SWAGGER_PATH;
 
@@ -24,6 +25,8 @@ async function bootstrap() {
     }),
   );
 
+  app.useGlobalFilters(new AllExceptionsFilter());
+
   app.enableVersioning({
     type: VersioningType.URI,
   });
@@ -34,6 +37,7 @@ async function bootstrap() {
       "API Para acesso ao backend da aplicação Bússola financeira",
     )
     .setVersion("1.0")
+    .addTag("user-v1")
     .addTag("teste-v1")
     .addTag("teste-v2")
     .build();
