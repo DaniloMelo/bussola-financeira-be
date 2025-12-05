@@ -6,9 +6,9 @@ import {
   Post,
 } from "@nestjs/common";
 import { TesteService } from "../teste.service";
-import { CreateUserDtoV2 } from "../v2/dto/create-user-dto";
+import { CreateUserTesteDtoV2 } from "./dto/create-user-teste-dto";
 import { ApiOperation, ApiResponse, ApiTags } from "@nestjs/swagger";
-import { CreateUserResponseDtoV2 } from "./dto/create-user-response-dto";
+import { CreateUserResponseTesteDtoV2 } from "./dto/create-user-response-teste-dto";
 
 @Controller({ path: "teste", version: "2" })
 @ApiTags("teste-v2")
@@ -20,14 +20,14 @@ export class TesteController {
   @ApiResponse({
     status: 201,
     description: "Usuário foi criado com sucesso.",
-    type: CreateUserResponseDtoV2,
+    type: CreateUserResponseTesteDtoV2,
   })
   @ApiResponse({
     status: 400,
     description: "Dados inválidos",
     example: new BadRequestException("Mensagem de erro").getResponse(),
   })
-  async create(@Body() user: CreateUserDtoV2) {
+  async create(@Body() user: CreateUserTesteDtoV2) {
     const res = await this.testeService.createUser({
       name: user.userName,
       email: user.userEmail,
