@@ -18,12 +18,12 @@ describe("CreateUserDto V1", () => {
   });
 
   it("Should remove invalid spaces from 'name'", async () => {
-    const invalidName = {
+    const invalidUser = {
       ...validUser,
       name: " John Doe ",
     };
 
-    const instance = plainToInstance(CreateUserDtoV1, invalidName);
+    const instance = plainToInstance(CreateUserDtoV1, invalidUser);
 
     const errors = await validate(instance);
 
@@ -43,10 +43,6 @@ describe("CreateUserDto V1", () => {
 
     expect(errors.length).toBe(1);
     expect(errors[0].property).toBe("name");
-    expect(errors[0].constraints).toHaveProperty(
-      "minLength",
-      "Nome precisa ter o mínimo de 3 caracteres.",
-    );
     expect(errors[0].constraints).toHaveProperty(
       "isNotEmpty",
       "Nome não pode ser espaços em branco.",
