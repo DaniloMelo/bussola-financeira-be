@@ -38,8 +38,7 @@ async function bootstrap() {
     )
     .setVersion("1.0")
     .addTag("user-v1")
-    .addTag("teste-v1")
-    .addTag("teste-v2")
+    .addTag("user-v2")
     .build();
 
   const document = SwaggerModule.createDocument(app, config);

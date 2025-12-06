@@ -11,8 +11,8 @@ import { AllExceptionsFilter } from "src/common/filters/all-exceptions-filter.fi
 import { PrismaModule } from "src/prisma/prisma.module";
 import { PrismaService } from "src/prisma/prisma.service";
 import { UserModule } from "src/user/user.module";
-import { cleanDatabase } from "./utils/cleanDatabase";
 import * as request from "supertest";
+import { cleanDatabase } from "./utils/clean-database";
 
 describe("UserController (e2e)", () => {
   let app: INestApplication;
@@ -122,6 +122,80 @@ describe("UserController (e2e)", () => {
 
       const response = await request(app.getHttpServer())
         .post("/v1/user")
+        .send(newUser);
+
+      expect(response.body).toEqual({
+        message: ["Falha ao criar o usuário. Verifique os dados fornecidos."],
+        error: "Bad Request",
+        statusCode: 400,
+      });
+    });
+  });
+
+  describe("/user (POST) V2", () => {
+    it("Should create a user using V2", async () => {
+      const newUser = {
+        userName: "John Doe",
+        userEmail: "john@email.com",
+        userPassword: "password123",
+      };
+
+      const response = await request(app.getHttpServer())
+        .post("/v2/user")
+        .send(newUser);
+
+      expect(response.body).toEqual({
+        id: expect.any(String),
+        userName: "John Doe",
+        userEmail: "john@email.com",
+        createdAt: expect.any(String),
+        updatedAt: expect.any(String),
+        userCredentials: {
+          id: expect.any(String),
+          lastLoginAt: null,
+        },
+      });
+    });
+
+    it("Should return 'BadRequestException' for all validations errors", async () => {
+      const invalidUser = {
+        userName: "Jo",
+        userEmail: "johnemail.com",
+        userPassword: "pass",
+      };
+
+      const response = await request(app.getHttpServer())
+        .post("/v2/user")
+        .send(invalidUser);
+
+      expect(response.body).toEqual({
+        message: [
+          "Nome precisa ter o mínimo de 3 caracteres.",
+          "E-mail inválido.",
+          "Senha precisa ter o mínimo de 6 caracteres.",
+        ],
+        error: "Bad Request",
+        statusCode: 400,
+      });
+    });
+
+    it("Should return 'BadRequestException' when user already exists", async () => {
+      const existingUser = {
+        userName: "John Doe",
+        userEmail: "john@email.com",
+        userPassword: "password123",
+      };
+
+      const newUser = {
+        userName: "Mary Doe",
+        userEmail: "john@email.com",
+        userPassword: "pass123",
+      };
+
+      await request(app.getHttpServer()).post("/v2/user").send(existingUser);
+
+      const response = await request(app.getHttpServer())
+        .post("/v2/user")
         .send(newUser);
 
       expect(response.body).toEqual({
