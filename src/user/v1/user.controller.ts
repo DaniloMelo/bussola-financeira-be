@@ -9,6 +9,7 @@ import { UserService } from "../user.service";
 import { CreateUserDtoV1 } from "./dto/create-user.dto";
 import { ApiOperation, ApiResponse, ApiTags } from "@nestjs/swagger";
 import { CreateUserResponseDtoV1 } from "./dto/create-user-response.dto";
+import { FindAllUsersResponseDtoV1 } from "./dto/find-all-users.response.dto";
 
 @Controller({ path: "user", version: "1" })
 @ApiTags("user-v1")
@@ -35,6 +36,12 @@ export class UserControllerV1 {
   }
 
   @Get()
+  @ApiOperation({ summary: "Retorna uma lista com todos os usuários" })
+  @ApiResponse({
+    status: 200,
+    description: "Lista com usuários ou lista vazia caso não exista usuários",
+    type: [FindAllUsersResponseDtoV1],
+  })
   findAll() {
     return this.userService.findAll();
   }
