@@ -2,7 +2,7 @@ import { BadRequestException, Injectable } from "@nestjs/common";
 import { CreateUserDtoV1 } from "./v1/dto/create-user.dto";
 import { UserRepository } from "./user.repository";
 import { HasherProtocol } from "src/common/hasher/hasher.protocol";
-import { ICreateUser } from "./interfaces/create-user";
+import { ICreateUser } from "./interfaces/user";
 
 @Injectable()
 export class UserService {
@@ -29,5 +29,9 @@ export class UserService {
     };
 
     return this.userRepository.create(newUser);
+  }
+
+  async findAll() {
+    return this.userRepository.findAll();
   }
 }

@@ -29,6 +29,19 @@ export class UserRepository {
     });
   }
 
+  async findAll() {
+    return await this.prisma.user.findMany({
+      include: {
+        userCredentials: {
+          select: {
+            id: true,
+            lastLoginAt: true,
+          },
+        },
+      },
+    });
+  }
+
   async findOneByEmail(email: string) {
     return await this.prisma.user.findUnique({
       where: { email },
