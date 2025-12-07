@@ -13,6 +13,7 @@ import { PrismaService } from "src/prisma/prisma.service";
 import { UserModule } from "src/user/user.module";
 import * as request from "supertest";
 import { cleanDatabase } from "./utils/clean-database";
+import { createTestUserV1 } from "./utils/create-test-user-v1";
 
 describe("UserController (e2e)", () => {
   let app: INestApplication;
@@ -106,19 +107,13 @@ describe("UserController (e2e)", () => {
     });
 
     it("Should return 'BadRequestException' when user already exists", async () => {
-      const existingUser = {
-        name: "John Doe",
-        email: "john@email.com",
-        password: "password123",
-      };
-
       const newUser = {
         name: "Mary Doe",
         email: "john@email.com",
         password: "pass123",
       };
 
-      await request(app.getHttpServer()).post("/v1/user").send(existingUser);
+      await createTestUserV1(app);
 
       const response = await request(app.getHttpServer())
         .post("/v1/user")
@@ -203,6 +198,28 @@ describe("UserController (e2e)", () => {
         error: "Bad Request",
         statusCode: 400,
       });
+    });
+  });
+
+  describe("/user (GET) V1", () => {
+    it("Should return an array of users", async () => {
+      await createTestUserV1(app);
+
+      const response = await request(app.getHttpServer()).get("/v1/user");
+
+      expect(response.body).toEqual([
+        {
+          id: expect.any(String),
+          name: "John Doe",
+          email: "john@email.com",
+          createdAt: expect.any(String),
+          updatedAt: expect.any(String),
+          userCredentials: {
+            id: expect.any(String),
+            lastLoginAt: null,
+          },
+        },
+      ]);
     });
   });
 });

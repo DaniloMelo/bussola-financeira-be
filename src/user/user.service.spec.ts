@@ -4,6 +4,7 @@ import { UserService } from "./user.service";
 import { UserRepository } from "./user.repository";
 import { HasherProtocol } from "src/common/hasher/hasher.protocol";
 import { BadRequestException } from "@nestjs/common";
+import { IStoredUser } from "./interfaces/user";
 
 describe("UserService", () => {
   let userService: UserService;
@@ -19,6 +20,7 @@ describe("UserService", () => {
           useValue: {
             create: jest.fn(),
             findOneByEmail: jest.fn(),
+            findAll: jest.fn(),
           },
         },
         {
@@ -115,6 +117,52 @@ describe("UserService", () => {
       expect(hasherServiceMock.hash).not.toHaveBeenCalled();
 
       expect(userRepositoryMock.create).not.toHaveBeenCalled();
+    });
+  });
+
+  describe("findAll", () => {
+    it("Should find all users", async () => {
+      const storedUsers: IStoredUser[] = [
+        {
+          id: "1",
+          name: "John Doe",
+          email: "john@email.com",
+          createdAt: new Date(),
+          updatedAt: new Date(),
+          userCredentials: {
+            id: "11",
+            lastLoginAt: null,
+          },
+        },
+        {
+          id: "2",
+          name: "Jane Doe",
+          email: "jane@email.com",
+          createdAt: new Date(),
+          updatedAt: new Date(),
+          userCredentials: {
+            id: "22",
+            lastLoginAt: null,
+          },
+        },
+      ];
+
+      jest.spyOn(userRepositoryMock, "findAll").mockResolvedValue(storedUsers);
+
+      const result = await userService.findAll();
+
+      expect(userRepositoryMock.findAll).toHaveBeenCalled();
+      expect(result).toEqual(storedUsers);
+    });
+
+    it("Should return an empty array if no user exists", async () => {
+      jest.spyOn(userRepositoryMock, "findAll").mockResolvedValue([]);
+
+      const result = await userService.findAll();
+
+      expect(userRepositoryMock.findAll).toHaveBeenCalled();
+      expect(result.length).toBe(0);
+      expect(result).toEqual([]);
     });
   });
 });
