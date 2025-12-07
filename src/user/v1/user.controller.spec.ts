@@ -1,3 +1,4 @@
+import { IStoredUser } from "../interfaces/user";
 import { UserService } from "../user.service";
 import { CreateUserResponseDtoV1 } from "./dto/create-user-response.dto";
 import { CreateUserDtoV1 } from "./dto/create-user.dto";
@@ -5,6 +6,7 @@ import { UserControllerV1 } from "./user.controller";
 
 const userServiceMock: Partial<UserService> = {
   create: jest.fn(),
+  findAll: jest.fn(),
 };
 
 describe("UserController V1", () => {
@@ -43,5 +45,39 @@ describe("UserController V1", () => {
 
     expect(userServiceMock.create).toHaveBeenCalledWith(userInputDataMock);
     expect(result).toEqual(serviceResponseMock);
+  });
+
+  it("Should call userService.findAll", async () => {
+    const storedUsers: IStoredUser[] = [
+      {
+        id: "1",
+        name: "John Doe",
+        email: "john@email.com",
+        createdAt: new Date(),
+        updatedAt: new Date(),
+        userCredentials: {
+          id: "11",
+          lastLoginAt: null,
+        },
+      },
+      {
+        id: "2",
+        name: "Jane Doe",
+        email: "jane@email.com",
+        createdAt: new Date(),
+        updatedAt: new Date(),
+        userCredentials: {
+          id: "22",
+          lastLoginAt: null,
+        },
+      },
+    ];
+
+    jest.spyOn(userServiceMock, "findAll").mockResolvedValue(storedUsers);
+
+    const result = await userController.findAll();
+
+    expect(userServiceMock.findAll).toHaveBeenCalled();
+    expect(result).toEqual(storedUsers);
   });
 });

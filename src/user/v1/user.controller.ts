@@ -1,4 +1,10 @@
-import { BadRequestException, Body, Controller, Post } from "@nestjs/common";
+import {
+  BadRequestException,
+  Body,
+  Controller,
+  Get,
+  Post,
+} from "@nestjs/common";
 import { UserService } from "../user.service";
 import { CreateUserDtoV1 } from "./dto/create-user.dto";
 import { ApiOperation, ApiResponse, ApiTags } from "@nestjs/swagger";
@@ -26,5 +32,10 @@ export class UserControllerV1 {
   })
   create(@Body() userInputData: CreateUserDtoV1) {
     return this.userService.create(userInputData);
+  }
+
+  @Get()
+  findAll() {
+    return this.userService.findAll();
   }
 }
