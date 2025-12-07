@@ -1,8 +1,15 @@
-import { BadRequestException, Body, Controller, Post } from "@nestjs/common";
+import {
+  BadRequestException,
+  Body,
+  Controller,
+  Get,
+  Post,
+} from "@nestjs/common";
 import { UserService } from "../user.service";
 import { CreateUserDtoV1 } from "./dto/create-user.dto";
 import { ApiOperation, ApiResponse, ApiTags } from "@nestjs/swagger";
 import { CreateUserResponseDtoV1 } from "./dto/create-user-response.dto";
+import { FindAllUsersResponseDtoV1 } from "./dto/find-all-users.response.dto";
 
 @Controller({ path: "user", version: "1" })
 @ApiTags("user-v1")
@@ -26,5 +33,16 @@ export class UserControllerV1 {
   })
   create(@Body() userInputData: CreateUserDtoV1) {
     return this.userService.create(userInputData);
+  }
+
+  @Get()
+  @ApiOperation({ summary: "Retorna uma lista com todos os usuários" })
+  @ApiResponse({
+    status: 200,
+    description: "Lista com usuários ou lista vazia caso não exista usuários",
+    type: [FindAllUsersResponseDtoV1],
+  })
+  findAll() {
+    return this.userService.findAll();
   }
 }
