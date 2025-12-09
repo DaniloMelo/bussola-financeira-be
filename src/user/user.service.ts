@@ -1,8 +1,13 @@
-import { BadRequestException, Injectable } from "@nestjs/common";
+import {
+  BadRequestException,
+  Injectable,
+  NotFoundException,
+} from "@nestjs/common";
 import { CreateUserDtoV1 } from "./v1/dto/create-user.dto";
 import { UserRepository } from "./user.repository";
 import { HasherProtocol } from "src/common/hasher/hasher.protocol";
 import { ICreateUser } from "./interfaces/user";
+import { IUpdateUserData } from "./interfaces/update";
 
 @Injectable()
 export class UserService {
@@ -33,5 +38,39 @@ export class UserService {
 
   async findAll() {
     return this.userRepository.findAll();
+  }
+
+  async update(userId: string, userData: IUpdateUserData) {
+    if (!userData.name && !userData.email && !userData.password) {
+      throw new BadRequestException("Nenhum dado foi fornecido.");
+    }
+
+    // TODO: Verificar se é possível retirar essa verificação após a implmentação do payload na request e retirar route-params
+    const existingUser = await this.userRepository.findOneById(userId);
+    if (!existingUser) {
+      throw new NotFoundException("Usuário não encontrado.");
+    }
+
+    const userDataToSave: IUpdateUserData = { ...userData };
+
+    if (userDataToSave.email) {
+      const existingEmail = await this.userRepository.findOneByEmail(
+        userDataToSave.email,
+      );
+
+      if (existingEmail) {
+        throw new BadRequestException(
+          "Impossível atualizar o seu usuário. Verifique as suas credenciais e tente novamente.",
+        );
+      }
+    }
+
+    if (userData.password) {
+      userDataToSave.password = await this.hasherService.hash(
+        userData.password,
+      );
+    }
+
+    return await this.userRepository.update(userId, userDataToSave);
   }
 }
