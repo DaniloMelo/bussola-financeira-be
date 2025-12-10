@@ -63,7 +63,9 @@ describe("UserService", () => {
       };
 
       jest.spyOn(userRepositoryMock, "findOneByEmail").mockResolvedValue(null);
+
       jest.spyOn(hasherServiceMock, "hash").mockResolvedValue(hashedPassword);
+
       jest.spyOn(userRepositoryMock, "create").mockResolvedValue(storedUser);
 
       const result = await userService.create(newUser);
@@ -105,14 +107,13 @@ describe("UserService", () => {
         .spyOn(userRepositoryMock, "findOneByEmail")
         .mockResolvedValue(storedUser);
 
-      // TODO: Refatorar os testes de erro
-      await userService.create(newUser).catch((error: BadRequestException) => {
-        expect(error).toBeInstanceOf(BadRequestException);
-        expect(error.getStatus()).toBe(400);
-        expect(error.message).toBe(
-          "Falha ao criar o usuário. Verifique os dados fornecidos.",
-        );
-      });
+      await expect(userService.create(newUser)).rejects.toThrow(
+        "Falha ao criar o usuário. Verifique os dados fornecidos.",
+      );
+
+      await expect(userService.create(newUser)).rejects.toBeInstanceOf(
+        BadRequestException,
+      );
 
       expect(userRepositoryMock.findOneByEmail).toHaveBeenCalledWith(
         newUser.email,
@@ -156,6 +157,7 @@ describe("UserService", () => {
       const result = await userService.findAll();
 
       expect(userRepositoryMock.findAll).toHaveBeenCalled();
+
       expect(result).toEqual(storedUsers);
     });
 
@@ -165,7 +167,9 @@ describe("UserService", () => {
       const result = await userService.findAll();
 
       expect(userRepositoryMock.findAll).toHaveBeenCalled();
+
       expect(result.length).toBe(0);
+
       expect(result).toEqual([]);
     });
   });
@@ -207,8 +211,11 @@ describe("UserService", () => {
       jest
         .spyOn(userRepositoryMock, "findOneById")
         .mockResolvedValue(storedUser);
+
       jest.spyOn(userRepositoryMock, "findOneByEmail").mockResolvedValue(null);
+
       jest.spyOn(hasherServiceMock, "hash").mockResolvedValue(hashedPassword);
+
       jest
         .spyOn(userRepositoryMock, "update")
         .mockResolvedValue(storedUpdatedUser);
@@ -218,16 +225,20 @@ describe("UserService", () => {
       expect(userRepositoryMock.findOneById).toHaveBeenCalledWith(
         storedUser.id,
       );
+
       expect(userRepositoryMock.findOneByEmail).toHaveBeenCalledWith(
         userDataToUpdate.email,
       );
+
       expect(hasherServiceMock.hash).toHaveBeenCalledWith(
         userDataToUpdate.password,
       );
+
       expect(userRepositoryMock.update).toHaveBeenCalledWith(storedUser.id, {
         ...userDataToUpdate,
         password: hashedPassword,
       });
+
       expect(result).toEqual(storedUpdatedUser);
     });
 
@@ -265,6 +276,7 @@ describe("UserService", () => {
       jest
         .spyOn(userRepositoryMock, "findOneById")
         .mockResolvedValue(storedUser);
+
       jest
         .spyOn(userRepositoryMock, "update")
         .mockResolvedValue(storedUpdatedUser);
@@ -274,12 +286,16 @@ describe("UserService", () => {
       expect(userRepositoryMock.findOneById).toHaveBeenCalledWith(
         storedUser.id,
       );
+
       expect(userRepositoryMock.findOneByEmail).not.toHaveBeenCalled();
+
       expect(hasherServiceMock.hash).not.toHaveBeenCalled();
+
       expect(userRepositoryMock.update).toHaveBeenCalledWith(
         storedUser.id,
         userDataToUpdate,
       );
+
       expect(result).toEqual(storedUpdatedUser);
     });
 
@@ -317,7 +333,9 @@ describe("UserService", () => {
       jest
         .spyOn(userRepositoryMock, "findOneById")
         .mockResolvedValue(storedUser);
+
       jest.spyOn(userRepositoryMock, "findOneByEmail").mockResolvedValue(null);
+
       jest
         .spyOn(userRepositoryMock, "update")
         .mockResolvedValue(storedUpdatedUser);
@@ -327,14 +345,18 @@ describe("UserService", () => {
       expect(userRepositoryMock.findOneById).toHaveBeenCalledWith(
         storedUser.id,
       );
+
       expect(userRepositoryMock.findOneByEmail).toHaveBeenCalledWith(
         userDataToUpdate.email,
       );
+
       expect(hasherServiceMock.hash).not.toHaveBeenCalled();
+
       expect(userRepositoryMock.update).toHaveBeenCalledWith(
         storedUser.id,
         userDataToUpdate,
       );
+
       expect(result).toEqual(storedUpdatedUser);
     });
 
@@ -374,7 +396,9 @@ describe("UserService", () => {
       jest
         .spyOn(userRepositoryMock, "findOneById")
         .mockResolvedValue(storedUser);
+
       jest.spyOn(hasherServiceMock, "hash").mockResolvedValue(hashedPassword);
+
       jest
         .spyOn(userRepositoryMock, "update")
         .mockResolvedValue(storedUpdatedUser);
