@@ -3,6 +3,8 @@ import {
   Body,
   Controller,
   Get,
+  Param,
+  Patch,
   Post,
 } from "@nestjs/common";
 import { UserService } from "../user.service";
@@ -10,6 +12,7 @@ import { CreateUserDtoV1 } from "./dto/create-user.dto";
 import { ApiOperation, ApiResponse, ApiTags } from "@nestjs/swagger";
 import { CreateUserResponseDtoV1 } from "./dto/create-user-response.dto";
 import { FindAllUsersResponseDtoV1 } from "./dto/find-all-users.response.dto";
+import { UpdateUserDtoV1 } from "./dto/update-user.dto";
 
 @Controller({ path: "user", version: "1" })
 @ApiTags("user-v1")
@@ -44,5 +47,14 @@ export class UserControllerV1 {
   })
   findAll() {
     return this.userService.findAll();
+  }
+
+  // TODO: Trocar route-params por Payload (JWT) na request
+  @Patch(":id")
+  update(
+    @Param("id") userId: string,
+    @Body() updatedUserData: UpdateUserDtoV1,
+  ) {
+    return this.userService.update(userId, updatedUserData);
   }
 }
