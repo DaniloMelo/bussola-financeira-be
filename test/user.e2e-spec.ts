@@ -14,6 +14,7 @@ import { UserModule } from "src/user/user.module";
 import * as request from "supertest";
 import { cleanDatabase } from "./utils/clean-database";
 import { createTestUserV1 } from "./utils/create-test-user-v1";
+import { IUpdateUserData } from "src/user/interfaces/update";
 
 describe("UserController (e2e)", () => {
   let app: INestApplication;
@@ -69,7 +70,8 @@ describe("UserController (e2e)", () => {
 
       const response = await request(app.getHttpServer())
         .post("/v1/user")
-        .send(newUser);
+        .send(newUser)
+        .expect(201);
 
       expect(response.body).toEqual({
         id: expect.any(String),
@@ -93,7 +95,8 @@ describe("UserController (e2e)", () => {
 
       const response = await request(app.getHttpServer())
         .post("/v1/user")
-        .send(invalidUser);
+        .send(invalidUser)
+        .expect(400);
 
       expect(response.body).toEqual({
         message: [
@@ -117,7 +120,8 @@ describe("UserController (e2e)", () => {
 
       const response = await request(app.getHttpServer())
         .post("/v1/user")
-        .send(newUser);
+        .send(newUser)
+        .expect(400);
 
       expect(response.body).toEqual({
         message: ["Falha ao criar o usuário. Verifique os dados fornecidos."],
@@ -137,7 +141,8 @@ describe("UserController (e2e)", () => {
 
       const response = await request(app.getHttpServer())
         .post("/v2/user")
-        .send(newUser);
+        .send(newUser)
+        .expect(201);
 
       expect(response.body).toEqual({
         id: expect.any(String),
@@ -161,7 +166,8 @@ describe("UserController (e2e)", () => {
 
       const response = await request(app.getHttpServer())
         .post("/v2/user")
-        .send(invalidUser);
+        .send(invalidUser)
+        .expect(400);
 
       expect(response.body).toEqual({
         message: [
@@ -191,7 +197,8 @@ describe("UserController (e2e)", () => {
 
       const response = await request(app.getHttpServer())
         .post("/v2/user")
-        .send(newUser);
+        .send(newUser)
+        .expect(400);
 
       expect(response.body).toEqual({
         message: ["Falha ao criar o usuário. Verifique os dados fornecidos."],
@@ -205,7 +212,9 @@ describe("UserController (e2e)", () => {
     it("Should return an array of users", async () => {
       await createTestUserV1(app);
 
-      const response = await request(app.getHttpServer()).get("/v1/user");
+      const response = await request(app.getHttpServer())
+        .get("/v1/user")
+        .expect(200);
 
       expect(response.body).toEqual([
         {
@@ -220,6 +229,137 @@ describe("UserController (e2e)", () => {
           },
         },
       ]);
+    });
+  });
+
+  describe("/user (PATCH) V1", () => {
+    it("Should update 'name' only", async () => {
+      const user = await createTestUserV1(app);
+
+      const dataToUpdate: IUpdateUserData = {
+        name: "John Doe UPDATED",
+      };
+
+      const preUpdateStoredUser = await prisma.user.findUnique({
+        where: { id: user.id },
+        include: {
+          userCredentials: {
+            select: {
+              passwordHash: true,
+            },
+          },
+        },
+      });
+
+      const response = await request(app.getHttpServer())
+        .patch(`/v1/user/${user.id}`)
+        .send(dataToUpdate)
+        .expect(200);
+
+      expect(response.body).toEqual({
+        id: expect.any(String),
+        name: "John Doe UPDATED",
+        email: "john@email.com",
+        createdAt: expect.any(String),
+        updatedAt: expect.any(String),
+        userCredentials: {
+          id: expect.any(String),
+          lastLoginAt: null,
+        },
+      });
+
+      const postUpdateStoredUser = await prisma.user.findUnique({
+        where: { id: user.id },
+        include: {
+          userCredentials: {
+            select: {
+              passwordHash: true,
+            },
+          },
+        },
+      });
+
+      expect(postUpdateStoredUser?.name).toBe("John Doe UPDATED");
+
+      expect(postUpdateStoredUser?.email).toBe(preUpdateStoredUser?.email);
+
+      expect(postUpdateStoredUser?.userCredentials?.passwordHash).toBe(
+        preUpdateStoredUser?.userCredentials?.passwordHash,
+      );
+    });
+
+    it("Should return 'BadRequestException' for all validations errors", async () => {
+      const user = await createTestUserV1(app);
+
+      const invalidDataToUpdate: IUpdateUserData = {
+        name: "Jo",
+        email: "invalid_email",
+        password: "pass",
+      };
+
+      const response = await request(app.getHttpServer())
+        .patch(`/v1/user/${user.id}`)
+        .send(invalidDataToUpdate)
+        .expect(400);
+
+      expect(response.body).toEqual({
+        message: [
+          "Nome precisa ter o mínimo de 3 caracteres.",
+          "E-mail inválido.",
+          "Senha precisa ter o mínimo de 6 caracteres.",
+        ],
+        error: "Bad Request",
+        statusCode: 400,
+      });
+    });
+
+    it("Should return 'BadRequestException' if trying to update email to one that is already taken", async () => {
+      const user = await createTestUserV1(app, { email: "userA@email.com" });
+      await createTestUserV1(app, { email: "userB@email.com" });
+
+      const dataToUpdate: IUpdateUserData = {
+        email: "userB@email.com",
+      };
+
+      const response = await request(app.getHttpServer())
+        .patch(`/v1/user/${user.id}`)
+        .send(dataToUpdate)
+        .expect(400);
+
+      expect(response.body).toEqual({
+        message: [
+          "Impossível atualizar o seu usuário. Verifique as suas credenciais e tente novamente.",
+        ],
+        error: "Bad Request",
+        statusCode: 400,
+      });
+    });
+
+    it("Should update and encrypt 'password' if provided", async () => {
+      const user = await createTestUserV1(app);
+
+      const dataToUpdate: IUpdateUserData = {
+        password: "new_password_123",
+      };
+
+      const preUpdatePasswordHash = await prisma.userCredentials.findUnique({
+        where: { userId: user.id },
+      });
+
+      await request(app.getHttpServer())
+        .patch(`/v1/user/${user.id}`)
+        .send(dataToUpdate)
+        .expect(200);
+
+      const postUpdatePasswordHash = await prisma.userCredentials.findUnique({
+        where: { userId: user.id },
+      });
+
+      expect(postUpdatePasswordHash?.passwordHash).not.toBe(
+        dataToUpdate.password,
+      );
+
+      expect(preUpdatePasswordHash).not.toBe(postUpdatePasswordHash);
     });
   });
 });
