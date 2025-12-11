@@ -359,7 +359,9 @@ describe("UserController (e2e)", () => {
         dataToUpdate.password,
       );
 
-      expect(preUpdatePasswordHash).not.toBe(postUpdatePasswordHash);
+      expect(preUpdatePasswordHash?.passwordHash).not.toBe(
+        postUpdatePasswordHash?.passwordHash,
+      );
     });
   });
 });
