@@ -7,6 +7,7 @@ import { UserControllerV1 } from "./user.controller";
 const userServiceMock: Partial<UserService> = {
   create: jest.fn(),
   findAll: jest.fn(),
+  update: jest.fn(),
 };
 
 describe("UserController V1", () => {
@@ -26,13 +27,13 @@ describe("UserController V1", () => {
     };
 
     const serviceResponseMock: CreateUserResponseDtoV1 = {
-      id: "34eaa6f3-4ff8-4f70-8acb-44b70436891b",
+      id: "1",
       name: "John Doe",
       email: "john@email.com",
       createdAt: new Date(),
       updatedAt: new Date(),
       userCredentials: {
-        id: "57efca6f3-12381-4f40-8acb-44b7036891csa",
+        id: "11",
         lastLoginAt: null,
       },
     };
@@ -44,6 +45,7 @@ describe("UserController V1", () => {
     const result = await userController.create(userInputDataMock);
 
     expect(userServiceMock.create).toHaveBeenCalledWith(userInputDataMock);
+
     expect(result).toEqual(serviceResponseMock);
   });
 
@@ -78,6 +80,37 @@ describe("UserController V1", () => {
     const result = await userController.findAll();
 
     expect(userServiceMock.findAll).toHaveBeenCalled();
+
     expect(result).toEqual(storedUsers);
+  });
+
+  it("Should call userService.update with correct arguments", async () => {
+    const userInputDataMock: CreateUserDtoV1 = {
+      name: "John Doe Updated",
+      email: "john_updated@email.com",
+      password: "pass_updated123",
+    };
+
+    const serviceResponseMock: CreateUserResponseDtoV1 = {
+      id: "1",
+      name: "John Doe Updated",
+      email: "john_updated@email.com",
+      createdAt: new Date(),
+      updatedAt: new Date(),
+      userCredentials: {
+        id: "11",
+        lastLoginAt: null,
+      },
+    };
+
+    jest
+      .spyOn(userServiceMock, "update")
+      .mockResolvedValue(serviceResponseMock);
+
+    const result = await userController.update("1", userInputDataMock);
+
+    expect(userServiceMock.update).toHaveBeenCalledWith("1", userInputDataMock);
+
+    expect(result).toEqual(serviceResponseMock);
   });
 });
