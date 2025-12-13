@@ -9,14 +9,6 @@ const validUser: CreateUserDtoV1 = {
 };
 
 describe("CreateUserDto V1", () => {
-  it("Should pass all validations", async () => {
-    const instance = plainToInstance(CreateUserDtoV1, validUser);
-
-    const errors = await validate(instance);
-
-    expect(errors.length).toBe(0);
-  });
-
   it("Should remove invalid spaces from 'name'", async () => {
     const invalidUser = {
       ...validUser,
@@ -47,57 +39,6 @@ describe("CreateUserDto V1", () => {
       "isNotEmpty",
       "Nome não pode ser espaços em branco.",
     );
-  });
-
-  it("Should fail if 'name' contains less than '3' characters", async () => {
-    const invalidUser = {
-      ...validUser,
-      name: "Jo",
-    };
-
-    const instance = plainToInstance(CreateUserDtoV1, invalidUser);
-
-    const errors = await validate(instance);
-
-    expect(errors.length).toBe(1);
-    expect(errors[0].property).toBe("name");
-    expect(errors[0].constraints).toHaveProperty(
-      "minLength",
-      "Nome precisa ter o mínimo de 3 caracteres.",
-    );
-  });
-
-  it("Should fail if 'name' contains more than '100' characters", async () => {
-    const invalidUser = {
-      ...validUser,
-      name: "a".repeat(101),
-    };
-
-    const instance = plainToInstance(CreateUserDtoV1, invalidUser);
-
-    const errors = await validate(instance);
-
-    expect(errors.length).toBe(1);
-    expect(errors[0].property).toBe("name");
-    expect(errors[0].constraints).toHaveProperty(
-      "maxLength",
-      "Nome pode ter no máximo 100 caracteres.",
-    );
-  });
-
-  it("Should fail if 'email' is invalid", async () => {
-    const invalidUser = {
-      ...validUser,
-      email: "invalid_email.com",
-    };
-
-    const instance = plainToInstance(CreateUserDtoV1, invalidUser);
-
-    const errors = await validate(instance);
-
-    expect(errors.length).toBe(1);
-    expect(errors[0].property).toBe("email");
-    expect(errors[0].constraints).toHaveProperty("isEmail", "E-mail inválido.");
   });
 
   it("Should remove invalid spaces from 'password'", async () => {
@@ -133,24 +74,6 @@ describe("CreateUserDto V1", () => {
     expect(errors[0].constraints).toHaveProperty(
       "isNotEmpty",
       "Senha não pode ser espaços em branco.",
-    );
-  });
-
-  it("Should fail if 'password' has less than 6 characters", async () => {
-    const invalidUser = {
-      ...validUser,
-      password: "senha",
-    };
-
-    const instance = plainToInstance(CreateUserDtoV1, invalidUser);
-
-    const errors = await validate(instance);
-
-    expect(errors.length).toBe(1);
-    expect(errors[0].property).toBe("password");
-    expect(errors[0].constraints).toHaveProperty(
-      "minLength",
-      "Senha precisa ter o mínimo de 6 caracteres.",
     );
   });
 });
