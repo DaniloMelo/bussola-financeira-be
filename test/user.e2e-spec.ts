@@ -1,5 +1,6 @@
 /* eslint-disable @typescript-eslint/no-unsafe-assignment */
 /* eslint-disable @typescript-eslint/no-unsafe-argument */
+
 import {
   INestApplication,
   ValidationPipe,
@@ -15,6 +16,7 @@ import * as request from "supertest";
 import { cleanDatabase } from "./utils/clean-database";
 import { createTestUserV1 } from "./utils/create-test-user-v1";
 import { IUpdateUserData } from "src/user/interfaces/update";
+import { ApiResponseDto } from "src/user/v1/dto/swagger/api-response.dto";
 
 describe("UserController (e2e)", () => {
   let app: INestApplication;
@@ -61,7 +63,7 @@ describe("UserController (e2e)", () => {
   });
 
   describe("/user (POST) V1", () => {
-    it("Should create a user using V1", async () => {
+    it("Should create and persist a user using V1", async () => {
       const newUser = {
         name: "John Doe",
         email: "john@email.com",
@@ -73,7 +75,9 @@ describe("UserController (e2e)", () => {
         .send(newUser)
         .expect(201);
 
-      expect(response.body).toEqual({
+      const reponseBody: ApiResponseDto = response.body;
+
+      expect(reponseBody).toEqual({
         id: expect.any(String),
         name: "John Doe",
         email: "john@email.com",
@@ -84,6 +88,19 @@ describe("UserController (e2e)", () => {
           lastLoginAt: null,
         },
       });
+
+      const storedUser = await prisma.user.findUnique({
+        where: { id: reponseBody.id },
+        include: { userCredentials: true },
+      });
+
+      expect(storedUser).toBeDefined();
+      expect(storedUser?.name).toBe(newUser.name);
+      expect(storedUser?.email).toBe(newUser.email);
+      expect(storedUser?.userCredentials?.passwordHash).toBeDefined();
+      expect(storedUser?.userCredentials?.passwordHash).not.toBe(
+        newUser.password,
+      );
     });
 
     it("Should return 'BadRequestException' for all validations errors", async () => {
@@ -144,7 +161,9 @@ describe("UserController (e2e)", () => {
         .send(newUser)
         .expect(201);
 
-      expect(response.body).toEqual({
+      const responseBody: ApiResponseDto = response.body;
+
+      expect(responseBody).toEqual({
         id: expect.any(String),
         userName: "John Doe",
         userEmail: "john@email.com",
@@ -155,6 +174,19 @@ describe("UserController (e2e)", () => {
           lastLoginAt: null,
         },
       });
+
+      const storedUser = await prisma.user.findUnique({
+        where: { id: responseBody.id },
+        include: { userCredentials: true },
+      });
+
+      expect(storedUser).toBeDefined();
+      expect(storedUser?.name).toBe(newUser.userName);
+      expect(storedUser?.email).toBe(newUser.userEmail);
+      expect(storedUser?.userCredentials?.passwordHash).toBeDefined();
+      expect(storedUser?.userCredentials?.passwordHash).not.toBe(
+        newUser.userPassword,
+      );
     });
 
     it("Should return 'BadRequestException' for all validations errors", async () => {
