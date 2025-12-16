@@ -2,7 +2,7 @@
 
 import { INestApplication } from "@nestjs/common";
 import { IUpdateUserData } from "src/user/interfaces/update";
-import { CreateUserResponseDtoV1 } from "src/user/v1/dto/create-user-response.dto";
+import { UserApiResponseDtoV1 } from "src/user/v1/dto/swagger/user-api-response.dto";
 import * as request from "supertest";
 
 export async function createTestUserV1(
@@ -19,5 +19,5 @@ export async function createTestUserV1(
     .post("/v1/user")
     .send(user);
 
-  return response.body as CreateUserResponseDtoV1;
+  return response.body as UserApiResponseDtoV1;
 }

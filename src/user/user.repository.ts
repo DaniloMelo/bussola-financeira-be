@@ -32,6 +32,7 @@ export class UserRepository {
 
   async findAll() {
     return await this.prisma.user.findMany({
+      // where: { deletedAt: null },
       include: {
         userCredentials: {
           select: {
@@ -45,19 +46,28 @@ export class UserRepository {
 
   async findOneByEmail(email: string) {
     return await this.prisma.user.findUnique({
-      where: { email },
+      where: {
+        email,
+        deletedAt: null,
+      },
     });
   }
 
   async findOneById(userId: string) {
     return await this.prisma.user.findUnique({
-      where: { id: userId },
+      where: {
+        id: userId,
+        deletedAt: null,
+      },
     });
   }
 
   async update(userId: string, userData: IUpdateUserData) {
     return await this.prisma.user.update({
-      where: { id: userId },
+      where: {
+        id: userId,
+        deletedAt: null,
+      },
       data: {
         name: userData.name,
         email: userData.email,
@@ -67,6 +77,24 @@ export class UserRepository {
           },
         },
       },
+      include: {
+        userCredentials: {
+          select: {
+            id: true,
+            lastLoginAt: true,
+          },
+        },
+      },
+    });
+  }
+
+  async softDelete(userId: string) {
+    return await this.prisma.user.update({
+      where: {
+        id: userId,
+        deletedAt: null,
+      },
+      data: { deletedAt: new Date() },
       include: {
         userCredentials: {
           select: {

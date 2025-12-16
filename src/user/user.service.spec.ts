@@ -24,6 +24,7 @@ describe("UserService", () => {
             findAll: jest.fn(),
             findOneById: jest.fn(),
             update: jest.fn(),
+            softDelete: jest.fn(),
           },
         },
         {
@@ -50,10 +51,11 @@ describe("UserService", () => {
 
       const hashedPassword = "hashedpassword";
 
-      const storedUser = {
+      const storedUser: IStoredUser = {
         id: "1",
         name: "John Doe",
         email: "john@email.com",
+        deletedAt: null,
         createdAt: new Date(),
         updatedAt: new Date(),
         userCredentials: {
@@ -85,10 +87,11 @@ describe("UserService", () => {
     });
 
     it("Should throw 'BadRequesException' when user already exists", async () => {
-      const storedUser = {
+      const storedUser: IStoredUser = {
         id: "1",
         name: "John Doe",
         email: "john@email.com",
+        deletedAt: null,
         createdAt: new Date(),
         updatedAt: new Date(),
         userCredentials: {
@@ -132,6 +135,7 @@ describe("UserService", () => {
           id: "1",
           name: "John Doe",
           email: "john@email.com",
+          deletedAt: null,
           createdAt: new Date(),
           updatedAt: new Date(),
           userCredentials: {
@@ -143,6 +147,7 @@ describe("UserService", () => {
           id: "2",
           name: "Jane Doe",
           email: "jane@email.com",
+          deletedAt: null,
           createdAt: new Date(),
           updatedAt: new Date(),
           userCredentials: {
@@ -180,6 +185,7 @@ describe("UserService", () => {
         id: "1",
         name: "John Doe",
         email: "john@email.com",
+        deletedAt: null,
         createdAt: new Date(),
         updatedAt: new Date(),
         userCredentials: {
@@ -194,6 +200,7 @@ describe("UserService", () => {
         id: "1",
         name: "John Doe Updated",
         email: "john_updated@email.com",
+        deletedAt: null,
         createdAt: new Date(),
         updatedAt: new Date(),
         userCredentials: {
@@ -247,6 +254,7 @@ describe("UserService", () => {
         id: "1",
         name: "John Doe",
         email: "john@email.com",
+        deletedAt: null,
         createdAt: new Date(),
         updatedAt: new Date(),
         userCredentials: {
@@ -265,6 +273,7 @@ describe("UserService", () => {
         id: "1",
         name: "John Doe Updated",
         email: "john@email.com",
+        deletedAt: null,
         createdAt: new Date(),
         updatedAt: new Date(),
         userCredentials: {
@@ -304,6 +313,7 @@ describe("UserService", () => {
         id: "1",
         name: "John Doe",
         email: "john@email.com",
+        deletedAt: null,
         createdAt: new Date(),
         updatedAt: new Date(),
         userCredentials: {
@@ -322,6 +332,7 @@ describe("UserService", () => {
         id: "1",
         name: "John Doe",
         email: "john_updated@email.com",
+        deletedAt: null,
         createdAt: new Date(),
         updatedAt: new Date(),
         userCredentials: {
@@ -365,6 +376,7 @@ describe("UserService", () => {
         id: "1",
         name: "John Doe",
         email: "john@email.com",
+        deletedAt: null,
         createdAt: new Date(),
         updatedAt: new Date(),
         userCredentials: {
@@ -379,6 +391,7 @@ describe("UserService", () => {
         id: "1",
         name: "John Doe",
         email: "john@email.com",
+        deletedAt: null,
         createdAt: new Date(),
         updatedAt: new Date(),
         userCredentials: {
@@ -426,6 +439,7 @@ describe("UserService", () => {
         id: "1",
         name: "John Doe",
         email: "john@email.com",
+        deletedAt: null,
         createdAt: new Date(),
         updatedAt: new Date(),
         userCredentials: {
@@ -466,6 +480,7 @@ describe("UserService", () => {
         id: "1",
         name: "John Doe",
         email: "john@email.com",
+        deletedAt: null,
         createdAt: new Date(),
         updatedAt: new Date(),
         userCredentials: {
@@ -478,6 +493,7 @@ describe("UserService", () => {
         id: "2",
         name: "Jane Doe",
         email: "jane@email.com",
+        deletedAt: null,
         createdAt: new Date(),
         updatedAt: new Date(),
         userCredentials: {
@@ -519,6 +535,53 @@ describe("UserService", () => {
       );
 
       expect(hasherServiceMock.hash).not.toHaveBeenCalled();
+
+      expect(userRepositoryMock.update).not.toHaveBeenCalled();
+    });
+  });
+
+  describe("softDelete", () => {
+    it("Should softly delete user", async () => {
+      const userToDelete: IStoredUser = {
+        id: "1",
+        name: "John Doe",
+        email: "john@email.com",
+        deletedAt: null,
+        updatedAt: new Date(),
+        createdAt: new Date(),
+        userCredentials: {
+          id: "11",
+          lastLoginAt: null,
+        },
+      };
+
+      jest
+        .spyOn(userRepositoryMock, "findOneById")
+        .mockResolvedValue(userToDelete);
+
+      jest
+        .spyOn(userRepositoryMock, "softDelete")
+        .mockResolvedValue({ ...userToDelete, deletedAt: new Date() });
+
+      const result = await userService.softDelete(userToDelete.id);
+
+      expect(userRepositoryMock.findOneById).toHaveBeenCalledWith("1");
+
+      expect(userRepositoryMock.softDelete).toHaveBeenCalledWith("1");
+
+      expect(result.deletedAt).not.toBeNull();
+    });
+
+    it("Should throw 'NotFoundException' if user dont exist", async () => {
+      jest.spyOn(userRepositoryMock, "findOneById").mockResolvedValue(null);
+
+      await expect(userService.softDelete("unexistent-id")).rejects.toThrow(
+        "Impossível excluir esse usuário.",
+      );
+
+      await expect(
+        userService.softDelete("unexistent-id"),
+      ).rejects.toBeInstanceOf(BadRequestException);
 
       expect(userRepositoryMock.update).not.toHaveBeenCalled();
     });
