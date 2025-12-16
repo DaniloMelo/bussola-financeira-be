@@ -19,6 +19,8 @@ export class AllExceptionsFilter implements ExceptionFilter {
     const context = host.switchToHttp();
     const response = context.getResponse<Response>();
 
+    console.error(exception);
+
     let status: number = HttpStatus.INTERNAL_SERVER_ERROR;
     let errorResponse: ErrorResponseBody = {
       message: "Ocorreu um erro interno no servidor",
