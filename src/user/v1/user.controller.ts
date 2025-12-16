@@ -2,6 +2,7 @@ import {
   BadRequestException,
   Body,
   Controller,
+  Delete,
   Get,
   Param,
   Patch,
@@ -10,10 +11,11 @@ import {
 import { UserService } from "../user.service";
 import { CreateUserDtoV1 } from "./dto/create-user.dto";
 import { ApiOperation, ApiResponse, ApiTags } from "@nestjs/swagger";
-import { CreateUserResponseDtoV1 } from "./dto/create-user-response.dto";
-import { FindAllUsersResponseDtoV1 } from "./dto/find-all-users.response.dto";
+// import { CreateUserResponseDtoV1 } from "./dto/create-user-response.dto";
+// import { FindAllUsersResponseDtoV1 } from "./dto/find-all-users.response.dto";
 import { UpdateUserDtoV1 } from "./dto/update-user.dto";
-import { ApiResponseDto } from "./dto/swagger/api-response.dto";
+import { UserApiResponseDtoV1 } from "./dto/swagger/user-api-response.dto";
+import { DeletedUserApiResponseDtoV1 } from "./dto/swagger/deleted-user-api-response.dto";
 
 @Controller({ path: "user", version: "1" })
 @ApiTags("user-v1")
@@ -25,7 +27,7 @@ export class UserControllerV1 {
   @ApiResponse({
     status: 201,
     description: "Usuário criado.",
-    type: CreateUserResponseDtoV1,
+    type: UserApiResponseDtoV1,
   })
   @ApiResponse({
     status: 400,
@@ -44,7 +46,7 @@ export class UserControllerV1 {
   @ApiResponse({
     status: 200,
     description: "Lista com usuários ou lista vazia caso não exista usuários",
-    type: [FindAllUsersResponseDtoV1],
+    type: [UserApiResponseDtoV1],
   })
   findAll() {
     return this.userService.findAll();
@@ -56,7 +58,7 @@ export class UserControllerV1 {
   @ApiResponse({
     status: 200,
     description: "Retorna o usuário atualizado",
-    type: ApiResponseDto,
+    type: UserApiResponseDtoV1,
   })
   @ApiResponse({
     status: 400,
@@ -68,5 +70,22 @@ export class UserControllerV1 {
     @Body() updatedUserData: UpdateUserDtoV1,
   ) {
     return this.userService.update(userId, updatedUserData);
+  }
+
+  // TODO: Trocar route-params por Payload (JWT) na request
+  @Delete(":id")
+  @ApiOperation({ summary: "Exclui um usuário" })
+  @ApiResponse({
+    status: 200,
+    description: "Retorna o usuário excluído (soft delete)",
+    type: DeletedUserApiResponseDtoV1,
+  })
+  @ApiResponse({
+    status: 400,
+    description: "Dados inválidos, ausentes ou recurso não encontrado",
+    example: new BadRequestException(["Mensagem de exemplo"]).getResponse(),
+  })
+  softDelete(@Param("id") userId: string) {
+    return this.userService.softDelete(userId);
   }
 }

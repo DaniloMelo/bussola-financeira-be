@@ -71,4 +71,13 @@ export class UserService {
 
     return await this.userRepository.update(userId, userDataToSave);
   }
+
+  async softDelete(userId: string) {
+    const existingUser = await this.userRepository.findOneById(userId);
+    if (!existingUser) {
+      throw new BadRequestException("Impossível excluir esse usuário.");
+    }
+
+    return await this.userRepository.softDelete(userId);
+  }
 }

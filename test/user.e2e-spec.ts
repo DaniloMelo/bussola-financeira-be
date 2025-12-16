@@ -16,7 +16,8 @@ import * as request from "supertest";
 import { cleanDatabase } from "./utils/clean-database";
 import { createTestUserV1 } from "./utils/create-test-user-v1";
 import { IUpdateUserData } from "src/user/interfaces/update";
-import { ApiResponseDto } from "src/user/v1/dto/swagger/api-response.dto";
+import { UserApiResponseDtoV1 } from "src/user/v1/dto/swagger/user-api-response.dto";
+import { DeletedUserApiResponseDtoV1 } from "src/user/v1/dto/swagger/deleted-user-api-response.dto";
 
 describe("UserController (e2e)", () => {
   let app: INestApplication;
@@ -75,12 +76,13 @@ describe("UserController (e2e)", () => {
         .send(newUser)
         .expect(201);
 
-      const reponseBody: ApiResponseDto = response.body;
+      const reponseBody: UserApiResponseDtoV1 = response.body;
 
       expect(reponseBody).toEqual({
         id: expect.any(String),
         name: "John Doe",
         email: "john@email.com",
+        deletedAt: null,
         createdAt: expect.any(String),
         updatedAt: expect.any(String),
         userCredentials: {
@@ -95,9 +97,13 @@ describe("UserController (e2e)", () => {
       });
 
       expect(storedUser).toBeDefined();
+
       expect(storedUser?.name).toBe(newUser.name);
+
       expect(storedUser?.email).toBe(newUser.email);
+
       expect(storedUser?.userCredentials?.passwordHash).toBeDefined();
+
       expect(storedUser?.userCredentials?.passwordHash).not.toBe(
         newUser.password,
       );
@@ -161,7 +167,7 @@ describe("UserController (e2e)", () => {
         .send(newUser)
         .expect(201);
 
-      const responseBody: ApiResponseDto = response.body;
+      const responseBody: UserApiResponseDtoV1 = response.body;
 
       expect(responseBody).toEqual({
         id: expect.any(String),
@@ -253,6 +259,7 @@ describe("UserController (e2e)", () => {
           id: expect.any(String),
           name: "John Doe",
           email: "john@email.com",
+          deletedAt: null,
           createdAt: expect.any(String),
           updatedAt: expect.any(String),
           userCredentials: {
@@ -292,6 +299,7 @@ describe("UserController (e2e)", () => {
         id: expect.any(String),
         name: "John Doe UPDATED",
         email: "john@email.com",
+        deletedAt: null,
         createdAt: expect.any(String),
         updatedAt: expect.any(String),
         userCredentials: {
@@ -394,6 +402,49 @@ describe("UserController (e2e)", () => {
       expect(preUpdatePasswordHash?.passwordHash).not.toBe(
         postUpdatePasswordHash?.passwordHash,
       );
+    });
+  });
+
+  describe("/user (DELETE) V1", () => {
+    it("Should delete user", async () => {
+      const user = await createTestUserV1(app);
+
+      const response = await request(app.getHttpServer())
+        .delete(`/v1/user/${user.id}`)
+        .expect(200);
+
+      const reponseBody: DeletedUserApiResponseDtoV1 = response.body;
+
+      expect(reponseBody).toEqual({
+        id: expect.any(String),
+        name: "John Doe",
+        email: "john@email.com",
+        deletedAt: expect.any(String),
+        createdAt: expect.any(String),
+        updatedAt: expect.any(String),
+        userCredentials: {
+          id: expect.any(String),
+          lastLoginAt: null,
+        },
+      });
+
+      const postDeletedUser = await prisma.user.findUnique({
+        where: { id: user.id },
+      });
+
+      expect(postDeletedUser?.deletedAt).not.toBeNull();
+    });
+
+    it("Should return 'BadRequestException' if user not found", async () => {
+      const response = await request(app.getHttpServer())
+        .delete("/v1/user/unexistent-id")
+        .expect(400);
+
+      expect(response.body).toEqual({
+        message: ["Impossível excluir esse usuário."],
+        error: "Bad Request",
+        statusCode: 400,
+      });
     });
   });
 });
