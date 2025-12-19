@@ -16,6 +16,7 @@ model User {
   updatedAt DateTime  @updatedAt @map(name: "updated_at")
 
   userCredentials UserCredentials?
+  roles           Role[]
 
   @@map(name: "users")
 }
@@ -26,8 +27,18 @@ model UserCredentials {
   lastLoginAt  DateTime? @map(name: "last_login_at")
 
   userId String @unique @map(name: "user_id")
-
-  user User @relation(fields: [userId], references: [id])
+  user   User   @relation(fields: [userId], references: [id])
 
   @@map(name: "user_credentials")
+}
+
+model Role {
+  id          String   @id @default(uuid())
+  name        String   @unique @db.VarChar(50)
+  description String   @db.VarChar(255)
+  createdAt   DateTime @default(now()) @map(name: "created_at")
+
+  users User[]
+
+  @@map(name: "roles")
 }

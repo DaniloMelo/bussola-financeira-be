@@ -10,7 +10,7 @@
     "format": "prettier --write \"src/**/*.ts\" \"test/**/*.ts\"",
     "start": "nest start",
     "start:dev": "nest start --watch",
-    "dev:docker": "wait-port database_dev:5432 && npm run db:sync && npm run start:dev",
+    "dev:docker": "wait-port database_dev:5432 && npm run db:sync && npm run db:seed && npm run start:dev",
     "start:debug": "nest start --debug --watch",
     "start:prod": "node dist/src/main.js",
     "docker:up": "docker compose up",
@@ -18,6 +18,7 @@
     "docker:down": "docker compose down",
     "docker:rebuild": "docker compose build --no-cache",
     "db:sync": "npx prisma db push",
+    "db:seed": "npx prisma db seed",
     "prisma:migrate": "docker exec -it bussola-financeira npx prisma migrate dev",
     "prisma:reset": "docker exec -it bussola-financeira npx prisma migrate reset",
     "prisma:generate:local": "npx prisma generate",
@@ -32,7 +33,7 @@
     "test:debug": "node --inspect-brk -r tsconfig-paths/register -r ts-node/register node_modules/.bin/jest --runInBand",
     "test:e2e": "jest --config ./test/jest-e2e.json",
     "db:sync:test": "NODE_ENV=test npx prisma db push",
-    "test:e2e:ci": "npm run db:sync:test && npm run test:e2e",
+    "test:e2e:ci": "npm run db:sync:test && npm run db:seed && npm run test:e2e",
     "test:e2e:local": "docker compose exec app npm run test:e2e:ci",
     "prepare": "husky"
   },
@@ -102,5 +103,8 @@
     "moduleNameMapper": {
       "^src/(.*)$": "<rootDir>/$1"
     }
+  },
+  "prisma": {
+    "seed": "ts-node prisma/seed.ts"
   }
 }
