@@ -18,12 +18,22 @@ export class UserRepository {
             lastLoginAt: null,
           },
         },
+        roles: {
+          connect: {
+            name: "USER",
+          },
+        },
       },
       include: {
         userCredentials: {
           select: {
             id: true,
             lastLoginAt: true,
+          },
+        },
+        roles: {
+          select: {
+            name: true,
           },
         },
       },
@@ -38,6 +48,11 @@ export class UserRepository {
           select: {
             id: true,
             lastLoginAt: true,
+          },
+        },
+        roles: {
+          select: {
+            name: true,
           },
         },
       },
@@ -84,6 +99,11 @@ export class UserRepository {
             lastLoginAt: true,
           },
         },
+        roles: {
+          select: {
+            name: true,
+          },
+        },
       },
     });
   }
@@ -100,6 +120,11 @@ export class UserRepository {
           select: {
             id: true,
             lastLoginAt: true,
+          },
+        },
+        roles: {
+          select: {
+            name: true,
           },
         },
       },

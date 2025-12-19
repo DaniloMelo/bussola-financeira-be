@@ -27,7 +27,8 @@ export class UserService {
     }
 
     const newUser: ICreateUser = {
-      ...userData,
+      name: userData.name,
+      email: userData.email,
       password: await this.hasherService.hash(userData.password),
     };
 
@@ -49,14 +50,18 @@ export class UserService {
       throw new NotFoundException("Usuário não encontrado.");
     }
 
-    const userDataToSave: IUpdateUserData = { ...userData };
+    const userDataToSave: IUpdateUserData = {
+      name: userData.name ?? undefined,
+      email: userData.email ?? undefined,
+      password: userData.password ?? undefined,
+    };
 
     if (userDataToSave.email) {
-      const existingEmail = await this.userRepository.findOneByEmail(
+      const existingUser = await this.userRepository.findOneByEmail(
         userDataToSave.email,
       );
 
-      if (existingEmail) {
+      if (existingUser && existingUser.id !== userId) {
         throw new BadRequestException(
           "Impossível atualizar o seu usuário. Verifique as suas credenciais e tente novamente.",
         );

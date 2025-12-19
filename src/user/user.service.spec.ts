@@ -62,6 +62,11 @@ describe("UserService", () => {
           id: "11",
           lastLoginAt: null,
         },
+        roles: [
+          {
+            name: "USER",
+          },
+        ],
       };
 
       jest.spyOn(userRepositoryMock, "findOneByEmail").mockResolvedValue(null);
@@ -98,6 +103,11 @@ describe("UserService", () => {
           id: "11",
           lastLoginAt: null,
         },
+        roles: [
+          {
+            name: "USER",
+          },
+        ],
       };
 
       const newUser = {
@@ -142,6 +152,11 @@ describe("UserService", () => {
             id: "11",
             lastLoginAt: null,
           },
+          roles: [
+            {
+              name: "USER",
+            },
+          ],
         },
         {
           id: "2",
@@ -154,6 +169,11 @@ describe("UserService", () => {
             id: "22",
             lastLoginAt: null,
           },
+          roles: [
+            {
+              name: "USER",
+            },
+          ],
         },
       ];
 
@@ -192,6 +212,11 @@ describe("UserService", () => {
           id: "11",
           lastLoginAt: null,
         },
+        roles: [
+          {
+            name: "USER",
+          },
+        ],
       };
 
       const hashedPassword = "hashedPasswod";
@@ -207,6 +232,11 @@ describe("UserService", () => {
           id: "11",
           lastLoginAt: null,
         },
+        roles: [
+          {
+            name: "USER",
+          },
+        ],
       };
 
       const userDataToUpdate: IUpdateUserData = {
@@ -261,6 +291,11 @@ describe("UserService", () => {
           id: "11",
           lastLoginAt: null,
         },
+        roles: [
+          {
+            name: "USER",
+          },
+        ],
       };
 
       const userDataToUpdate: IUpdateUserData = {
@@ -280,6 +315,11 @@ describe("UserService", () => {
           id: "11",
           lastLoginAt: null,
         },
+        roles: [
+          {
+            name: "USER",
+          },
+        ],
       };
 
       jest
@@ -320,6 +360,11 @@ describe("UserService", () => {
           id: "11",
           lastLoginAt: null,
         },
+        roles: [
+          {
+            name: "USER",
+          },
+        ],
       };
 
       const userDataToUpdate: IUpdateUserData = {
@@ -339,6 +384,11 @@ describe("UserService", () => {
           id: "11",
           lastLoginAt: null,
         },
+        roles: [
+          {
+            name: "USER",
+          },
+        ],
       };
 
       jest
@@ -383,6 +433,11 @@ describe("UserService", () => {
           id: "11",
           lastLoginAt: null,
         },
+        roles: [
+          {
+            name: "USER",
+          },
+        ],
       };
 
       const hashedPassword = "hashedpassword";
@@ -398,6 +453,11 @@ describe("UserService", () => {
           id: "11",
           lastLoginAt: null,
         },
+        roles: [
+          {
+            name: "USER",
+          },
+        ],
       };
 
       const userDataToUpdate: IUpdateUserData = {
@@ -446,6 +506,11 @@ describe("UserService", () => {
           id: "11",
           lastLoginAt: null,
         },
+        roles: [
+          {
+            name: "USER",
+          },
+        ],
       };
 
       const userDataToUpdate: IUpdateUserData = {
@@ -487,6 +552,11 @@ describe("UserService", () => {
           id: "11",
           lastLoginAt: null,
         },
+        roles: [
+          {
+            name: "USER",
+          },
+        ],
       };
 
       const anotherStoredUser: IStoredUser = {
@@ -500,6 +570,11 @@ describe("UserService", () => {
           id: "22",
           lastLoginAt: null,
         },
+        roles: [
+          {
+            name: "USER",
+          },
+        ],
       };
 
       const userDataToUpdate: IUpdateUserData = {
@@ -553,6 +628,11 @@ describe("UserService", () => {
           id: "11",
           lastLoginAt: null,
         },
+        roles: [
+          {
+            name: "USER",
+          },
+        ],
       };
 
       jest

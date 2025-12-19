@@ -89,11 +89,21 @@ describe("UserController (e2e)", () => {
           id: expect.any(String),
           lastLoginAt: null,
         },
+        roles: [
+          {
+            name: "USER",
+          },
+        ],
       });
 
       const storedUser = await prisma.user.findUnique({
-        where: { id: reponseBody.id },
-        include: { userCredentials: true },
+        where: {
+          id: reponseBody.id,
+        },
+        include: {
+          userCredentials: true,
+          roles: true,
+        },
       });
 
       expect(storedUser).toBeDefined();
@@ -107,6 +117,8 @@ describe("UserController (e2e)", () => {
       expect(storedUser?.userCredentials?.passwordHash).not.toBe(
         newUser.password,
       );
+
+      expect(storedUser?.roles[0].name).toBe("USER");
     });
 
     it("Should return 'BadRequestException' for all validations errors", async () => {
@@ -266,6 +278,11 @@ describe("UserController (e2e)", () => {
             id: expect.any(String),
             lastLoginAt: null,
           },
+          roles: [
+            {
+              name: "USER",
+            },
+          ],
         },
       ]);
     });
@@ -295,7 +312,9 @@ describe("UserController (e2e)", () => {
         .send(dataToUpdate)
         .expect(200);
 
-      expect(response.body).toEqual({
+      const responseBody: UserApiResponseDtoV1 = response.body;
+
+      expect(responseBody).toEqual({
         id: expect.any(String),
         name: "John Doe UPDATED",
         email: "john@email.com",
@@ -306,6 +325,11 @@ describe("UserController (e2e)", () => {
           id: expect.any(String),
           lastLoginAt: null,
         },
+        roles: [
+          {
+            name: "USER",
+          },
+        ],
       });
 
       const postUpdateStoredUser = await prisma.user.findUnique({
@@ -426,6 +450,11 @@ describe("UserController (e2e)", () => {
           id: expect.any(String),
           lastLoginAt: null,
         },
+        roles: [
+          {
+            name: "USER",
+          },
+        ],
       });
 
       const postDeletedUser = await prisma.user.findUnique({

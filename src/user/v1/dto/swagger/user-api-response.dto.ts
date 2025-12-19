@@ -45,6 +45,16 @@ export class UserApiResponseDtoV1 {
     id: string;
     lastLoginAt: Date | null;
   };
+
+  @ApiProperty({
+    description: "Dados da tabela relacionada 'user-credentials'",
+    type: () => [userRolesRelation],
+  })
+  roles: [
+    {
+      name: string;
+    },
+  ];
 }
 
 class userCredentialsRelation {
@@ -61,4 +71,12 @@ class userCredentialsRelation {
     example: null,
   })
   lastLoginAt: Date | null;
+}
+
+class userRolesRelation {
+  @ApiProperty({
+    description: "Role do usuário",
+    example: "USER",
+  })
+  name: string;
 }
