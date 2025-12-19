@@ -15,4 +15,9 @@ export interface IStoredUser {
     id: string;
     lastLoginAt: Date | null;
   };
+  roles: [
+    {
+      name: string;
+    },
+  ];
 }

@@ -9,6 +9,7 @@ import { CreateUserResponseDtoV2 } from "./dto/create-user-response.dto";
 export class UserControllerV2 {
   constructor(private readonly userService: UserService) {}
 
+  // TODO: finalizar a criação do controller v2 no final do projeto.
   @Post()
   @ApiOperation({ summary: "Cria um novo usuário." })
   @ApiResponse({

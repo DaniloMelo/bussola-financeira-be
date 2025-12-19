@@ -11,8 +11,6 @@ import {
 import { UserService } from "../user.service";
 import { CreateUserDtoV1 } from "./dto/create-user.dto";
 import { ApiOperation, ApiResponse, ApiTags } from "@nestjs/swagger";
-// import { CreateUserResponseDtoV1 } from "./dto/create-user-response.dto";
-// import { FindAllUsersResponseDtoV1 } from "./dto/find-all-users.response.dto";
 import { UpdateUserDtoV1 } from "./dto/update-user.dto";
 import { UserApiResponseDtoV1 } from "./dto/swagger/user-api-response.dto";
 import { DeletedUserApiResponseDtoV1 } from "./dto/swagger/deleted-user-api-response.dto";
