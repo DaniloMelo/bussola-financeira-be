@@ -28,7 +28,10 @@ describe("UserController (e2e)", () => {
       imports: [
         PrismaModule,
         UserModule,
-        ConfigModule.forRoot({ isGlobal: true }),
+        ConfigModule.forRoot({
+          isGlobal: true,
+          ignoreEnvFile: true,
+        }),
       ],
     }).compile();
 
