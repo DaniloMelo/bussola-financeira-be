@@ -12,6 +12,8 @@ services:
       - /usr/src/app/node_modules
     env_file:
       - ".env"
+    environment:
+      - DATABASE_URL_TEST=postgresql://local_user_e2e_test:local_password_e2e_test@database_test:5432/local_db_e2e_test?schema=public
     depends_on:
       database_dev:
         condition: service_healthy
@@ -41,17 +43,14 @@ services:
     container_name: "postgres_test"
     image: "postgres:16.0-alpine3.18"
     environment:
-      POSTGRES_USER: ${POSTGRES_USER_TEST:-local_user}
-      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD_TEST:-local_password}
-      POSTGRES_DB: ${POSTGRES_DB_TEST:-local_db_test}
+      POSTGRES_USER: local_user_e2e_test
+      POSTGRES_PASSWORD: local_password_e2e_test
+      POSTGRES_DB: local_db_e2e_test
     ports:
-      - "${POSTGRES_PORT_TEST:-5433}:5432"
+      - "5433:5432"
     healthcheck:
       test:
-        [
-          "CMD-SHELL",
-          "pg_isready -U ${POSTGRES_USER_TEST:-local_user} -d ${POSTGRES_DB_TEST:-local_db_test}",
-        ]
+        ["CMD-SHELL", "pg_isready -U local_user_e2e_test -d local_db_e2e_test"]
       interval: 10s
       timeout: 5s
       retries: 5
