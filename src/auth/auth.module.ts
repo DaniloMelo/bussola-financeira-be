@@ -5,10 +5,14 @@ import { JwtModule } from "@nestjs/jwt";
 import { ConfigService } from "@nestjs/config";
 import { JwtStrategy } from "./strategies/jwt.strategy";
 import { PrismaModule } from "src/prisma/prisma.module";
+import { UserModule } from "src/user/user.module";
+import { CommonModule } from "src/common/common.module";
 
 @Module({
   imports: [
+    UserModule,
     PrismaModule,
+    CommonModule,
     JwtModule.registerAsync({
       inject: [ConfigService],
       useFactory: (configService: ConfigService) => ({
@@ -16,7 +20,7 @@ import { PrismaModule } from "src/prisma/prisma.module";
         signOptions: {
           issuer: configService.get<string>("JWT_ISS"),
           audience: configService.get<string>("JWT_AUD"),
-          expiresIn: configService.get<number>("JWT_EXP"),
+          expiresIn: Number(configService.get<string>("JWT_EXP")),
         },
       }),
     }),

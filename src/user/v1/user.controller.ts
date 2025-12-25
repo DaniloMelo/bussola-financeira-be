@@ -7,6 +7,8 @@ import {
   Param,
   Patch,
   Post,
+  Req,
+  UseGuards,
 } from "@nestjs/common";
 import { UserService } from "../user.service";
 import { CreateUserDtoV1 } from "./dto/create-user.dto";
@@ -14,6 +16,8 @@ import { ApiOperation, ApiResponse, ApiTags } from "@nestjs/swagger";
 import { UpdateUserDtoV1 } from "./dto/update-user.dto";
 import { UserApiResponseDtoV1 } from "./dto/swagger/user-api-response.dto";
 import { DeletedUserApiResponseDtoV1 } from "./dto/swagger/deleted-user-api-response.dto";
+import { JwtAuthGuard } from "src/auth/guards/jwt-auth.guard";
+import { IRequestUser } from "src/auth/interfaces/request-user";
 
 @Controller({ path: "user", version: "1" })
 @ApiTags("user-v1")
@@ -52,6 +56,7 @@ export class UserControllerV1 {
 
   // TODO: Trocar route-params por Payload (JWT) na request
   @Patch(":id")
+  // @UseGuards(JwtAuthGuard)
   @ApiOperation({ summary: "Atualiza um usuário" })
   @ApiResponse({
     status: 200,
@@ -85,5 +90,13 @@ export class UserControllerV1 {
   })
   softDelete(@Param("id") userId: string) {
     return this.userService.softDelete(userId);
+  }
+
+  @Get("me")
+  @UseGuards(JwtAuthGuard)
+  tempFindOne(@Req() req: IRequestUser) {
+    console.log(req.user);
+
+    return this.userService.tempFindOne(req.user.id);
   }
 }

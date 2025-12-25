@@ -68,6 +68,18 @@ export class UserRepository {
     });
   }
 
+  async findOneByEmailWithCredentials(email: string) {
+    return await this.prisma.user.findUnique({
+      where: {
+        email,
+        deletedAt: null,
+      },
+      include: {
+        userCredentials: true,
+      },
+    });
+  }
+
   async findOneById(userId: string) {
     return await this.prisma.user.findUnique({
       where: {

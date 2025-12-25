@@ -1,6 +1,3 @@
-export interface JwtPayload {
+export interface IJwtPayload {
   sub: string;
-  iss: string;
-  aud: string;
-  exp: number;
 }
