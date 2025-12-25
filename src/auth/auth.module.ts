@@ -3,9 +3,12 @@ import { AuthService } from "./auth.service";
 import { AuthController } from "./v1/auth.controller";
 import { JwtModule } from "@nestjs/jwt";
 import { ConfigService } from "@nestjs/config";
+import { JwtStrategy } from "./strategies/jwt.strategy";
+import { PrismaModule } from "src/prisma/prisma.module";
 
 @Module({
   imports: [
+    PrismaModule,
     JwtModule.registerAsync({
       inject: [ConfigService],
       useFactory: (configService: ConfigService) => ({
@@ -18,7 +21,7 @@ import { ConfigService } from "@nestjs/config";
       }),
     }),
   ],
-  providers: [AuthService],
+  providers: [AuthService, JwtStrategy],
   controllers: [AuthController],
   exports: [JwtModule],
 })
