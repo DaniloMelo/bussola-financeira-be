@@ -94,7 +94,9 @@ describe("AuthService", () => {
 
       expect(jwtServiceMock.signAsync).toHaveBeenCalledWith(jwtPayload);
 
-      expect(result).toBe(accessToken);
+      expect(result).toEqual({
+        access_token: accessToken,
+      });
     });
 
     it("Should throw BadRequestException if user don't exist", async () => {
