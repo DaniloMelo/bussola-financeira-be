@@ -10,5 +10,6 @@ import { CommonModule } from "src/common/common.module";
   imports: [PrismaModule, CommonModule],
   controllers: [UserControllerV1, UserControllerV2],
   providers: [UserService, UserRepository],
+  exports: [UserService],
 })
 export class UserModule {}

@@ -37,6 +37,7 @@ async function bootstrap() {
       "API Para acesso ao backend da aplicação Bússola financeira",
     )
     .setVersion("1.0")
+    .addTag("auth-v1")
     .addTag("user-v1")
     .addTag("user-v2")
     .build();
