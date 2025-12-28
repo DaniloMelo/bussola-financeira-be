@@ -39,6 +39,10 @@ export class UserService {
     return this.userRepository.findAll();
   }
 
+  async findOneByEmailWithCredentials(email: string) {
+    return this.userRepository.findOneByEmailWithCredentials(email);
+  }
+
   async update(userId: string, userData: IUpdateUserData) {
     if (!userData.name && !userData.email && !userData.password) {
       throw new BadRequestException("Nenhum dado foi fornecido.");
@@ -84,5 +88,15 @@ export class UserService {
     }
 
     return await this.userRepository.softDelete(userId);
+  }
+
+  async tempFindOne(userId: string) {
+    const existingUser = await this.userRepository.findOneById(userId);
+
+    if (!existingUser) {
+      throw new NotFoundException("usuário não encontrado");
+    }
+
+    return existingUser;
   }
 }
