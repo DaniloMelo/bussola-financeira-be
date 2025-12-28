@@ -19,7 +19,7 @@ import { IUpdateUserData } from "src/user/interfaces/update";
 import { UserApiResponseDtoV1 } from "src/user/v1/dto/swagger/user-api-response.dto";
 import { DeletedUserApiResponseDtoV1 } from "src/user/v1/dto/swagger/deleted-user-api-response.dto";
 
-describe("UserController (e2e)", () => {
+describe("User (e2e)", () => {
   let app: INestApplication;
   let prisma: PrismaService;
 
