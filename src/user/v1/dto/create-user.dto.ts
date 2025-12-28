@@ -43,7 +43,7 @@ export class CreateUserDtoV1 {
   @MinLength(6, { message: "Senha precisa ter o mínimo de 6 caracteres." })
   @ApiProperty({
     description: "Senha do usuário",
-    example: "pass123",
+    example: "password123",
   })
   password: string;
 }

@@ -47,7 +47,7 @@ export class UpdateUserDtoV1 {
   @IsOptional()
   @ApiProperty({
     description: "Senha do usuário",
-    example: "updated_pass123",
+    example: "updated_password123",
   })
   password?: string;
 }
