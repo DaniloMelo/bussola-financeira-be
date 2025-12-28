@@ -2,13 +2,13 @@ import { plainToInstance } from "class-transformer";
 import { CreateUserDtoV1 } from "./create-user.dto";
 import { validate } from "class-validator";
 
-const validUser: CreateUserDtoV1 = {
-  name: "John Doe",
-  email: "john@email.com",
-  password: "password123",
-};
-
 describe("CreateUserDto V1", () => {
+  const validUser: CreateUserDtoV1 = {
+    name: "John Doe",
+    email: "john@email.com",
+    password: "password123",
+  };
+
   it("Should remove invalid spaces from 'name'", async () => {
     const invalidUser = {
       ...validUser,
