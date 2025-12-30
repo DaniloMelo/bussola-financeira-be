@@ -48,7 +48,6 @@ export class UserService {
       throw new BadRequestException("Nenhum dado foi fornecido.");
     }
 
-    // TODO: Verificar se é possível retirar essa verificação após a implmentação do payload na request e retirar route-params
     const existingUser = await this.userRepository.findOneById(userId);
     if (!existingUser) {
       throw new NotFoundException("Usuário não encontrado.");
@@ -88,15 +87,5 @@ export class UserService {
     }
 
     return await this.userRepository.softDelete(userId);
-  }
-
-  async tempFindOne(userId: string) {
-    const existingUser = await this.userRepository.findOneById(userId);
-
-    if (!existingUser) {
-      throw new NotFoundException("usuário não encontrado");
-    }
-
-    return existingUser;
   }
 }
