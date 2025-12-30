@@ -18,6 +18,8 @@ import { createTestUserV1 } from "./utils/create-test-user-v1";
 import { IUpdateUserData } from "src/user/interfaces/update";
 import { UserApiResponseDtoV1 } from "src/user/v1/dto/swagger/user-api-response.dto";
 import { DeletedUserApiResponseDtoV1 } from "src/user/v1/dto/swagger/deleted-user-api-response.dto";
+import { AuthModule } from "src/auth/auth.module";
+import { loginTestUserV1 } from "./utils/login-test-user-v1";
 
 describe("User (e2e)", () => {
   let app: INestApplication;
@@ -28,6 +30,7 @@ describe("User (e2e)", () => {
       imports: [
         PrismaModule,
         UserModule,
+        AuthModule,
         ConfigModule.forRoot({
           isGlobal: true,
           ignoreEnvFile: true,
@@ -36,7 +39,6 @@ describe("User (e2e)", () => {
     }).compile();
 
     app = module.createNestApplication();
-
     prisma = module.get<PrismaService>(PrismaService);
 
     app.enableShutdownHooks();
@@ -293,14 +295,19 @@ describe("User (e2e)", () => {
 
   describe("/user (PATCH) V1", () => {
     it("Should update 'name' only", async () => {
-      const user = await createTestUserV1(app);
+      const { userApiResponse, userInputData } = await createTestUserV1(app);
+
+      const { access_token } = await loginTestUserV1(app, {
+        email: userInputData.email,
+        password: userInputData.password,
+      });
 
       const dataToUpdate: IUpdateUserData = {
         name: "John Doe UPDATED",
       };
 
       const preUpdateStoredUser = await prisma.user.findUnique({
-        where: { id: user.id },
+        where: { id: userApiResponse.id },
         include: {
           userCredentials: {
             select: {
@@ -311,7 +318,8 @@ describe("User (e2e)", () => {
       });
 
       const response = await request(app.getHttpServer())
-        .patch(`/v1/user/${user.id}`)
+        .patch("/v1/user/me")
+        .set("Authorization", `Bearer ${access_token}`)
         .send(dataToUpdate)
         .expect(200);
 
@@ -336,7 +344,7 @@ describe("User (e2e)", () => {
       });
 
       const postUpdateStoredUser = await prisma.user.findUnique({
-        where: { id: user.id },
+        where: { id: userApiResponse.id },
         include: {
           userCredentials: {
             select: {
@@ -356,7 +364,12 @@ describe("User (e2e)", () => {
     });
 
     it("Should return 'BadRequestException' for all validations errors", async () => {
-      const user = await createTestUserV1(app);
+      const { userInputData } = await createTestUserV1(app);
+
+      const { access_token } = await loginTestUserV1(app, {
+        email: userInputData.email,
+        password: userInputData.password,
+      });
 
       const invalidDataToUpdate: IUpdateUserData = {
         name: "Jo",
@@ -365,7 +378,8 @@ describe("User (e2e)", () => {
       };
 
       const response = await request(app.getHttpServer())
-        .patch(`/v1/user/${user.id}`)
+        .patch("/v1/user/me")
+        .set("Authorization", `Bearer ${access_token}`)
         .send(invalidDataToUpdate)
         .expect(400);
 
@@ -381,7 +395,15 @@ describe("User (e2e)", () => {
     });
 
     it("Should return 'BadRequestException' if trying to update email to one that is already taken", async () => {
-      const user = await createTestUserV1(app, { email: "userA@email.com" });
+      const { userInputData } = await createTestUserV1(app, {
+        email: "userA@email.com",
+      });
+
+      const { access_token } = await loginTestUserV1(app, {
+        email: userInputData.email,
+        password: userInputData.password,
+      });
+
       await createTestUserV1(app, { email: "userB@email.com" });
 
       const dataToUpdate: IUpdateUserData = {
@@ -389,7 +411,8 @@ describe("User (e2e)", () => {
       };
 
       const response = await request(app.getHttpServer())
-        .patch(`/v1/user/${user.id}`)
+        .patch("/v1/user/me")
+        .set("Authorization", `Bearer ${access_token}`)
         .send(dataToUpdate)
         .expect(400);
 
@@ -403,23 +426,29 @@ describe("User (e2e)", () => {
     });
 
     it("Should update and encrypt 'password' if provided", async () => {
-      const user = await createTestUserV1(app);
+      const { userApiResponse, userInputData } = await createTestUserV1(app);
+
+      const { access_token } = await loginTestUserV1(app, {
+        email: userInputData.email,
+        password: userInputData.password,
+      });
 
       const dataToUpdate: IUpdateUserData = {
         password: "new_password_123",
       };
 
       const preUpdatePasswordHash = await prisma.userCredentials.findUnique({
-        where: { userId: user.id },
+        where: { userId: userApiResponse.id },
       });
 
       await request(app.getHttpServer())
-        .patch(`/v1/user/${user.id}`)
+        .patch("/v1/user/me")
+        .set("Authorization", `Bearer ${access_token}`)
         .send(dataToUpdate)
         .expect(200);
 
       const postUpdatePasswordHash = await prisma.userCredentials.findUnique({
-        where: { userId: user.id },
+        where: { userId: userApiResponse.id },
       });
 
       expect(postUpdatePasswordHash?.passwordHash).not.toBe(
@@ -434,10 +463,16 @@ describe("User (e2e)", () => {
 
   describe("/user (DELETE) V1", () => {
     it("Should delete user", async () => {
-      const user = await createTestUserV1(app);
+      const { userApiResponse, userInputData } = await createTestUserV1(app);
+
+      const { access_token } = await loginTestUserV1(app, {
+        email: userInputData.email,
+        password: userInputData.password,
+      });
 
       const response = await request(app.getHttpServer())
-        .delete(`/v1/user/${user.id}`)
+        .delete("/v1/user/me")
+        .set("Authorization", `Bearer ${access_token}`)
         .expect(200);
 
       const reponseBody: DeletedUserApiResponseDtoV1 = response.body;
@@ -461,22 +496,10 @@ describe("User (e2e)", () => {
       });
 
       const postDeletedUser = await prisma.user.findUnique({
-        where: { id: user.id },
+        where: { id: userApiResponse.id },
       });
 
       expect(postDeletedUser?.deletedAt).not.toBeNull();
-    });
-
-    it("Should return 'BadRequestException' if user not found", async () => {
-      const response = await request(app.getHttpServer())
-        .delete("/v1/user/unexistent-id")
-        .expect(400);
-
-      expect(response.body).toEqual({
-        message: ["Impossível excluir esse usuário."],
-        error: "Bad Request",
-        statusCode: 400,
-      });
     });
   });
 });

@@ -4,7 +4,6 @@ import {
   Controller,
   Delete,
   Get,
-  Param,
   Patch,
   Post,
   Req,
@@ -54,9 +53,8 @@ export class UserControllerV1 {
     return this.userService.findAll();
   }
 
-  // TODO: Trocar route-params por Payload (JWT) na request
-  @Patch(":id")
-  // @UseGuards(JwtAuthGuard)
+  @Patch("me")
+  @UseGuards(JwtAuthGuard)
   @ApiOperation({ summary: "Atualiza um usuário" })
   @ApiResponse({
     status: 200,
@@ -68,15 +66,12 @@ export class UserControllerV1 {
     description: "Dados inválidos, ausentes ou recurso não encontrado",
     example: new BadRequestException(["Mensagem de exemplo"]).getResponse(),
   })
-  update(
-    @Param("id") userId: string,
-    @Body() updatedUserData: UpdateUserDtoV1,
-  ) {
-    return this.userService.update(userId, updatedUserData);
+  update(@Req() req: IRequestUser, @Body() updatedUserData: UpdateUserDtoV1) {
+    return this.userService.update(req.user.id, updatedUserData);
   }
 
-  // TODO: Trocar route-params por Payload (JWT) na request
-  @Delete(":id")
+  @Delete("me")
+  @UseGuards(JwtAuthGuard)
   @ApiOperation({ summary: "Exclui um usuário" })
   @ApiResponse({
     status: 200,
@@ -88,15 +83,7 @@ export class UserControllerV1 {
     description: "Dados inválidos, ausentes ou recurso não encontrado",
     example: new BadRequestException(["Mensagem de exemplo"]).getResponse(),
   })
-  softDelete(@Param("id") userId: string) {
-    return this.userService.softDelete(userId);
-  }
-
-  @Get("me")
-  @UseGuards(JwtAuthGuard)
-  tempFindOne(@Req() req: IRequestUser) {
-    console.log(req.user);
-
-    return this.userService.tempFindOne(req.user.id);
+  softDelete(@Req() req: IRequestUser) {
+    return this.userService.softDelete(req.user.id);
   }
 }
