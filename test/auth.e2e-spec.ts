@@ -128,10 +128,10 @@ describe("Auth (e2e)", () => {
     });
 
     it("Should return 'BadRequestException' if password is incorrect", async () => {
-      const user = await createTestUserV1(app);
+      const { userApiResponse } = await createTestUserV1(app);
 
       const invalidUser: ILogin = {
-        email: user.email,
+        email: userApiResponse.email,
         password: "invalid-password",
       };
 
