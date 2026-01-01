@@ -1,9 +1,15 @@
-import { BadRequestException, Injectable } from "@nestjs/common";
+/* eslint-disable @typescript-eslint/no-unsafe-argument */
+import {
+  BadRequestException,
+  ForbiddenException,
+  Injectable,
+} from "@nestjs/common";
 import { ILogin } from "./interfaces/login";
 import { UserService } from "src/user/user.service";
 import { HasherProtocol } from "src/common/hasher/hasher.protocol";
 import { JwtService } from "@nestjs/jwt";
 import { IJwtPayload } from "./interfaces/jwt-payload";
+import { ConfigService } from "@nestjs/config";
 
 @Injectable()
 export class AuthService {
@@ -11,6 +17,7 @@ export class AuthService {
     private readonly userService: UserService,
     private readonly hasherService: HasherProtocol,
     private readonly jwtService: JwtService,
+    private readonly configService: ConfigService,
   ) {}
 
   async login(loginData: ILogin) {
@@ -35,14 +42,82 @@ export class AuthService {
       );
     }
 
-    const jwtPayload: IJwtPayload = {
-      sub: existingUser.id,
-    };
+    const tokens = await this.generateJwtTokens(existingUser.id);
 
-    const accessToken = await this.jwtService.signAsync(jwtPayload);
+    const refreshTokenHash = await this.hasherService.hash(
+      tokens.refresh_token,
+    );
+
+    await this.userService.updateRefreshToken(
+      existingUser.id,
+      refreshTokenHash,
+    );
+
+    await this.userService.saveRefreshTokenAndLastLoginAt(
+      existingUser.id,
+      refreshTokenHash,
+    );
+
+    return tokens;
+  }
+
+  async refreshTokens(userId: string, refreshToken: string) {
+    const existingUser =
+      await this.userService.findOneByIdWithCredentials(userId);
+
+    if (!existingUser || !existingUser.userCredentials?.refreshTokenHash) {
+      throw new ForbiddenException("Acesso negado.");
+    }
+
+    const refreshTokenMatches = await this.hasherService.compare(
+      refreshToken,
+      existingUser.userCredentials.refreshTokenHash,
+    );
+
+    if (!refreshTokenMatches) {
+      throw new ForbiddenException("Acesso negado");
+    }
+
+    const tokens = await this.generateJwtTokens(existingUser.id);
+
+    const refreshTokenHash = await this.hasherService.hash(
+      tokens.refresh_token,
+    );
+
+    await this.userService.updateRefreshToken(
+      existingUser.id,
+      refreshTokenHash,
+    );
+
+    return tokens;
+  }
+
+  private async generateJwtTokens(id: string) {
+    const payload: IJwtPayload = { sub: id };
+
+    const jwtAccessTokenSecret = this.configService.get<string>("JWT_SECRET");
+    const jwtAccessTokenExp = Number(this.configService.get<string>("JWT_EXP"));
+
+    const jwtRefreshTokenSecret =
+      this.configService.get<string>("JWT_REFRESH_SECRET");
+    const jwtRefreshTokenExp = Number(
+      this.configService.get<string>("JWT_REFRESH_EXP"),
+    );
+
+    const [accessToken, refreshToken] = await Promise.all([
+      this.jwtService.signAsync(payload, {
+        secret: jwtAccessTokenSecret,
+        expiresIn: jwtAccessTokenExp,
+      }),
+      this.jwtService.signAsync(payload, {
+        secret: jwtRefreshTokenSecret,
+        expiresIn: jwtRefreshTokenExp,
+      }),
+    ]);
 
     return {
       access_token: accessToken,
+      refresh_token: refreshToken,
     };
   }
 }
