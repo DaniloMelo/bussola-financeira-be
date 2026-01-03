@@ -159,24 +159,40 @@ export class UserRepository {
     userId: string,
     refreshTokenHash: string,
   ) {
-    await this.prisma.userCredentials.update({
+    return this.prisma.user.update({
       where: {
-        userId,
+        id: userId,
+        deletedAt: null,
       },
       data: {
-        refreshTokenHash,
-        lastLoginAt: new Date(),
+        userCredentials: {
+          update: {
+            refreshTokenHash,
+            lastLoginAt: new Date(),
+          },
+        },
+      },
+      include: {
+        userCredentials: true,
       },
     });
   }
 
   async updateRefreshToken(userId: string, refreshTokenHash: string | null) {
-    return await this.prisma.userCredentials.update({
+    return await this.prisma.user.update({
       where: {
-        userId,
+        id: userId,
+        deletedAt: null,
       },
       data: {
-        refreshTokenHash,
+        userCredentials: {
+          update: {
+            refreshTokenHash: refreshTokenHash,
+          },
+        },
+      },
+      include: {
+        userCredentials: true,
       },
     });
   }
