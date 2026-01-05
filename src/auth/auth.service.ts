@@ -47,10 +47,10 @@ export class AuthService {
       tokens.refresh_token,
     );
 
-    await this.userService.updateRefreshToken(
-      existingUser.id,
-      refreshTokenHash,
-    );
+    // await this.userService.updateRefreshToken(
+    //   existingUser.id,
+    //   refreshTokenHash,
+    // );
 
     await this.userService.saveRefreshTokenAndLastLoginAt(
       existingUser.id,
@@ -74,7 +74,7 @@ export class AuthService {
     );
 
     if (!refreshTokenMatches) {
-      throw new ForbiddenException("Acesso negado");
+      throw new ForbiddenException("Acesso negado.");
     }
 
     const tokens = await this.generateJwtTokens(existingUser.id);
