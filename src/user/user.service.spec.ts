@@ -1,4 +1,5 @@
 /* eslint-disable @typescript-eslint/unbound-method */
+
 import { Test, TestingModule } from "@nestjs/testing";
 import { UserService } from "./user.service";
 import { UserRepository } from "./user.repository";
@@ -6,6 +7,23 @@ import { HasherProtocol } from "src/common/hasher/hasher.protocol";
 import { BadRequestException } from "@nestjs/common";
 import { IStoredUser } from "./interfaces/user";
 import { IUpdateUserData } from "./interfaces/update";
+
+const mockUserRepository = {
+  create: jest.fn(),
+  findOneByEmail: jest.fn(),
+  findAll: jest.fn(),
+  findOneById: jest.fn(),
+  update: jest.fn(),
+  softDelete: jest.fn(),
+  findOneByIdWithCredentials: jest.fn(),
+  findOneByEmailWithCredentials: jest.fn(),
+  saveRefreshTokenAndLastLoginAt: jest.fn(),
+  updateRefreshToken: jest.fn(),
+};
+
+const mockHasherService = {
+  hash: jest.fn(),
+};
 
 describe("UserService", () => {
   let userService: UserService;
@@ -18,24 +36,11 @@ describe("UserService", () => {
         UserService,
         {
           provide: UserRepository,
-          useValue: {
-            create: jest.fn(),
-            findOneByEmail: jest.fn(),
-            findAll: jest.fn(),
-            findOneById: jest.fn(),
-            update: jest.fn(),
-            softDelete: jest.fn(),
-            findOneByIdWithCredentials: jest.fn(),
-            findOneByEmailWithCredentials: jest.fn(),
-            saveRefreshTokenAndLastLoginAt: jest.fn(),
-            updateRefreshToken: jest.fn(),
-          },
+          useValue: mockUserRepository,
         },
         {
           provide: HasherProtocol,
-          useValue: {
-            hash: jest.fn(),
-          },
+          useValue: mockHasherService,
         },
       ],
     }).compile();
@@ -43,6 +48,10 @@ describe("UserService", () => {
     userService = module.get<UserService>(UserService);
     userRepositoryMock = module.get<UserRepository>(UserRepository);
     hasherServiceMock = module.get<HasherProtocol>(HasherProtocol);
+  });
+
+  beforeEach(() => {
+    jest.clearAllMocks();
   });
 
   describe("create", () => {
@@ -124,11 +133,13 @@ describe("UserService", () => {
         .spyOn(userRepositoryMock, "findOneByEmail")
         .mockResolvedValue(storedUser);
 
-      await expect(userService.create(newUser)).rejects.toThrow(
-        "Falha ao criar o usuário. Verifique os dados fornecidos.",
+      const createUserPromise = userService.create(newUser);
+
+      await expect(createUserPromise).rejects.toThrow(
+        /^Falha ao criar o usuário. Verifique os dados fornecidos.$/,
       );
 
-      await expect(userService.create(newUser)).rejects.toBeInstanceOf(
+      await expect(createUserPromise).rejects.toBeInstanceOf(
         BadRequestException,
       );
 
@@ -204,7 +215,7 @@ describe("UserService", () => {
   });
 
   describe("findOneByIdWithCredentials", () => {
-    it("Should find a user by ID including relations", async () => {
+    it("Should find a user by ID including userCredentials relation", async () => {
       const storedUser = {
         id: "1",
         name: "John Doe",
@@ -251,7 +262,7 @@ describe("UserService", () => {
   });
 
   describe("findOneByEmailWithCredentials", () => {
-    it("Should find a user by email including relations", async () => {
+    it("Should find a user by email including userCredentials relation", async () => {
       const storedUser = {
         id: "1",
         name: "John Doe",
@@ -623,13 +634,18 @@ describe("UserService", () => {
         .spyOn(userRepositoryMock, "findOneById")
         .mockResolvedValue(storedUser);
 
-      await expect(
-        userService.update(storedUser.id, userDataToUpdate),
-      ).rejects.toThrow("Nenhum dado foi fornecido.");
+      const updateUserPromise = userService.update(
+        storedUser.id,
+        userDataToUpdate,
+      );
 
-      await expect(
-        userService.update(storedUser.id, userDataToUpdate),
-      ).rejects.toBeInstanceOf(BadRequestException);
+      await expect(updateUserPromise).rejects.toThrow(
+        /^Nenhum dado foi fornecido.$/,
+      );
+
+      await expect(updateUserPromise).rejects.toBeInstanceOf(
+        BadRequestException,
+      );
 
       expect(userRepositoryMock.findOneById).not.toHaveBeenCalled();
 
@@ -691,15 +707,18 @@ describe("UserService", () => {
         .spyOn(userRepositoryMock, "findOneByEmail")
         .mockResolvedValue(anotherStoredUser);
 
-      await expect(
-        userService.update(storedUser.id, userDataToUpdate),
-      ).rejects.toThrow(
-        "Impossível atualizar o seu usuário. Verifique as suas credenciais e tente novamente.",
+      const loginUserPromise = userService.update(
+        storedUser.id,
+        userDataToUpdate,
       );
 
-      await expect(
-        userService.update(storedUser.id, userDataToUpdate),
-      ).rejects.toBeInstanceOf(BadRequestException);
+      await expect(loginUserPromise).rejects.toThrow(
+        /^Impossível atualizar o seu usuário. Verifique as suas credenciais e tente novamente.$/,
+      );
+
+      await expect(loginUserPromise).rejects.toBeInstanceOf(
+        BadRequestException,
+      );
 
       expect(userRepositoryMock.findOneById).toHaveBeenCalledWith(
         storedUser.id,
@@ -755,13 +774,15 @@ describe("UserService", () => {
     it("Should throw 'NotFoundException' if user dont exist", async () => {
       jest.spyOn(userRepositoryMock, "findOneById").mockResolvedValue(null);
 
-      await expect(userService.softDelete("unexistent-id")).rejects.toThrow(
-        "Impossível excluir esse usuário.",
+      const deleteUserPromise = userService.softDelete("unexistent-id");
+
+      await expect(deleteUserPromise).rejects.toThrow(
+        /^Impossível excluir esse usuário.$/,
       );
 
-      await expect(
-        userService.softDelete("unexistent-id"),
-      ).rejects.toBeInstanceOf(BadRequestException);
+      await expect(deleteUserPromise).rejects.toBeInstanceOf(
+        BadRequestException,
+      );
 
       expect(userRepositoryMock.update).not.toHaveBeenCalled();
     });
