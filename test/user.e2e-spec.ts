@@ -334,7 +334,7 @@ describe("User (e2e)", () => {
         updatedAt: expect.any(String),
         userCredentials: {
           id: expect.any(String),
-          lastLoginAt: null,
+          lastLoginAt: expect.any(String),
         },
         roles: [
           {
@@ -486,7 +486,7 @@ describe("User (e2e)", () => {
         updatedAt: expect.any(String),
         userCredentials: {
           id: expect.any(String),
-          lastLoginAt: null,
+          lastLoginAt: expect.any(String),
         },
         roles: [
           {

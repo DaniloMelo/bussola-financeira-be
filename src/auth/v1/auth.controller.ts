@@ -5,11 +5,15 @@ import {
   HttpCode,
   HttpStatus,
   Post,
+  Req,
+  UseGuards,
 } from "@nestjs/common";
 import { AuthService } from "../auth.service";
 import { LoginDtoV1 } from "./dto/login.dto";
 import { ApiOperation, ApiResponse, ApiTags } from "@nestjs/swagger";
 import { AuthApiResponseDto } from "./dto/swagger/auth-api-response.dto";
+import { IRequestRefreshToken } from "../interfaces/request-refresh-tokens";
+import { AuthGuard } from "@nestjs/passport";
 
 @Controller({ path: "auth", version: "1" })
 @ApiTags("auth-v1")
@@ -31,5 +35,11 @@ export class AuthController {
   @HttpCode(HttpStatus.OK)
   login(@Body() loginData: LoginDtoV1) {
     return this.authService.login(loginData);
+  }
+
+  @Post("refresh")
+  @UseGuards(AuthGuard("jwt-refresh"))
+  refreshTokens(@Req() req: IRequestRefreshToken) {
+    return this.authService.refreshTokens(req.user.sub, req.user.refreshToken);
   }
 }

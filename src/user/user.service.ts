@@ -39,6 +39,10 @@ export class UserService {
     return this.userRepository.findAll();
   }
 
+  async findOneByIdWithCredentials(userId: string) {
+    return this.userRepository.findOneByIdWithCredentials(userId);
+  }
+
   async findOneByEmailWithCredentials(email: string) {
     return this.userRepository.findOneByEmailWithCredentials(email);
   }
@@ -87,5 +91,22 @@ export class UserService {
     }
 
     return await this.userRepository.softDelete(userId);
+  }
+
+  async saveRefreshTokenAndLastLoginAt(
+    userId: string,
+    refreshTokenHash: string,
+  ) {
+    return await this.userRepository.saveRefreshTokenAndLastLoginAt(
+      userId,
+      refreshTokenHash,
+    );
+  }
+
+  async updateRefreshToken(userId: string, refreshTokenHash: string | null) {
+    return await this.userRepository.updateRefreshToken(
+      userId,
+      refreshTokenHash,
+    );
   }
 }

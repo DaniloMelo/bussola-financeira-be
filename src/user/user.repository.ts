@@ -89,6 +89,18 @@ export class UserRepository {
     });
   }
 
+  async findOneByIdWithCredentials(userId: string) {
+    return await this.prisma.user.findUnique({
+      where: {
+        id: userId,
+        deletedAt: null,
+      },
+      include: {
+        userCredentials: true,
+      },
+    });
+  }
+
   async update(userId: string, userData: IUpdateUserData) {
     return await this.prisma.user.update({
       where: {
@@ -139,6 +151,48 @@ export class UserRepository {
             name: true,
           },
         },
+      },
+    });
+  }
+
+  async saveRefreshTokenAndLastLoginAt(
+    userId: string,
+    refreshTokenHash: string,
+  ) {
+    return this.prisma.user.update({
+      where: {
+        id: userId,
+        deletedAt: null,
+      },
+      data: {
+        userCredentials: {
+          update: {
+            refreshTokenHash,
+            lastLoginAt: new Date(),
+          },
+        },
+      },
+      include: {
+        userCredentials: true,
+      },
+    });
+  }
+
+  async updateRefreshToken(userId: string, refreshTokenHash: string | null) {
+    return await this.prisma.user.update({
+      where: {
+        id: userId,
+        deletedAt: null,
+      },
+      data: {
+        userCredentials: {
+          update: {
+            refreshTokenHash: refreshTokenHash,
+          },
+        },
+      },
+      include: {
+        userCredentials: true,
       },
     });
   }
