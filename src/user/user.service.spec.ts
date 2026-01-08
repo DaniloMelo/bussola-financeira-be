@@ -1,4 +1,5 @@
 /* eslint-disable @typescript-eslint/unbound-method */
+
 import { Test, TestingModule } from "@nestjs/testing";
 import { UserService } from "./user.service";
 import { UserRepository } from "./user.repository";
@@ -6,6 +7,23 @@ import { HasherProtocol } from "src/common/hasher/hasher.protocol";
 import { BadRequestException } from "@nestjs/common";
 import { IStoredUser } from "./interfaces/user";
 import { IUpdateUserData } from "./interfaces/update";
+
+const mockUserRepository = {
+  create: jest.fn(),
+  findOneByEmail: jest.fn(),
+  findAll: jest.fn(),
+  findOneById: jest.fn(),
+  update: jest.fn(),
+  softDelete: jest.fn(),
+  findOneByIdWithCredentials: jest.fn(),
+  findOneByEmailWithCredentials: jest.fn(),
+  saveRefreshTokenAndLastLoginAt: jest.fn(),
+  updateRefreshToken: jest.fn(),
+};
+
+const mockHasherService = {
+  hash: jest.fn(),
+};
 
 describe("UserService", () => {
   let userService: UserService;
@@ -18,20 +36,11 @@ describe("UserService", () => {
         UserService,
         {
           provide: UserRepository,
-          useValue: {
-            create: jest.fn(),
-            findOneByEmail: jest.fn(),
-            findAll: jest.fn(),
-            findOneById: jest.fn(),
-            update: jest.fn(),
-            softDelete: jest.fn(),
-          },
+          useValue: mockUserRepository,
         },
         {
           provide: HasherProtocol,
-          useValue: {
-            hash: jest.fn(),
-          },
+          useValue: mockHasherService,
         },
       ],
     }).compile();
@@ -39,6 +48,10 @@ describe("UserService", () => {
     userService = module.get<UserService>(UserService);
     userRepositoryMock = module.get<UserRepository>(UserRepository);
     hasherServiceMock = module.get<HasherProtocol>(HasherProtocol);
+  });
+
+  beforeEach(() => {
+    jest.clearAllMocks();
   });
 
   describe("create", () => {
@@ -120,11 +133,13 @@ describe("UserService", () => {
         .spyOn(userRepositoryMock, "findOneByEmail")
         .mockResolvedValue(storedUser);
 
-      await expect(userService.create(newUser)).rejects.toThrow(
-        "Falha ao criar o usuário. Verifique os dados fornecidos.",
+      const createUserPromise = userService.create(newUser);
+
+      await expect(createUserPromise).rejects.toThrow(
+        /^Falha ao criar o usuário. Verifique os dados fornecidos.$/,
       );
 
-      await expect(userService.create(newUser)).rejects.toBeInstanceOf(
+      await expect(createUserPromise).rejects.toBeInstanceOf(
         BadRequestException,
       );
 
@@ -196,6 +211,102 @@ describe("UserService", () => {
       expect(result.length).toBe(0);
 
       expect(result).toEqual([]);
+    });
+  });
+
+  describe("findOneByIdWithCredentials", () => {
+    it("Should find a user by ID including userCredentials relation", async () => {
+      const storedUser = {
+        id: "1",
+        name: "John Doe",
+        email: "john@email.com",
+        deletedAt: null,
+        createdAt: new Date(),
+        updatedAt: new Date(),
+        userCredentials: {
+          id: "11",
+          lastLoginAt: null,
+          passwordHash: "hashed-password",
+          refreshTokenHash: "hashed-token",
+          userId: "1",
+        },
+      };
+
+      jest
+        .spyOn(userRepositoryMock, "findOneByIdWithCredentials")
+        .mockResolvedValue(storedUser);
+
+      const result = await userService.findOneByIdWithCredentials("1");
+
+      expect(
+        userRepositoryMock.findOneByIdWithCredentials,
+      ).toHaveBeenCalledWith("1");
+
+      expect(result).toEqual(storedUser);
+    });
+
+    it("Should return null if user don't exist", async () => {
+      jest
+        .spyOn(userRepositoryMock, "findOneByIdWithCredentials")
+        .mockResolvedValue(null);
+
+      const result =
+        await userService.findOneByIdWithCredentials("unexistent-id");
+
+      expect(
+        userRepositoryMock.findOneByIdWithCredentials,
+      ).toHaveBeenCalledWith("unexistent-id");
+
+      expect(result).toBe(null);
+    });
+  });
+
+  describe("findOneByEmailWithCredentials", () => {
+    it("Should find a user by email including userCredentials relation", async () => {
+      const storedUser = {
+        id: "1",
+        name: "John Doe",
+        email: "john@email.com",
+        deletedAt: null,
+        createdAt: new Date(),
+        updatedAt: new Date(),
+        userCredentials: {
+          id: "11",
+          lastLoginAt: null,
+          passwordHash: "hashed-password",
+          refreshTokenHash: "hashed-token",
+          userId: "1",
+        },
+      };
+
+      jest
+        .spyOn(userRepositoryMock, "findOneByEmailWithCredentials")
+        .mockResolvedValue(storedUser);
+
+      const result =
+        await userService.findOneByEmailWithCredentials("john@email.com");
+
+      expect(
+        userRepositoryMock.findOneByEmailWithCredentials,
+      ).toHaveBeenCalledWith("john@email.com");
+
+      expect(result).toEqual(storedUser);
+    });
+
+    it("Should return null if user don't exist", async () => {
+      jest
+        .spyOn(userRepositoryMock, "findOneByEmailWithCredentials")
+        .mockResolvedValue(null);
+
+      const result = await userService.findOneByEmailWithCredentials(
+        "unexistent@email.com",
+      );
+
+      expect(
+        userRepositoryMock.findOneByEmailWithCredentials,
+      ).toHaveBeenCalledWith("unexistent@email.com");
+
+      expect(result).toBe(null);
     });
   });
 
@@ -523,13 +634,18 @@ describe("UserService", () => {
         .spyOn(userRepositoryMock, "findOneById")
         .mockResolvedValue(storedUser);
 
-      await expect(
-        userService.update(storedUser.id, userDataToUpdate),
-      ).rejects.toThrow("Nenhum dado foi fornecido.");
+      const updateUserPromise = userService.update(
+        storedUser.id,
+        userDataToUpdate,
+      );
 
-      await expect(
-        userService.update(storedUser.id, userDataToUpdate),
-      ).rejects.toBeInstanceOf(BadRequestException);
+      await expect(updateUserPromise).rejects.toThrow(
+        /^Nenhum dado foi fornecido.$/,
+      );
+
+      await expect(updateUserPromise).rejects.toBeInstanceOf(
+        BadRequestException,
+      );
 
       expect(userRepositoryMock.findOneById).not.toHaveBeenCalled();
 
@@ -591,15 +707,18 @@ describe("UserService", () => {
         .spyOn(userRepositoryMock, "findOneByEmail")
         .mockResolvedValue(anotherStoredUser);
 
-      await expect(
-        userService.update(storedUser.id, userDataToUpdate),
-      ).rejects.toThrow(
-        "Impossível atualizar o seu usuário. Verifique as suas credenciais e tente novamente.",
+      const loginUserPromise = userService.update(
+        storedUser.id,
+        userDataToUpdate,
       );
 
-      await expect(
-        userService.update(storedUser.id, userDataToUpdate),
-      ).rejects.toBeInstanceOf(BadRequestException);
+      await expect(loginUserPromise).rejects.toThrow(
+        /^Impossível atualizar o seu usuário. Verifique as suas credenciais e tente novamente.$/,
+      );
+
+      await expect(loginUserPromise).rejects.toBeInstanceOf(
+        BadRequestException,
+      );
 
       expect(userRepositoryMock.findOneById).toHaveBeenCalledWith(
         storedUser.id,
@@ -655,15 +774,131 @@ describe("UserService", () => {
     it("Should throw 'NotFoundException' if user dont exist", async () => {
       jest.spyOn(userRepositoryMock, "findOneById").mockResolvedValue(null);
 
-      await expect(userService.softDelete("unexistent-id")).rejects.toThrow(
-        "Impossível excluir esse usuário.",
+      const deleteUserPromise = userService.softDelete("unexistent-id");
+
+      await expect(deleteUserPromise).rejects.toThrow(
+        /^Impossível excluir esse usuário.$/,
       );
 
-      await expect(
-        userService.softDelete("unexistent-id"),
-      ).rejects.toBeInstanceOf(BadRequestException);
+      await expect(deleteUserPromise).rejects.toBeInstanceOf(
+        BadRequestException,
+      );
 
       expect(userRepositoryMock.update).not.toHaveBeenCalled();
+    });
+  });
+
+  describe("saveRefreshTokenAndLastLoginAt", () => {
+    it("Should save lastLoginAt and refreshTokenHash after login", async () => {
+      const userId = "1";
+      const hashedRefreshToken = "hashed_refresh_token";
+
+      const storedUser = {
+        id: "1",
+        name: "John Doe",
+        email: "john@email.com",
+        deletedAt: null,
+        updatedAt: new Date(),
+        createdAt: new Date(),
+        userCredentials: {
+          id: "11",
+          userId: "1",
+          passwordHash: "hashed_password",
+          refreshTokenHash: "hashed_refresh_token",
+          lastLoginAt: new Date(),
+        },
+      };
+
+      jest
+        .spyOn(userRepositoryMock, "saveRefreshTokenAndLastLoginAt")
+        .mockResolvedValue(storedUser);
+
+      const result = await userService.saveRefreshTokenAndLastLoginAt(
+        userId,
+        hashedRefreshToken,
+      );
+
+      expect(
+        userRepositoryMock.saveRefreshTokenAndLastLoginAt,
+      ).toHaveBeenCalledWith(userId, hashedRefreshToken);
+
+      expect(result).toEqual(storedUser);
+    });
+  });
+
+  describe("updateRefreshToken", () => {
+    it("Should update refresh token", async () => {
+      const userId = "1";
+      const updatedRefreshTokenHash = "updated_refresh_token_hash";
+
+      const storedUser = {
+        id: "1",
+        name: "John Doe",
+        email: "john@email.com",
+        deletedAt: null,
+        updatedAt: new Date(),
+        createdAt: new Date(),
+        userCredentials: {
+          id: "11",
+          userId: "1",
+          passwordHash: "hashed_password",
+          refreshTokenHash: "updated_refresh_token_hash",
+          lastLoginAt: new Date(),
+        },
+      };
+
+      jest
+        .spyOn(userRepositoryMock, "updateRefreshToken")
+        .mockResolvedValue(storedUser);
+
+      const result = await userService.updateRefreshToken(
+        userId,
+        updatedRefreshTokenHash,
+      );
+
+      expect(userRepositoryMock.updateRefreshToken).toHaveBeenCalledWith(
+        userId,
+        updatedRefreshTokenHash,
+      );
+
+      expect(result).toEqual(storedUser);
+    });
+
+    it("Should update refresh to a null value", async () => {
+      const userId = "1";
+      const updatedRefreshTokenHash = null;
+
+      const storedUser = {
+        id: "1",
+        name: "John Doe",
+        email: "john@email.com",
+        deletedAt: null,
+        updatedAt: new Date(),
+        createdAt: new Date(),
+        userCredentials: {
+          id: "11",
+          userId: "1",
+          passwordHash: "hashed_password",
+          refreshTokenHash: null,
+          lastLoginAt: new Date(),
+        },
+      };
+
+      jest
+        .spyOn(userRepositoryMock, "updateRefreshToken")
+        .mockResolvedValue(storedUser);
+
+      const result = await userService.updateRefreshToken(
+        userId,
+        updatedRefreshTokenHash,
+      );
+
+      expect(userRepositoryMock.updateRefreshToken).toHaveBeenCalledWith(
+        userId,
+        updatedRefreshTokenHash,
+      );
+
+      expect(result).toEqual(storedUser);
     });
   });
 });

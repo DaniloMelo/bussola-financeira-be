@@ -17,6 +17,7 @@ import * as request from "supertest";
 import { ILogin } from "src/auth/interfaces/login";
 import { AuthApiResponseDto } from "src/auth/v1/dto/swagger/auth-api-response.dto";
 import { createTestUserV1 } from "./utils/create-test-user-v1";
+import { loginTestUserV1 } from "./utils/login-test-user-v1";
 
 describe("Auth (e2e)", () => {
   let app: INestApplication;
@@ -66,7 +67,7 @@ describe("Auth (e2e)", () => {
   });
 
   describe("v1/auth/login (POST)", () => {
-    it("Should successfull login user and return tokens", async () => {
+    it("Should successfully login user and return tokens", async () => {
       await createTestUserV1(app);
 
       const loginUserData: ILogin = {
@@ -83,6 +84,7 @@ describe("Auth (e2e)", () => {
 
       expect(responseBody).toEqual({
         access_token: expect.any(String),
+        refresh_token: expect.any(String),
       });
     });
 
@@ -145,6 +147,40 @@ describe("Auth (e2e)", () => {
         error: "Bad Request",
         statusCode: 400,
       });
+    });
+  });
+
+  describe("v1/auth/refresh (POST)", () => {
+    it("Should successfully refresh tokens and persist refresh-token", async () => {
+      const { userApiResponse, userInputData } = await createTestUserV1(app);
+
+      const { access_token, refresh_token } = await loginTestUserV1(app, {
+        email: userInputData.email,
+        password: userInputData.password,
+      });
+
+      const response = await request(app.getHttpServer())
+        .post("/v1/auth/refresh")
+        .set("Authorization", `Bearer ${refresh_token}`);
+
+      const responseBody: AuthApiResponseDto = response.body;
+
+      const postRefreshToken = await prisma.userCredentials.findUnique({
+        where: {
+          userId: userApiResponse.id,
+        },
+      });
+
+      expect(responseBody).toEqual({
+        access_token: expect.any(String),
+        refresh_token: expect.any(String),
+      });
+
+      expect(access_token).not.toEqual(responseBody.access_token);
+
+      expect(refresh_token).not.toEqual(responseBody.refresh_token);
+
+      expect(postRefreshToken?.refreshTokenHash).toBeDefined();
     });
   });
 });

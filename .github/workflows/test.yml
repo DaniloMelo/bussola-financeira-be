@@ -54,9 +54,11 @@ jobs:
           echo "POSTGRES_HOST=localhost" >> $GITHUB_ENV
           echo "DATABASE_URL=postgresql://local_user_e2e_test:local_password_e2e_test@localhost:5432/local_db_e2e_test?schema=public" >> $GITHUB_ENV
           echo "JWT_SECRET=local_secret" >> $GITHUB_ENV
+          echo "JWT_EXP=900" >> $GITHUB_ENV
+          echo "JWT_REFRESH_SECRET=local_refresh_secret" >> $GITHUB_ENV
+          echo "JWT_REFRESH_EXP=604800" >> $GITHUB_ENV
           echo "JWT_ISS=http://localhost:3001" >> $GITHUB_ENV
           echo "JWT_AUD=bussola-financeira-dev" >> $GITHUB_ENV
-          echo "JWT_EXP=604800" >> $GITHUB_ENV
 
       - name: Rodar Testes E2E (db:sync + test:e2e)
         run: npm run test:e2e:ci
