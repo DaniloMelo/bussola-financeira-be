@@ -39,6 +39,24 @@ async function bootstrap() {
     .addTag("auth-v1")
     .addTag("user-v1")
     .addTag("user-v2")
+    .addBearerAuth(
+      {
+        type: "http",
+        scheme: "bearer",
+        bearerFormat: "JWT",
+        description: "Bearer <access-token>",
+      },
+      "access-token",
+    )
+    .addBearerAuth(
+      {
+        type: "http",
+        scheme: "bearer",
+        bearerFormat: "JWT",
+        description: "Bearer <refresh-token>",
+      },
+      "refresh-token",
+    )
     .build();
 
   const document = SwaggerModule.createDocument(app, config);
