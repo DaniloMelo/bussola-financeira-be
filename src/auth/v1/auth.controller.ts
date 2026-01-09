@@ -10,7 +10,13 @@ import {
 } from "@nestjs/common";
 import { AuthService } from "../auth.service";
 import { LoginDtoV1 } from "./dto/login.dto";
-import { ApiOperation, ApiResponse, ApiTags } from "@nestjs/swagger";
+import {
+  ApiBearerAuth,
+  ApiHeader,
+  ApiOperation,
+  ApiResponse,
+  ApiTags,
+} from "@nestjs/swagger";
 import { AuthApiResponseDto } from "./dto/swagger/auth-api-response.dto";
 import { IRequestRefreshToken } from "../interfaces/request-refresh-tokens";
 import { AuthGuard } from "@nestjs/passport";
@@ -21,10 +27,11 @@ export class AuthController {
   constructor(private readonly authService: AuthService) {}
 
   @Post("login")
+  @HttpCode(HttpStatus.OK)
   @ApiOperation({ summary: "Login" })
   @ApiResponse({
     status: 200,
-    description: "Retorna access-token",
+    description: "Retorna access token e refresh token",
     type: AuthApiResponseDto,
   })
   @ApiResponse({
@@ -32,13 +39,25 @@ export class AuthController {
     description: "Dados inválidos, ausentes ou recurso não encontrado",
     example: new BadRequestException(["Mensagem de exemplo"]).getResponse(),
   })
-  @HttpCode(HttpStatus.OK)
   login(@Body() loginData: LoginDtoV1) {
     return this.authService.login(loginData);
   }
 
   @Post("refresh")
   @UseGuards(AuthGuard("jwt-refresh"))
+  @HttpCode(HttpStatus.OK)
+  @ApiOperation({ summary: "Atualizar token" })
+  @ApiBearerAuth("refresh-token")
+  @ApiHeader({
+    name: "Authorization",
+    description: "Bearer <refresh_token>",
+    required: true,
+  })
+  @ApiResponse({
+    status: 200,
+    description: "Retorna access token e refresh token atualizados",
+    type: AuthApiResponseDto,
+  })
   refreshTokens(@Req() req: IRequestRefreshToken) {
     return this.authService.refreshTokens(req.user.sub, req.user.refreshToken);
   }
