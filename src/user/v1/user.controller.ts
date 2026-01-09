@@ -11,7 +11,13 @@ import {
 } from "@nestjs/common";
 import { UserService } from "../user.service";
 import { CreateUserDtoV1 } from "./dto/create-user.dto";
-import { ApiOperation, ApiResponse, ApiTags } from "@nestjs/swagger";
+import {
+  ApiBearerAuth,
+  ApiHeader,
+  ApiOperation,
+  ApiResponse,
+  ApiTags,
+} from "@nestjs/swagger";
 import { UpdateUserDtoV1 } from "./dto/update-user.dto";
 import { UserApiResponseDtoV1 } from "./dto/swagger/user-api-response.dto";
 import { DeletedUserApiResponseDtoV1 } from "./dto/swagger/deleted-user-api-response.dto";
@@ -56,6 +62,12 @@ export class UserControllerV1 {
   @Patch("me")
   @UseGuards(JwtAuthGuard)
   @ApiOperation({ summary: "Atualiza um usuário" })
+  @ApiBearerAuth("access-token")
+  @ApiHeader({
+    name: "Authorization",
+    description: "Bearer <access_token>",
+    required: true,
+  })
   @ApiResponse({
     status: 200,
     description: "Retorna o usuário atualizado",
@@ -73,6 +85,12 @@ export class UserControllerV1 {
   @Delete("me")
   @UseGuards(JwtAuthGuard)
   @ApiOperation({ summary: "Exclui um usuário" })
+  @ApiBearerAuth("access-token")
+  @ApiHeader({
+    name: "Authorization",
+    description: "Bearer <access_token>",
+    required: true,
+  })
   @ApiResponse({
     status: 200,
     description: "Retorna o usuário excluído (soft delete)",
