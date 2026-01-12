@@ -306,4 +306,32 @@ describe("AuthService", () => {
       expect(userServiceMock.updateRefreshToken).not.toHaveBeenCalled();
     });
   });
+
+  describe("logout", () => {
+    const storedUser = {
+      id: "1",
+      name: "John Doe",
+      email: "john@email.com",
+      deletedAt: null,
+      createdAt: new Date(),
+      updatedAt: new Date(),
+      userCredentials: {
+        id: "11",
+        lastLoginAt: new Date(),
+        userId: "1",
+        passwordHash: "hashed-password",
+        refreshTokenHash: null,
+      },
+    };
+
+    it("Should successfully logout a user", async () => {
+      jest
+        .spyOn(userServiceMock, "updateRefreshToken")
+        .mockResolvedValue(storedUser);
+
+      const result = await authService.logout("1");
+
+      expect(result).toEqual(storedUser);
+    });
+  });
 });

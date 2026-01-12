@@ -183,4 +183,33 @@ describe("Auth (e2e)", () => {
       expect(postRefreshToken?.refreshTokenHash).toBeDefined();
     });
   });
+
+  describe("v1/auth/logout (POST)", () => {
+    it("Should logout a user and set a null value for refresh token", async () => {
+      const { userApiResponse, userInputData } = await createTestUserV1(app);
+
+      const { access_token } = await loginTestUserV1(app, {
+        email: userInputData.email,
+        password: userInputData.password,
+      });
+
+      const response = await request(app.getHttpServer())
+        .post("/v1/auth/logout")
+        .set("Authorization", `Bearer ${access_token}`);
+
+      expect(response.body).toEqual({
+        id: userApiResponse.id,
+        name: "John Doe",
+        email: "john@email.com",
+        deletedAt: null,
+        createdAt: userApiResponse.createdAt,
+        updatedAt: userApiResponse.updatedAt,
+        userCredentials: {
+          id: userApiResponse.userCredentials.id,
+          lastLoginAt: expect.any(String),
+          refreshTokenHash: null,
+        },
+      });
+    });
+  });
 });

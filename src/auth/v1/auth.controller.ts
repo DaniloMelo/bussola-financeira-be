@@ -8,8 +8,6 @@ import {
   Req,
   UseGuards,
 } from "@nestjs/common";
-import { AuthService } from "../auth.service";
-import { LoginDtoV1 } from "./dto/login.dto";
 import {
   ApiBearerAuth,
   ApiHeader,
@@ -17,9 +15,13 @@ import {
   ApiResponse,
   ApiTags,
 } from "@nestjs/swagger";
-import { AuthApiResponseDto } from "./dto/swagger/auth-api-response.dto";
-import { IRequestRefreshToken } from "../interfaces/request-refresh-tokens";
 import { AuthGuard } from "@nestjs/passport";
+import { AuthService } from "../auth.service";
+import { JwtAuthGuard } from "../guards/jwt-auth.guard";
+import { IRequestRefreshToken } from "../interfaces/request-refresh-tokens";
+import { IRequestUser } from "../interfaces/request-user";
+import { LoginDtoV1 } from "./dto/login.dto";
+import { AuthApiResponseDto } from "./dto/swagger/auth-api-response.dto";
 
 @Controller({ path: "auth", version: "1" })
 @ApiTags("auth-v1")
@@ -60,5 +62,13 @@ export class AuthController {
   })
   refreshTokens(@Req() req: IRequestRefreshToken) {
     return this.authService.refreshTokens(req.user.sub, req.user.refreshToken);
+  }
+
+  @Post("logout")
+  @UseGuards(JwtAuthGuard)
+  @HttpCode(HttpStatus.OK)
+  @ApiBearerAuth("access-token")
+  logout(@Req() req: IRequestUser) {
+    return this.authService.logout(req.user.id);
   }
 }
