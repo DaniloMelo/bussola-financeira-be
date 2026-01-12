@@ -9,6 +9,7 @@ import { HasherProtocol } from "src/common/hasher/hasher.protocol";
 import { JwtService } from "@nestjs/jwt";
 import { IJwtPayload } from "./interfaces/jwt-payload";
 import { ConfigService } from "@nestjs/config";
+import { Random } from "src/common/utils/random";
 
 @Injectable()
 export class AuthService {
@@ -104,14 +105,20 @@ export class AuthService {
     );
 
     const [accessToken, refreshToken] = await Promise.all([
-      this.jwtService.signAsync(payload, {
-        secret: jwtAccessTokenSecret,
-        expiresIn: jwtAccessTokenExp,
-      }),
-      this.jwtService.signAsync(payload, {
-        secret: jwtRefreshTokenSecret,
-        expiresIn: jwtRefreshTokenExp,
-      }),
+      this.jwtService.signAsync(
+        { ...payload, jti: new Random().text() },
+        {
+          secret: jwtAccessTokenSecret,
+          expiresIn: jwtAccessTokenExp,
+        },
+      ),
+      this.jwtService.signAsync(
+        { ...payload, jti: new Random().text() },
+        {
+          secret: jwtRefreshTokenSecret,
+          expiresIn: jwtRefreshTokenExp,
+        },
+      ),
     ]);
 
     return {
