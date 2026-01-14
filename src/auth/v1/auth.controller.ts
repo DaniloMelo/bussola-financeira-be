@@ -22,6 +22,7 @@ import { IRequestRefreshToken } from "../interfaces/request-refresh-tokens";
 import { IRequestUser } from "../interfaces/request-user";
 import { LoginDtoV1 } from "./dto/login.dto";
 import { AuthApiResponseDto } from "./dto/swagger/auth-api-response.dto";
+import { LogoutApiResponseDto } from "./dto/swagger/logout-api-response.dto";
 
 @Controller({ path: "auth", version: "1" })
 @ApiTags("auth-v1")
@@ -48,12 +49,11 @@ export class AuthController {
   @Post("refresh")
   @UseGuards(AuthGuard("jwt-refresh"))
   @HttpCode(HttpStatus.OK)
-  @ApiOperation({ summary: "Atualizar token" })
+  @ApiOperation({ summary: "Atualizar tokens" })
   @ApiBearerAuth("refresh-token")
   @ApiHeader({
     name: "Authorization",
     description: "Bearer <refresh_token>",
-    required: true,
   })
   @ApiResponse({
     status: 200,
@@ -67,7 +67,17 @@ export class AuthController {
   @Post("logout")
   @UseGuards(JwtAuthGuard)
   @HttpCode(HttpStatus.OK)
+  @ApiOperation({ summary: "Logout" })
   @ApiBearerAuth("access-token")
+  @ApiHeader({
+    name: "Authorization",
+    description: "Bearer <access_token>",
+  })
+  @ApiResponse({
+    status: 200,
+    description: "Retorna o usuário deslogado",
+    type: LogoutApiResponseDto,
+  })
   logout(@Req() req: IRequestUser) {
     return this.authService.logout(req.user.id);
   }

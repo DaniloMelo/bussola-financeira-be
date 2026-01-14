@@ -173,6 +173,7 @@ export class UserRepository {
         },
       },
       include: {
+        // TODO: incluir relacao roles e tirar senha
         userCredentials: true,
       },
     });
@@ -197,6 +198,11 @@ export class UserRepository {
             id: true,
             lastLoginAt: true,
             refreshTokenHash: true,
+          },
+        },
+        roles: {
+          select: {
+            name: true,
           },
         },
       },

@@ -1,6 +1,6 @@
 import { ApiProperty } from "@nestjs/swagger";
 
-class DeletedUserCredentialsRelation {
+class UpdateUserCredentialsRelation {
   @ApiProperty({
     description: "ID (UUID).",
     example: "4268a730-7109-4734-85c8-77e33e40118b",
@@ -18,7 +18,7 @@ class DeletedUserCredentialsRelation {
   lastLoginAt: Date | null;
 }
 
-class DeletedUserRolesRelation {
+class UpdateUserRolesRelation {
   @ApiProperty({
     description: "Role do usuário",
     example: "USER",
@@ -26,7 +26,7 @@ class DeletedUserRolesRelation {
   name: string;
 }
 
-export class DeletedUserApiResponseDtoV1 {
+export class UpdateUserApiResponseDtoV1 {
   @ApiProperty({
     description: "ID do usuário (UUID).",
     example: "34eaa6f3-4ff8-4f70-8acb-44b70436891b",
@@ -35,13 +35,13 @@ export class DeletedUserApiResponseDtoV1 {
 
   @ApiProperty({
     description: "Nome do usuário.",
-    example: "John Doe",
+    example: "John Doe Updated",
   })
   name: string;
 
   @ApiProperty({
     description: "E-mail do usuário.",
-    example: "John@email.com",
+    example: "john_updated@email.com",
   })
   email: string;
 
@@ -50,7 +50,7 @@ export class DeletedUserApiResponseDtoV1 {
     nullable: true,
     type: "string",
     format: "date-time",
-    example: "2025-11-26T15:19:30.534Z",
+    example: null,
   })
   deletedAt: Date | null;
 
@@ -72,13 +72,13 @@ export class DeletedUserApiResponseDtoV1 {
 
   @ApiProperty({
     description: "Dados da tabela relacionada 'user-credentials'",
-    type: () => DeletedUserCredentialsRelation,
+    type: () => UpdateUserCredentialsRelation,
   })
-  userCredentials: DeletedUserCredentialsRelation;
+  userCredentials: UpdateUserCredentialsRelation;
 
   @ApiProperty({
     description: "Dados da tabela relacionada 'user-credentials'",
-    type: () => [DeletedUserRolesRelation],
+    type: () => [UpdateUserRolesRelation],
   })
-  roles: DeletedUserRolesRelation[];
+  roles: UpdateUserRolesRelation[];
 }

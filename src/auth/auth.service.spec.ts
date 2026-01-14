@@ -322,6 +322,11 @@ describe("AuthService", () => {
         passwordHash: "hashed-password",
         refreshTokenHash: null,
       },
+      roles: [
+        {
+          name: "USER",
+        },
+      ],
     };
 
     it("Should successfully logout a user", async () => {

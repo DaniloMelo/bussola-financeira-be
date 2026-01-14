@@ -209,6 +209,11 @@ describe("Auth (e2e)", () => {
           lastLoginAt: expect.any(String),
           refreshTokenHash: null,
         },
+        roles: [
+          {
+            name: "USER",
+          },
+        ],
       });
     });
   });
