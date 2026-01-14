@@ -48,11 +48,6 @@ export class AuthService {
       tokens.refresh_token,
     );
 
-    // await this.userService.updateRefreshToken(
-    //   existingUser.id,
-    //   refreshTokenHash,
-    // );
-
     await this.userService.saveRefreshTokenAndLastLoginAt(
       existingUser.id,
       refreshTokenHash,
@@ -90,6 +85,10 @@ export class AuthService {
     );
 
     return tokens;
+  }
+
+  async logout(userId: string) {
+    return await this.userService.updateRefreshToken(userId, null);
   }
 
   private async generateJwtTokens(id: string) {
