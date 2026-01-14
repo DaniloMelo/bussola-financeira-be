@@ -1,6 +1,6 @@
 import { ApiProperty } from "@nestjs/swagger";
 
-class DeletedUserCredentialsRelation {
+class LogoutUserCredentialsRelation {
   @ApiProperty({
     description: "ID (UUID).",
     example: "4268a730-7109-4734-85c8-77e33e40118b",
@@ -16,9 +16,16 @@ class DeletedUserCredentialsRelation {
     example: "2026-01-13T16:10:12.361Z",
   })
   lastLoginAt: Date | null;
+
+  @ApiProperty({
+    description: "Valor nulo para o refresh token",
+    nullable: true,
+    example: null,
+  })
+  refreshTokenHash: string | null;
 }
 
-class DeletedUserRolesRelation {
+class LogoutUserRolesRelation {
   @ApiProperty({
     description: "Role do usuário",
     example: "USER",
@@ -26,7 +33,7 @@ class DeletedUserRolesRelation {
   name: string;
 }
 
-export class DeletedUserApiResponseDtoV1 {
+export class LogoutApiResponseDto {
   @ApiProperty({
     description: "ID do usuário (UUID).",
     example: "34eaa6f3-4ff8-4f70-8acb-44b70436891b",
@@ -50,7 +57,7 @@ export class DeletedUserApiResponseDtoV1 {
     nullable: true,
     type: "string",
     format: "date-time",
-    example: "2025-11-26T15:19:30.534Z",
+    example: null,
   })
   deletedAt: Date | null;
 
@@ -72,13 +79,13 @@ export class DeletedUserApiResponseDtoV1 {
 
   @ApiProperty({
     description: "Dados da tabela relacionada 'user-credentials'",
-    type: () => DeletedUserCredentialsRelation,
+    type: () => LogoutUserCredentialsRelation,
   })
-  userCredentials: DeletedUserCredentialsRelation;
+  userCredentials: LogoutUserCredentialsRelation;
 
   @ApiProperty({
     description: "Dados da tabela relacionada 'user-credentials'",
-    type: () => [DeletedUserRolesRelation],
+    type: () => [LogoutUserRolesRelation],
   })
-  roles: DeletedUserRolesRelation[];
+  roles: LogoutUserRolesRelation[];
 }

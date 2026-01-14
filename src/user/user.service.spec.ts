@@ -845,6 +845,11 @@ describe("UserService", () => {
           refreshTokenHash: "updated_refresh_token_hash",
           lastLoginAt: new Date(),
         },
+        roles: [
+          {
+            name: "USER",
+          },
+        ],
       };
 
       jest
@@ -882,6 +887,11 @@ describe("UserService", () => {
           refreshTokenHash: null,
           lastLoginAt: new Date(),
         },
+        roles: [
+          {
+            name: "USER",
+          },
+        ],
       };
 
       jest
