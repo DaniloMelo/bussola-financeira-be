@@ -1,5 +1,5 @@
 import { plainToInstance } from "class-transformer";
-import { ILogin } from "src/auth/interfaces/login";
+import { ILogin } from "src/auth/interfaces/login.interface";
 import { LoginDtoV1 } from "./login.dto";
 import { validate } from "class-validator";
 

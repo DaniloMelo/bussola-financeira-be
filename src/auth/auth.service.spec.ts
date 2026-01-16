@@ -5,7 +5,7 @@ import { AuthService } from "./auth.service";
 import { UserService } from "src/user/user.service";
 import { HasherProtocol } from "src/common/hasher/hasher.protocol";
 import { JwtService } from "@nestjs/jwt";
-import { ILogin } from "./interfaces/login";
+import { ILogin } from "./interfaces/login.interface";
 import { BadRequestException, ForbiddenException } from "@nestjs/common";
 import { ConfigService } from "@nestjs/config";
 
@@ -83,12 +83,14 @@ describe("AuthService", () => {
       createdAt: new Date(),
       updatedAt: new Date(),
       userCredentials: {
-        id: "11",
-        lastLoginAt: new Date(),
-        userId: "1",
         passwordHash: "hashed-password",
         refreshTokenHash: null,
       },
+      roles: [
+        {
+          name: "USER",
+        },
+      ],
     };
 
     const loginUserData: ILogin = {
@@ -200,12 +202,14 @@ describe("AuthService", () => {
       createdAt: new Date(),
       updatedAt: new Date(),
       userCredentials: {
-        id: "11",
-        lastLoginAt: new Date(),
-        userId: "1",
         passwordHash: "hashed-password",
         refreshTokenHash: "hashed-refresh-token",
       },
+      roles: [
+        {
+          name: "USER",
+        },
+      ],
     };
 
     const fakeAcessToken = "fake_access_token";

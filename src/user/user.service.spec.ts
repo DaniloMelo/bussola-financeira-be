@@ -224,12 +224,14 @@ describe("UserService", () => {
         createdAt: new Date(),
         updatedAt: new Date(),
         userCredentials: {
-          id: "11",
-          lastLoginAt: null,
           passwordHash: "hashed-password",
           refreshTokenHash: "hashed-token",
-          userId: "1",
         },
+        roles: [
+          {
+            name: "USER",
+          },
+        ],
       };
 
       jest
@@ -271,12 +273,14 @@ describe("UserService", () => {
         createdAt: new Date(),
         updatedAt: new Date(),
         userCredentials: {
-          id: "11",
-          lastLoginAt: null,
           passwordHash: "hashed-password",
           refreshTokenHash: "hashed-token",
-          userId: "1",
         },
+        roles: [
+          {
+            name: "USER",
+          },
+        ],
       };
 
       jest
