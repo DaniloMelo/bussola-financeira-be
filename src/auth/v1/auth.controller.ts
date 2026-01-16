@@ -6,6 +6,7 @@ import {
   HttpStatus,
   Post,
   Req,
+  UnauthorizedException,
   UseGuards,
 } from "@nestjs/common";
 import {
@@ -15,11 +16,14 @@ import {
   ApiResponse,
   ApiTags,
 } from "@nestjs/swagger";
-import { AuthGuard } from "@nestjs/passport";
+
 import { AuthService } from "../auth.service";
 import { JwtAuthGuard } from "../guards/jwt-auth.guard";
-import { IRequestRefreshToken } from "../interfaces/request-refresh-tokens";
-import { IRequestUser } from "../interfaces/request-user";
+import { JwtRefreshTokenGuard } from "../guards/jwt-refresh-token.guard";
+import {
+  IRequestWithUser,
+  IRequestWithUserAndRefreshToken,
+} from "../interfaces/request-user.interface";
 import { LoginDtoV1 } from "./dto/login.dto";
 import { AuthApiResponseDto } from "./dto/swagger/auth-api-response.dto";
 import { LogoutApiResponseDto } from "./dto/swagger/logout-api-response.dto";
@@ -47,7 +51,7 @@ export class AuthController {
   }
 
   @Post("refresh")
-  @UseGuards(AuthGuard("jwt-refresh"))
+  @UseGuards(JwtRefreshTokenGuard)
   @HttpCode(HttpStatus.OK)
   @ApiOperation({ summary: "Atualizar tokens" })
   @ApiBearerAuth("refresh-token")
@@ -60,8 +64,15 @@ export class AuthController {
     description: "Retorna access token e refresh token atualizados",
     type: AuthApiResponseDto,
   })
-  refreshTokens(@Req() req: IRequestRefreshToken) {
-    return this.authService.refreshTokens(req.user.sub, req.user.refreshToken);
+  @ApiResponse({
+    status: 401,
+    description: "Sessão inválida ou expirada",
+    example: new UnauthorizedException([
+      "Sessão inválida ou expirada. Faça login novamente.",
+    ]).getResponse(),
+  })
+  refreshTokens(@Req() req: IRequestWithUserAndRefreshToken) {
+    return this.authService.refreshTokens(req.user.id, req.user.refreshToken);
   }
 
   @Post("logout")
@@ -78,7 +89,7 @@ export class AuthController {
     description: "Retorna o usuário deslogado",
     type: LogoutApiResponseDto,
   })
-  logout(@Req() req: IRequestUser) {
+  logout(@Req() req: IRequestWithUser) {
     return this.authService.logout(req.user.id);
   }
 }

@@ -3,11 +3,11 @@ import {
   ForbiddenException,
   Injectable,
 } from "@nestjs/common";
-import { ILogin } from "./interfaces/login";
+import { ILogin } from "./interfaces/login.interface";
 import { UserService } from "src/user/user.service";
 import { HasherProtocol } from "src/common/hasher/hasher.protocol";
 import { JwtService } from "@nestjs/jwt";
-import { IJwtPayload } from "./interfaces/jwt-payload";
+import { IJwtPayload } from "./interfaces/jwt-payload.interface";
 import { ConfigService } from "@nestjs/config";
 import { Random } from "src/common/utils/random";
 
@@ -42,7 +42,10 @@ export class AuthService {
       );
     }
 
-    const tokens = await this.generateJwtTokens(existingUser.id);
+    const tokens = await this.generateJwtTokens(
+      existingUser.id,
+      existingUser.roles,
+    );
 
     const refreshTokenHash = await this.hasherService.hash(
       tokens.refresh_token,
@@ -73,7 +76,10 @@ export class AuthService {
       throw new ForbiddenException("Acesso negado.");
     }
 
-    const tokens = await this.generateJwtTokens(existingUser.id);
+    const tokens = await this.generateJwtTokens(
+      existingUser.id,
+      existingUser.roles,
+    );
 
     const refreshTokenHash = await this.hasherService.hash(
       tokens.refresh_token,
@@ -91,8 +97,13 @@ export class AuthService {
     return await this.userService.updateRefreshToken(userId, null);
   }
 
-  private async generateJwtTokens(id: string) {
-    const payload: IJwtPayload = { sub: id };
+  private async generateJwtTokens(id: string, roles: { name: string }[]) {
+    const rolesArr: string[] = roles.map((r) => r.name);
+
+    const payload: IJwtPayload = {
+      sub: id,
+      roles: rolesArr,
+    };
 
     const jwtAccessTokenSecret = this.configService.get<string>("JWT_SECRET");
     const jwtAccessTokenExp = Number(this.configService.get<string>("JWT_EXP"));

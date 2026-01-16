@@ -75,7 +75,17 @@ export class UserRepository {
         deletedAt: null,
       },
       include: {
-        userCredentials: true,
+        userCredentials: {
+          select: {
+            passwordHash: true,
+            refreshTokenHash: true,
+          },
+        },
+        roles: {
+          select: {
+            name: true,
+          },
+        },
       },
     });
   }
@@ -96,7 +106,17 @@ export class UserRepository {
         deletedAt: null,
       },
       include: {
-        userCredentials: true,
+        userCredentials: {
+          select: {
+            passwordHash: true,
+            refreshTokenHash: true,
+          },
+        },
+        roles: {
+          select: {
+            name: true,
+          },
+        },
       },
     });
   }
