@@ -6,9 +6,10 @@ import { NextFunction, Request, Response } from "express";
 import { swaggerBasicAuthMiddleware } from "./common/middlewares/swagger-basic-auth.middleware";
 import { AllExceptionsFilter } from "./common/filters/all-exceptions-filter.filter";
 
-const SWAGGER_PATH = process.env.SWAGGER_PATH;
-
 async function bootstrap() {
+  const SWAGGER_PATH = process.env.SWAGGER_PATH;
+  const PORT = process.env.PORT ?? 3001;
+
   const app = await NestFactory.create(AppModule);
 
   app.enableShutdownHooks();
@@ -69,6 +70,12 @@ async function bootstrap() {
 
   SwaggerModule.setup(SWAGGER_PATH!, app, document);
 
-  await app.listen(process.env.PORT ?? 3001);
+  await app.listen(PORT);
+
+  if (process.env.NODE_ENV === "development") {
+    console.info(
+      `📜 API documentation: http://localhost:${PORT}/${SWAGGER_PATH!}`,
+    );
+  }
 }
 void bootstrap();

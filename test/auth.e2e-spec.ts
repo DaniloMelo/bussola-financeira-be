@@ -14,7 +14,7 @@ import { PrismaModule } from "src/prisma/prisma.module";
 import { PrismaService } from "src/prisma/prisma.service";
 import { cleanDatabase } from "./utils/clean-database";
 import * as request from "supertest";
-import { ILogin } from "src/auth/interfaces/login";
+import { ILogin } from "src/auth/interfaces/login.interface";
 import { AuthApiResponseDto } from "src/auth/v1/dto/swagger/auth-api-response.dto";
 import { createTestUserV1 } from "./utils/create-test-user-v1";
 import { loginTestUserV1 } from "./utils/login-test-user-v1";

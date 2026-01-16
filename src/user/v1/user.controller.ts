@@ -9,8 +9,6 @@ import {
   Req,
   UseGuards,
 } from "@nestjs/common";
-import { UserService } from "../user.service";
-import { CreateUserDtoV1 } from "./dto/create-user.dto";
 import {
   ApiBearerAuth,
   ApiHeader,
@@ -18,12 +16,14 @@ import {
   ApiResponse,
   ApiTags,
 } from "@nestjs/swagger";
-import { UpdateUserDtoV1 } from "./dto/update-user.dto";
-import { UserApiResponseDtoV1 } from "./dto/swagger/user-api-response.dto";
-import { DeletedUserApiResponseDtoV1 } from "./dto/swagger/deleted-user-api-response.dto";
 import { JwtAuthGuard } from "src/auth/guards/jwt-auth.guard";
-import { IRequestUser } from "src/auth/interfaces/request-user";
+import { IRequestWithUser } from "src/auth/interfaces/request-user.interface";
+import { UserService } from "../user.service";
+import { CreateUserDtoV1 } from "./dto/create-user.dto";
+import { DeletedUserApiResponseDtoV1 } from "./dto/swagger/deleted-user-api-response.dto";
 import { UpdateUserApiResponseDtoV1 } from "./dto/swagger/update-user-api-response.dto";
+import { UserApiResponseDtoV1 } from "./dto/swagger/user-api-response.dto";
+import { UpdateUserDtoV1 } from "./dto/update-user.dto";
 
 @Controller({ path: "user", version: "1" })
 @ApiTags("user-v1")
@@ -79,7 +79,10 @@ export class UserControllerV1 {
     description: "Dados inválidos, ausentes ou recurso não encontrado",
     example: new BadRequestException(["Mensagem de exemplo"]).getResponse(),
   })
-  update(@Req() req: IRequestUser, @Body() updatedUserData: UpdateUserDtoV1) {
+  update(
+    @Req() req: IRequestWithUser,
+    @Body() updatedUserData: UpdateUserDtoV1,
+  ) {
     return this.userService.update(req.user.id, updatedUserData);
   }
 
@@ -101,7 +104,7 @@ export class UserControllerV1 {
     description: "Dados inválidos, ausentes ou recurso não encontrado",
     example: new BadRequestException(["Mensagem de exemplo"]).getResponse(),
   })
-  softDelete(@Req() req: IRequestUser) {
+  softDelete(@Req() req: IRequestWithUser) {
     return this.userService.softDelete(req.user.id);
   }
 }
