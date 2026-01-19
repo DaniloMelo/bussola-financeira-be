@@ -20,6 +20,24 @@ async function main() {
       description: "System administrator",
     },
   });
+
+  await prisma.user.create({
+    data: {
+      name: "admin",
+      email: "admin@email.com",
+      userCredentials: {
+        create: {
+          passwordHash:
+            "$2a$12$/HFMFA9GVi/RRK4QW3r0ieTYWkyprQTFbXYBACoMzkPTexQk9rePu", // password123
+        },
+      },
+      roles: {
+        connect: {
+          name: "ADMIN",
+        },
+      },
+    },
+  });
 }
 
 void (async () => {

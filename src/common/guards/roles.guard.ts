@@ -9,7 +9,6 @@ import { PrismaService } from "src/prisma/prisma.service";
 import { Role } from "../enums/role.enum";
 import { ROLES_KEY } from "../decorators/roles.decorator";
 import { IRequestWithUser } from "src/auth/interfaces/request-user.interface";
-import { Request } from "express";
 
 @Injectable()
 export class RolesGuard implements CanActivate {
