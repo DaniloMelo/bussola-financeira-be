@@ -40,6 +40,7 @@ async function bootstrap() {
     .addTag("auth-v1")
     .addTag("user-v1")
     .addTag("user-v2")
+    .addTag("admin-v1")
     .addBearerAuth(
       {
         type: "http",

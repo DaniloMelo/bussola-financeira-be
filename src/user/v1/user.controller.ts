@@ -6,7 +6,6 @@ import {
   Get,
   Patch,
   Post,
-  Req,
   UseGuards,
 } from "@nestjs/common";
 import {
@@ -17,13 +16,13 @@ import {
   ApiTags,
 } from "@nestjs/swagger";
 import { JwtAuthGuard } from "src/auth/guards/jwt-auth.guard";
-import { IRequestWithUser } from "src/auth/interfaces/request-user.interface";
 import { UserService } from "../user.service";
 import { CreateUserDtoV1 } from "./dto/create-user.dto";
 import { DeletedUserApiResponseDtoV1 } from "./dto/swagger/deleted-user-api-response.dto";
 import { UpdateUserApiResponseDtoV1 } from "./dto/swagger/update-user-api-response.dto";
 import { UserApiResponseDtoV1 } from "./dto/swagger/user-api-response.dto";
 import { UpdateUserDtoV1 } from "./dto/update-user.dto";
+import { CurrentUser } from "src/common/decorators/current-user.decorator";
 
 @Controller({ path: "user", version: "1" })
 @ApiTags("user-v1")
@@ -80,10 +79,10 @@ export class UserControllerV1 {
     example: new BadRequestException(["Mensagem de exemplo"]).getResponse(),
   })
   update(
-    @Req() req: IRequestWithUser,
+    @CurrentUser("id") userId: string,
     @Body() updatedUserData: UpdateUserDtoV1,
   ) {
-    return this.userService.update(req.user.id, updatedUserData);
+    return this.userService.update(userId, updatedUserData);
   }
 
   @Delete("me")
@@ -104,7 +103,7 @@ export class UserControllerV1 {
     description: "Dados inválidos, ausentes ou recurso não encontrado",
     example: new BadRequestException(["Mensagem de exemplo"]).getResponse(),
   })
-  softDelete(@Req() req: IRequestWithUser) {
-    return this.userService.softDelete(req.user.id);
+  softDelete(@CurrentUser("id") userId: string) {
+    return this.userService.softDelete(userId);
   }
 }

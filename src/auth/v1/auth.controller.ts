@@ -5,7 +5,6 @@ import {
   HttpCode,
   HttpStatus,
   Post,
-  Req,
   UnauthorizedException,
   UseGuards,
 } from "@nestjs/common";
@@ -20,13 +19,10 @@ import {
 import { AuthService } from "../auth.service";
 import { JwtAuthGuard } from "../guards/jwt-auth.guard";
 import { JwtRefreshTokenGuard } from "../guards/jwt-refresh-token.guard";
-import {
-  IRequestWithUser,
-  IRequestWithUserAndRefreshToken,
-} from "../interfaces/request-user.interface";
 import { LoginDtoV1 } from "./dto/login.dto";
 import { AuthApiResponseDto } from "./dto/swagger/auth-api-response.dto";
 import { LogoutApiResponseDto } from "./dto/swagger/logout-api-response.dto";
+import { CurrentUser } from "src/common/decorators/current-user.decorator";
 
 @Controller({ path: "auth", version: "1" })
 @ApiTags("auth-v1")
@@ -71,8 +67,11 @@ export class AuthController {
       "Sessão inválida ou expirada. Faça login novamente.",
     ]).getResponse(),
   })
-  refreshTokens(@Req() req: IRequestWithUserAndRefreshToken) {
-    return this.authService.refreshTokens(req.user.id, req.user.refreshToken);
+  refreshTokens(
+    @CurrentUser("id") userId: string,
+    @CurrentUser("refreshToken") refreshToken: string,
+  ) {
+    return this.authService.refreshTokens(userId, refreshToken);
   }
 
   @Post("logout")
@@ -89,7 +88,7 @@ export class AuthController {
     description: "Retorna o usuário deslogado",
     type: LogoutApiResponseDto,
   })
-  logout(@Req() req: IRequestWithUser) {
-    return this.authService.logout(req.user.id);
+  logout(@CurrentUser("id") userId: string) {
+    return this.authService.logout(userId);
   }
 }
