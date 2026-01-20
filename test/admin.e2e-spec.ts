@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-unsafe-assignment */
 /* eslint-disable @typescript-eslint/no-unsafe-argument */
 import {
   INestApplication,
@@ -68,26 +69,45 @@ describe("Admin (e2e)", () => {
   describe("admin-user", () => {
     describe("/v1/admin (GET)", () => {
       it("Should return all stored users", async () => {
+        await prisma.user.create({
+          data: {
+            name: "admin",
+            email: "admin@email.com",
+            userCredentials: {
+              create: {
+                passwordHash:
+                  "$2a$12$/HFMFA9GVi/RRK4QW3r0ieTYWkyprQTFbXYBACoMzkPTexQk9rePu",
+              },
+            },
+            roles: {
+              connect: {
+                name: "ADMIN",
+              },
+            },
+          },
+        });
+
         const { access_token } = await loginTestUserV1(app, {
           email: "admin@email.com",
           password: "password123",
         });
 
-        console.log("ACCESS ==> ", access_token);
-
-        const users = await prisma.user.findMany();
-
-        console.log("BD USERS ===> ", users);
-
-        const roles = await prisma.role.findMany();
-
-        console.log("ROLES ===> ", roles);
-
         const response = await request(app.getHttpServer())
           .get("/v1/admin?limit=10&offset=0")
           .set("Authorization", `Bearer ${access_token}`);
 
-        console.log(response.body);
+        expect(response.body).toEqual([
+          {
+            id: expect.any(String),
+            name: "admin",
+            email: "admin@email.com",
+            deletedAt: null,
+            createdAt: expect.any(String),
+            updatedAt: expect.any(String),
+            userCredentials: { lastLoginAt: expect.any(String) },
+            roles: [{ name: "ADMIN" }],
+          },
+        ]);
       });
     });
   });
