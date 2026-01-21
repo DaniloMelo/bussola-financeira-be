@@ -35,7 +35,7 @@
     "db:sync:test": "NODE_ENV=test npx prisma db push",
     "test:e2e:ci": "npm run db:sync:test && npm run db:seed && npm run test:e2e",
     "test:e2e:local": "docker compose exec app sh -c 'export DATABASE_URL=$DATABASE_URL_TEST && npm run test:e2e:ci'",
-    "prepare": "husky"
+    "prepare": "husky || true"
   },
   "dependencies": {
     "@nestjs/common": "^11.0.1",

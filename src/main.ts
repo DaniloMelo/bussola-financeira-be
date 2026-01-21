@@ -74,6 +74,10 @@ async function bootstrap() {
   await app.listen(PORT);
 
   if (process.env.NODE_ENV === "development") {
+    console.info(`💻 Developtment server: http://localhost:${PORT}/`);
+  }
+
+  if (process.env.NODE_ENV !== "production") {
     console.info(
       `📜 API documentation: http://localhost:${PORT}/${SWAGGER_PATH!}`,
     );
