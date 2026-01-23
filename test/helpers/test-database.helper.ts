@@ -1,5 +1,11 @@
 import { PrismaService } from "src/prisma/prisma.service";
 
+interface IUserCredentials {
+  name: string;
+  email: string;
+  passowrd: string;
+}
+
 export class TestDatabaseHelper {
   constructor(private readonly prisma: PrismaService) {}
 
@@ -27,15 +33,16 @@ export class TestDatabaseHelper {
     });
   }
 
-  async createRegularUser() {
+  async createRegularUser(userCredentials?: IUserCredentials) {
     const credentials = {
-      email: "johnDoe@email.com",
-      password: "password123",
+      name: userCredentials?.name ?? "John Doe",
+      email: userCredentials?.email ?? "john@email.com",
+      password: userCredentials?.passowrd ?? "password123",
     };
 
     await this.prisma.user.create({
       data: {
-        name: "John Doe",
+        name: credentials.name,
         email: credentials.email,
         userCredentials: {
           create: {

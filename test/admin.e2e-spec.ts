@@ -23,6 +23,7 @@ describe("Admin (e2e)", () => {
     app = context.app;
     // prisma = context.prisma;
     dbHelper = context.dbHelper;
+    authHelper = context.authHelper;
   });
 
   afterAll(async () => {
@@ -30,11 +31,9 @@ describe("Admin (e2e)", () => {
   });
 
   beforeEach(async () => {
-    const userCredentials = await dbHelper.setupTestDatabase();
-    adminUserCredentials = userCredentials.adminUserCredentials;
-    regularUserCredentials = userCredentials.regularUserCredentials;
-
-    authHelper = new TestAuthHelper();
+    const userData = await dbHelper.setupTestDatabase();
+    adminUserCredentials = userData.adminUserCredentials;
+    regularUserCredentials = userData.regularUserCredentials;
   });
 
   it("should return all stored users when authenticated as admin", async () => {

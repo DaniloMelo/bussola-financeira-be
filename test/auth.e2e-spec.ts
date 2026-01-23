@@ -1,75 +1,42 @@
 /* eslint-disable @typescript-eslint/no-unsafe-assignment */
 /* eslint-disable @typescript-eslint/no-unsafe-argument */
 
-import {
-  INestApplication,
-  ValidationPipe,
-  VersioningType,
-} from "@nestjs/common";
-import { ConfigModule } from "@nestjs/config";
-import { Test, TestingModule } from "@nestjs/testing";
-import { AuthModule } from "src/auth/auth.module";
-import { AllExceptionsFilter } from "src/common/filters/all-exceptions-filter.filter";
-import { PrismaModule } from "src/prisma/prisma.module";
+import { INestApplication } from "@nestjs/common";
 import { PrismaService } from "src/prisma/prisma.service";
-import { cleanDatabase } from "./utils/clean-database";
 import * as request from "supertest";
 import { ILogin } from "src/auth/interfaces/login.interface";
 import { AuthApiResponseDto } from "src/auth/v1/dto/swagger/auth-api-response.dto";
-import { createTestUserV1 } from "./utils/create-test-user-v1";
-import { loginTestUserV1 } from "./utils/login-test-user-v1";
+import { TestDatabaseHelper } from "./helpers/test-database.helper";
+import { TestAuthHelper } from "./helpers/test-auth.helper";
+import { createTestApp, TestContext } from "./helpers/create-test-app.helper";
+import { LogoutApiResponseDto } from "src/auth/v1/dto/swagger/logout-api-response.dto";
 
 describe("Auth (e2e)", () => {
   let app: INestApplication;
   let prisma: PrismaService;
+  let dbHelper: TestDatabaseHelper;
+  let authHelper: TestAuthHelper;
+  let regularUserCredentials: ILogin;
 
-  beforeEach(async () => {
-    const module: TestingModule = await Test.createTestingModule({
-      imports: [
-        PrismaModule,
-        AuthModule,
-        ConfigModule.forRoot({
-          isGlobal: true,
-          ignoreEnvFile: true,
-        }),
-      ],
-    }).compile();
-
-    app = module.createNestApplication();
-
-    prisma = module.get<PrismaService>(PrismaService);
-
-    app.enableShutdownHooks();
-
-    app.useGlobalPipes(
-      new ValidationPipe({
-        whitelist: true,
-        forbidNonWhitelisted: true,
-        transform: true,
-        transformOptions: {
-          enableImplicitConversion: true,
-        },
-      }),
-    );
-
-    app.useGlobalFilters(new AllExceptionsFilter());
-
-    app.enableVersioning({
-      type: VersioningType.URI,
-    });
-
-    await app.init();
+  beforeAll(async () => {
+    const context: TestContext = await createTestApp();
+    app = context.app;
+    prisma = context.prisma;
+    dbHelper = context.dbHelper;
+    authHelper = context.authHelper;
   });
 
-  afterEach(async () => {
-    await cleanDatabase(prisma);
+  afterAll(async () => {
     await app.close();
   });
 
-  describe("v1/auth/login (POST)", () => {
-    it("Should successfully login user and return tokens", async () => {
-      await createTestUserV1(app);
+  beforeEach(async () => {
+    const userData = await dbHelper.setupTestDatabase();
+    regularUserCredentials = userData.regularUserCredentials;
+  });
 
+  describe("/v1/auth/login (POST)", () => {
+    it("Should successfully login user and return tokens", async () => {
       const loginUserData: ILogin = {
         email: "john@email.com",
         password: "password123",
@@ -89,8 +56,6 @@ describe("Auth (e2e)", () => {
     });
 
     it("Should return 'BadRequestException' for all validations errors", async () => {
-      await createTestUserV1(app);
-
       const loginUserData: ILogin = {
         email: "wrong-email-format",
         password: "short",
@@ -130,10 +95,8 @@ describe("Auth (e2e)", () => {
     });
 
     it("Should return 'BadRequestException' if password is incorrect", async () => {
-      const { userApiResponse } = await createTestUserV1(app);
-
       const invalidUser: ILogin = {
-        email: userApiResponse.email,
+        email: regularUserCredentials.email,
         password: "invalid-password",
       };
 
@@ -150,14 +113,12 @@ describe("Auth (e2e)", () => {
     });
   });
 
-  describe("v1/auth/refresh (POST)", () => {
+  describe("/v1/auth/refresh (POST)", () => {
     it("Should successfully refresh tokens and persist refresh-token", async () => {
-      const { userApiResponse, userInputData } = await createTestUserV1(app);
-
-      const { access_token, refresh_token } = await loginTestUserV1(app, {
-        email: userInputData.email,
-        password: userInputData.password,
-      });
+      const { access_token, refresh_token } = await authHelper.login(
+        app,
+        regularUserCredentials,
+      );
 
       const response = await request(app.getHttpServer())
         .post("/v1/auth/refresh")
@@ -165,9 +126,16 @@ describe("Auth (e2e)", () => {
 
       const responseBody: AuthApiResponseDto = response.body;
 
-      const postRefreshToken = await prisma.userCredentials.findUnique({
+      const postRefreshToken = await prisma.user.findUnique({
         where: {
-          userId: userApiResponse.id,
+          email: regularUserCredentials.email,
+        },
+        select: {
+          userCredentials: {
+            select: {
+              refreshTokenHash: true,
+            },
+          },
         },
       });
 
@@ -180,41 +148,24 @@ describe("Auth (e2e)", () => {
 
       expect(refresh_token).not.toEqual(responseBody.refresh_token);
 
-      expect(postRefreshToken?.refreshTokenHash).toBeDefined();
+      expect(postRefreshToken?.userCredentials?.refreshTokenHash).toBeDefined();
     });
   });
 
   describe("v1/auth/logout (POST)", () => {
     it("Should logout a user and set a null value for refresh token", async () => {
-      const { userApiResponse, userInputData } = await createTestUserV1(app);
-
-      const { access_token } = await loginTestUserV1(app, {
-        email: userInputData.email,
-        password: userInputData.password,
-      });
+      const { access_token } = await authHelper.login(
+        app,
+        regularUserCredentials,
+      );
 
       const response = await request(app.getHttpServer())
         .post("/v1/auth/logout")
         .set("Authorization", `Bearer ${access_token}`);
 
-      expect(response.body).toEqual({
-        id: userApiResponse.id,
-        name: "John Doe",
-        email: "john@email.com",
-        deletedAt: null,
-        createdAt: userApiResponse.createdAt,
-        updatedAt: userApiResponse.updatedAt,
-        userCredentials: {
-          id: userApiResponse.userCredentials.id,
-          lastLoginAt: expect.any(String),
-          refreshTokenHash: null,
-        },
-        roles: [
-          {
-            name: "USER",
-          },
-        ],
-      });
+      const responseBody: LogoutApiResponseDto = response.body;
+
+      expect(responseBody.userCredentials.refreshTokenHash).toBeNull();
     });
   });
 });

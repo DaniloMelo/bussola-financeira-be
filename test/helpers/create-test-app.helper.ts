@@ -12,11 +12,13 @@ import {
   VersioningType,
 } from "@nestjs/common";
 import { AllExceptionsFilter } from "src/common/filters/all-exceptions-filter.filter";
+import { TestAuthHelper } from "./test-auth.helper";
 
 export interface TestContext {
   app: INestApplication;
   prisma: PrismaService;
   dbHelper: TestDatabaseHelper;
+  authHelper: TestAuthHelper;
 }
 
 export async function createTestApp(): Promise<TestContext> {
@@ -36,6 +38,7 @@ export async function createTestApp(): Promise<TestContext> {
   const app = module.createNestApplication();
   const prisma = module.get<PrismaService>(PrismaService);
   const dbHelper = new TestDatabaseHelper(prisma);
+  const authHelper = new TestAuthHelper();
 
   app.enableShutdownHooks();
 
@@ -58,5 +61,10 @@ export async function createTestApp(): Promise<TestContext> {
 
   await app.init();
 
-  return { app, prisma, dbHelper };
+  return {
+    app,
+    prisma,
+    dbHelper,
+    authHelper,
+  };
 }
