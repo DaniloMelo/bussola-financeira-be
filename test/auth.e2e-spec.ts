@@ -10,12 +10,14 @@ import { TestDatabaseHelper } from "./helpers/test-database.helper";
 import { TestAuthHelper } from "./helpers/test-auth.helper";
 import { createTestApp, TestContext } from "./helpers/create-test-app.helper";
 import { LogoutApiResponseDto } from "src/auth/v1/dto/swagger/logout-api-response.dto";
+import { TestJwtHelper } from "./helpers/test-jwt.helper";
 
 describe("Auth (e2e)", () => {
   let app: INestApplication;
   let prisma: PrismaService;
   let dbHelper: TestDatabaseHelper;
   let authHelper: TestAuthHelper;
+  let jwtHelper: TestJwtHelper;
   let regularUserCredentials: ILogin;
 
   beforeAll(async () => {
@@ -24,6 +26,7 @@ describe("Auth (e2e)", () => {
     prisma = context.prisma;
     dbHelper = context.dbHelper;
     authHelper = context.authHelper;
+    jwtHelper = context.jwtHelper;
   });
 
   afterAll(async () => {
@@ -149,6 +152,42 @@ describe("Auth (e2e)", () => {
       expect(refresh_token).not.toEqual(responseBody.refresh_token);
 
       expect(postRefreshToken?.userCredentials?.refreshTokenHash).toBeDefined();
+
+      expect(postRefreshToken?.userCredentials?.refreshTokenHash).not.toEqual(
+        responseBody.refresh_token,
+      );
+    });
+
+    it("Should return 401 when refresh token is expired", async () => {
+      const storedUser = await prisma.user.findUnique({
+        where: { email: regularUserCredentials.email },
+      });
+
+      const expiredRefreshToken = await jwtHelper.createExpiredRefreshToken(
+        storedUser!.id,
+      );
+
+      const response = await request(app.getHttpServer())
+        .post("/v1/auth/refresh")
+        .set("Authorization", `Bearer ${expiredRefreshToken}`)
+        .expect(401);
+
+      expect(response.body).toEqual({
+        message: ["Sessão inválida ou expirada. Faça login novamente."],
+        error: "Unauthorized",
+        statusCode: 401,
+      });
+    });
+
+    it("Should return 401 when refresh token is invalid/malformed", async () => {
+      await request(app.getHttpServer())
+        .post("/v1/auth/refresh")
+        .set("Authorization", "invalid-refresh-token")
+        .expect(401);
+    });
+
+    it("Should return 401 when refresh token is missing", async () => {
+      await request(app.getHttpServer()).post("/v1/auth/refresh").expect(401);
     });
   });
 
@@ -167,5 +206,9 @@ describe("Auth (e2e)", () => {
 
       expect(responseBody.userCredentials.refreshTokenHash).toBeNull();
     });
+  });
+
+  it("Should return 401 if not authehticated", async () => {
+    await request(app.getHttpServer()).post("/v1/auth/logout").expect(401);
   });
 });

@@ -1,4 +1,4 @@
-import { ConfigModule } from "@nestjs/config";
+import { ConfigModule, ConfigService } from "@nestjs/config";
 import { Test, TestingModule } from "@nestjs/testing";
 import { AdminModule } from "src/admin/admin.module";
 import { AuthModule } from "src/auth/auth.module";
@@ -13,12 +13,15 @@ import {
 } from "@nestjs/common";
 import { AllExceptionsFilter } from "src/common/filters/all-exceptions-filter.filter";
 import { TestAuthHelper } from "./test-auth.helper";
+import { TestJwtHelper } from "./test-jwt.helper";
+import { JwtService } from "@nestjs/jwt";
 
 export interface TestContext {
   app: INestApplication;
   prisma: PrismaService;
   dbHelper: TestDatabaseHelper;
   authHelper: TestAuthHelper;
+  jwtHelper: TestJwtHelper;
 }
 
 export async function createTestApp(): Promise<TestContext> {
@@ -37,8 +40,12 @@ export async function createTestApp(): Promise<TestContext> {
 
   const app = module.createNestApplication();
   const prisma = module.get<PrismaService>(PrismaService);
+  const jwtService = module.get<JwtService>(JwtService);
+  const configService = module.get<ConfigService>(ConfigService);
+
   const dbHelper = new TestDatabaseHelper(prisma);
   const authHelper = new TestAuthHelper();
+  const jwtHelper = new TestJwtHelper(jwtService, configService);
 
   app.enableShutdownHooks();
 
@@ -66,5 +73,6 @@ export async function createTestApp(): Promise<TestContext> {
     prisma,
     dbHelper,
     authHelper,
+    jwtHelper,
   };
 }
