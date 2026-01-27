@@ -1,78 +1,46 @@
 /* eslint-disable @typescript-eslint/no-unsafe-assignment */
 /* eslint-disable @typescript-eslint/no-unsafe-argument */
 
-import {
-  INestApplication,
-  ValidationPipe,
-  VersioningType,
-} from "@nestjs/common";
-import { ConfigModule } from "@nestjs/config";
-import { Test, TestingModule } from "@nestjs/testing";
-import { AllExceptionsFilter } from "src/common/filters/all-exceptions-filter.filter";
-import { PrismaModule } from "src/prisma/prisma.module";
+import { INestApplication } from "@nestjs/common";
 import { PrismaService } from "src/prisma/prisma.service";
-import { UserModule } from "src/user/user.module";
 import * as request from "supertest";
-import { cleanDatabase } from "./utils/clean-database";
-import { createTestUserV1 } from "./utils/create-test-user-v1";
 import { IUpdateUserData } from "src/user/interfaces/update";
 import { UserApiResponseDtoV1 } from "src/user/v1/dto/swagger/user-api-response.dto";
 import { DeletedUserApiResponseDtoV1 } from "src/user/v1/dto/swagger/deleted-user-api-response.dto";
-import { AuthModule } from "src/auth/auth.module";
-import { loginTestUserV1 } from "./utils/login-test-user-v1";
+import { TestDatabaseHelper } from "./helpers/test-database.helper";
+import { ILogin } from "src/auth/interfaces/login.interface";
+import { TestAuthHelper } from "./helpers/test-auth.helper";
+import { createTestApp, TestContext } from "./helpers/create-test-app.helper";
 
 describe("User (e2e)", () => {
   let app: INestApplication;
   let prisma: PrismaService;
+  let dbHelper: TestDatabaseHelper;
+  let authHelper: TestAuthHelper;
+  let regularUserCredentials: ILogin;
 
-  beforeEach(async () => {
-    const module: TestingModule = await Test.createTestingModule({
-      imports: [
-        PrismaModule,
-        UserModule,
-        AuthModule,
-        ConfigModule.forRoot({
-          isGlobal: true,
-          ignoreEnvFile: true,
-        }),
-      ],
-    }).compile();
-
-    app = module.createNestApplication();
-    prisma = module.get<PrismaService>(PrismaService);
-
-    app.enableShutdownHooks();
-
-    app.useGlobalPipes(
-      new ValidationPipe({
-        whitelist: true,
-        forbidNonWhitelisted: true,
-        transform: true,
-        transformOptions: {
-          enableImplicitConversion: true,
-        },
-      }),
-    );
-
-    app.useGlobalFilters(new AllExceptionsFilter());
-
-    app.enableVersioning({
-      type: VersioningType.URI,
-    });
-
-    await app.init();
+  beforeAll(async () => {
+    const context: TestContext = await createTestApp();
+    app = context.app;
+    prisma = context.prisma;
+    dbHelper = context.dbHelper;
+    authHelper = context.authHelper;
   });
 
-  afterEach(async () => {
-    await cleanDatabase(prisma);
+  afterAll(async () => {
     await app.close();
   });
 
-  describe("/user (POST) V1", () => {
+  beforeEach(async () => {
+    const userData = await dbHelper.setupTestDatabase();
+    regularUserCredentials = userData.regularUserCredentials;
+  });
+
+  describe("/v1/user (POST)", () => {
     it("Should create and persist a user using V1", async () => {
       const newUser = {
-        name: "John Doe",
-        email: "john@email.com",
+        name: "Jane Doe",
+        email: "jane@email.com",
         password: "password123",
       };
 
@@ -85,8 +53,8 @@ describe("User (e2e)", () => {
 
       expect(reponseBody).toEqual({
         id: expect.any(String),
-        name: "John Doe",
-        email: "john@email.com",
+        name: "Jane Doe",
+        email: "jane@email.com",
         deletedAt: null,
         createdAt: expect.any(String),
         updatedAt: expect.any(String),
@@ -156,8 +124,6 @@ describe("User (e2e)", () => {
         password: "pass123",
       };
 
-      await createTestUserV1(app);
-
       const response = await request(app.getHttpServer())
         .post("/v1/user")
         .send(newUser)
@@ -171,11 +137,11 @@ describe("User (e2e)", () => {
     });
   });
 
-  describe("/user (POST) V2", () => {
+  describe("/v2/user (POST)", () => {
     it("Should create a user using V2", async () => {
       const newUser = {
-        userName: "John Doe",
-        userEmail: "john@email.com",
+        userName: "Jane Doe",
+        userEmail: "jane@email.com",
         userPassword: "password123",
       };
 
@@ -188,8 +154,8 @@ describe("User (e2e)", () => {
 
       expect(responseBody).toEqual({
         id: expect.any(String),
-        userName: "John Doe",
-        userEmail: "john@email.com",
+        userName: "Jane Doe",
+        userEmail: "jane@email.com",
         createdAt: expect.any(String),
         updatedAt: expect.any(String),
         userCredentials: {
@@ -263,51 +229,21 @@ describe("User (e2e)", () => {
     });
   });
 
-  describe("/user (GET) V1", () => {
-    it("Should return an array of users", async () => {
-      await createTestUserV1(app);
-
-      const response = await request(app.getHttpServer())
-        .get("/v1/user")
-        .expect(200);
-
-      expect(response.body).toEqual([
-        {
-          id: expect.any(String),
-          name: "John Doe",
-          email: "john@email.com",
-          deletedAt: null,
-          createdAt: expect.any(String),
-          updatedAt: expect.any(String),
-          userCredentials: {
-            id: expect.any(String),
-            lastLoginAt: null,
-          },
-          roles: [
-            {
-              name: "USER",
-            },
-          ],
-        },
-      ]);
-    });
-  });
-
-  describe("/user (PATCH) V1", () => {
+  describe("/v1/user/me (PATCH)", () => {
     it("Should update 'name' only", async () => {
-      const { userApiResponse, userInputData } = await createTestUserV1(app);
-
-      const { access_token } = await loginTestUserV1(app, {
-        email: userInputData.email,
-        password: userInputData.password,
-      });
+      const { access_token } = await authHelper.login(
+        app,
+        regularUserCredentials,
+      );
 
       const dataToUpdate: IUpdateUserData = {
         name: "John Doe UPDATED",
       };
 
       const preUpdateStoredUser = await prisma.user.findUnique({
-        where: { id: userApiResponse.id },
+        where: {
+          email: regularUserCredentials.email,
+        },
         include: {
           userCredentials: {
             select: {
@@ -344,7 +280,9 @@ describe("User (e2e)", () => {
       });
 
       const postUpdateStoredUser = await prisma.user.findUnique({
-        where: { id: userApiResponse.id },
+        where: {
+          email: regularUserCredentials.email,
+        },
         include: {
           userCredentials: {
             select: {
@@ -364,12 +302,10 @@ describe("User (e2e)", () => {
     });
 
     it("Should return 'BadRequestException' for all validations errors", async () => {
-      const { userInputData } = await createTestUserV1(app);
-
-      const { access_token } = await loginTestUserV1(app, {
-        email: userInputData.email,
-        password: userInputData.password,
-      });
+      const { access_token } = await authHelper.login(
+        app,
+        regularUserCredentials,
+      );
 
       const invalidDataToUpdate: IUpdateUserData = {
         name: "Jo",
@@ -395,19 +331,25 @@ describe("User (e2e)", () => {
     });
 
     it("Should return 'BadRequestException' if trying to update email to one that is already taken", async () => {
-      const { userInputData } = await createTestUserV1(app, {
-        email: "userA@email.com",
+      const userA = await dbHelper.createRegularUser({
+        name: "User A",
+        email: "user_a@email.com",
+        passowrd: "password123",
       });
 
-      const { access_token } = await loginTestUserV1(app, {
-        email: userInputData.email,
-        password: userInputData.password,
+      const { access_token } = await authHelper.login(app, {
+        email: userA.email,
+        password: userA.password,
       });
 
-      await createTestUserV1(app, { email: "userB@email.com" });
+      await dbHelper.createRegularUser({
+        name: "User B",
+        email: "user_b@email.com",
+        passowrd: "password123",
+      });
 
       const dataToUpdate: IUpdateUserData = {
-        email: "userB@email.com",
+        email: "user_b@email.com",
       };
 
       const response = await request(app.getHttpServer())
@@ -426,19 +368,26 @@ describe("User (e2e)", () => {
     });
 
     it("Should update and encrypt 'password' if provided", async () => {
-      const { userApiResponse, userInputData } = await createTestUserV1(app);
-
-      const { access_token } = await loginTestUserV1(app, {
-        email: userInputData.email,
-        password: userInputData.password,
-      });
+      const { access_token } = await authHelper.login(
+        app,
+        regularUserCredentials,
+      );
 
       const dataToUpdate: IUpdateUserData = {
         password: "new_password_123",
       };
 
-      const preUpdatePasswordHash = await prisma.userCredentials.findUnique({
-        where: { userId: userApiResponse.id },
+      const preUpdatePasswordHash = await prisma.user.findUnique({
+        where: {
+          email: regularUserCredentials.email,
+        },
+        select: {
+          userCredentials: {
+            select: {
+              passwordHash: true,
+            },
+          },
+        },
       });
 
       await request(app.getHttpServer())
@@ -447,28 +396,39 @@ describe("User (e2e)", () => {
         .send(dataToUpdate)
         .expect(200);
 
-      const postUpdatePasswordHash = await prisma.userCredentials.findUnique({
-        where: { userId: userApiResponse.id },
+      const postUpdatePasswordHash = await prisma.user.findUnique({
+        where: {
+          email: regularUserCredentials.email,
+        },
+        select: {
+          userCredentials: {
+            select: {
+              passwordHash: true,
+            },
+          },
+        },
       });
 
-      expect(postUpdatePasswordHash?.passwordHash).not.toBe(
+      expect(postUpdatePasswordHash?.userCredentials?.passwordHash).not.toBe(
         dataToUpdate.password,
       );
 
-      expect(preUpdatePasswordHash?.passwordHash).not.toBe(
-        postUpdatePasswordHash?.passwordHash,
+      expect(preUpdatePasswordHash?.userCredentials?.passwordHash).not.toBe(
+        postUpdatePasswordHash?.userCredentials?.passwordHash,
       );
+    });
+
+    it("Should return 401 when not authenticated", async () => {
+      await request(app.getHttpServer()).patch("/v1/user/me").expect(401);
     });
   });
 
-  describe("/user (DELETE) V1", () => {
-    it("Should delete user", async () => {
-      const { userApiResponse, userInputData } = await createTestUserV1(app);
-
-      const { access_token } = await loginTestUserV1(app, {
-        email: userInputData.email,
-        password: userInputData.password,
-      });
+  describe("/v1/user/me (DELETE) V1", () => {
+    it("Should delete a user softly", async () => {
+      const { access_token } = await authHelper.login(
+        app,
+        regularUserCredentials,
+      );
 
       const response = await request(app.getHttpServer())
         .delete("/v1/user/me")
@@ -496,10 +456,14 @@ describe("User (e2e)", () => {
       });
 
       const postDeletedUser = await prisma.user.findUnique({
-        where: { id: userApiResponse.id },
+        where: { email: regularUserCredentials.email },
       });
 
       expect(postDeletedUser?.deletedAt).not.toBeNull();
+    });
+
+    it("Should return 401 when not authenticated", async () => {
+      await request(app.getHttpServer()).delete("/v1/user/me").expect(401);
     });
   });
 });

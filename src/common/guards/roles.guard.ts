@@ -1,8 +1,8 @@
 import {
   CanActivate,
   ExecutionContext,
+  ForbiddenException,
   Injectable,
-  UnauthorizedException,
 } from "@nestjs/common";
 import { Reflector } from "@nestjs/core";
 import { PrismaService } from "src/prisma/prisma.service";
@@ -31,7 +31,7 @@ export class RolesGuard implements CanActivate {
     const user = request.user;
 
     if (!user || !user.id) {
-      throw new UnauthorizedException("Usuário não identificado");
+      throw new ForbiddenException("Usuário não identificado");
     }
 
     const storedUser = await this.prisma.user.findUnique({
@@ -48,16 +48,14 @@ export class RolesGuard implements CanActivate {
     });
 
     if (!storedUser || storedUser.deletedAt) {
-      throw new UnauthorizedException("Usuário não encontrado ou desativado.");
+      throw new ForbiddenException("Usuário não encontrado ou desativado.");
     }
 
     const dbUserRoles = storedUser.roles.map((r) => r.name);
     const hasRole = requiredRoles.some((r) => dbUserRoles.includes(r));
 
     if (!hasRole) {
-      throw new UnauthorizedException(
-        "Acesso negado. Permissões insuficientes.",
-      );
+      throw new ForbiddenException("Acesso negado. Permissões insuficientes.");
     }
 
     request.user.roles = dbUserRoles;
