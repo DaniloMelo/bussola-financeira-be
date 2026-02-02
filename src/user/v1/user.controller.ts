@@ -60,6 +60,19 @@ export class UserControllerV1 {
     return this.userService.findAll();
   }
 
+  @Get("me")
+  @UseGuards(JwtAuthGuard)
+  @ApiOperation({ summary: "Retorna o usuário autenticado" })
+  @ApiBearerAuth("access-token")
+  @ApiResponse({
+    status: 201,
+    description: "Retorna o usuário criado",
+    type: UserApiResponseDtoV1,
+  })
+  findMe(@CurrentUser("id") userId: string) {
+    return this.userService.findMe(userId);
+  }
+
   @Patch("me")
   @UseGuards(JwtAuthGuard)
   @ApiOperation({ summary: "Atualiza um usuário" })
