@@ -23,6 +23,7 @@ import { UpdateUserApiResponseDtoV1 } from "./dto/swagger/update-user-api-respon
 import { UserApiResponseDtoV1 } from "./dto/swagger/user-api-response.dto";
 import { UpdateUserDtoV1 } from "./dto/update-user.dto";
 import { CurrentUser } from "src/common/decorators/current-user.decorator";
+import { FindMeWithRolesV1 } from "./dto/swagger/find-user-api.response";
 
 @Controller({ path: "user", version: "1" })
 @ApiTags("user-v1")
@@ -65,9 +66,9 @@ export class UserControllerV1 {
   @ApiOperation({ summary: "Retorna o usuário autenticado" })
   @ApiBearerAuth("access-token")
   @ApiResponse({
-    status: 201,
-    description: "Retorna o usuário criado",
-    type: UserApiResponseDtoV1,
+    status: 200,
+    description: "Retorna o usuário que está autenticado",
+    type: FindMeWithRolesV1,
   })
   findMe(@CurrentUser("id") userId: string) {
     return this.userService.findMe(userId);
