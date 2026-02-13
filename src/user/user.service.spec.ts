@@ -214,6 +214,52 @@ describe("UserService", () => {
     });
   });
 
+  describe("findMe", () => {
+    it("Should find my user when authenticated", async () => {
+      const storedUser: IStoredUser = {
+        id: "1",
+        name: "John Doe",
+        email: "john@email.com",
+        deletedAt: null,
+        createdAt: new Date(),
+        updatedAt: new Date(),
+        userCredentials: {
+          id: "11",
+          lastLoginAt: null,
+        },
+        roles: [
+          {
+            name: "USER",
+          },
+        ],
+      };
+
+      jest
+        .spyOn(userRepositoryMock, "findOneById")
+        .mockResolvedValue(storedUser);
+
+      const result = await userService.findMe("1");
+
+      expect(userRepositoryMock.findOneById).toHaveBeenCalledWith("1");
+
+      expect(result).toEqual(storedUser);
+    });
+
+    it("Should return null if user dont exist", async () => {
+      const unexistentUserId = "1";
+
+      jest.spyOn(userRepositoryMock, "findOneById").mockResolvedValue(null);
+
+      const result = await userService.findMe(unexistentUserId);
+
+      expect(userRepositoryMock.findOneById).toHaveBeenCalledWith(
+        unexistentUserId,
+      );
+
+      expect(result).toBe(null);
+    });
+  });
+
   describe("findOneByIdWithCredentials", () => {
     it("Should find a user by ID including userCredentials relation", async () => {
       const storedUser = {

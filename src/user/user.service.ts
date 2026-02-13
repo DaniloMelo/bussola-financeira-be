@@ -35,6 +35,10 @@ export class UserService {
     return this.userRepository.create(newUser);
   }
 
+  async findMe(userId: string) {
+    return this.userRepository.findOneById(userId);
+  }
+
   async findAll() {
     return this.userRepository.findAll();
   }
