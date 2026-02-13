@@ -96,6 +96,13 @@ export class UserRepository {
         id: userId,
         deletedAt: null,
       },
+      include: {
+        roles: {
+          select: {
+            name: true,
+          },
+        },
+      },
     });
   }
 

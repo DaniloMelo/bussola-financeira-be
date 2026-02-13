@@ -11,6 +11,7 @@ import { TestDatabaseHelper } from "./helpers/test-database.helper";
 import { ILogin } from "src/auth/interfaces/login.interface";
 import { TestAuthHelper } from "./helpers/test-auth.helper";
 import { createTestApp, TestContext } from "./helpers/create-test-app.helper";
+import { FindMeWithRolesV1 } from "src/user/v1/dto/swagger/find-user-api.response";
 
 describe("User (e2e)", () => {
   let app: INestApplication;
@@ -227,6 +228,40 @@ describe("User (e2e)", () => {
         statusCode: 400,
       });
     });
+  });
+
+  describe("/v1/user/me (GET)", () => {
+    it("Should find my user when authenticated", async () => {
+      const { access_token } = await authHelper.login(
+        app,
+        regularUserCredentials,
+      );
+
+      const response = await request(app.getHttpServer())
+        .get("/v1/user/me")
+        .set("Authorization", `Bearer ${access_token}`)
+        .expect(200);
+
+      const responseBody: FindMeWithRolesV1 = await response.body;
+
+      expect(responseBody).toEqual({
+        id: expect.any(String),
+        name: "John Doe",
+        email: "john@email.com",
+        deletedAt: null,
+        createdAt: expect.any(String),
+        updatedAt: expect.any(String),
+        roles: [
+          {
+            name: "USER",
+          },
+        ],
+      });
+    });
+
+    it("Should return 401 when not authenticated", async () => [
+      await request(app.getHttpServer()).get("/v1/user/me").expect(401),
+    ]);
   });
 
   describe("/v1/user/me (PATCH)", () => {
