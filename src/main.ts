@@ -5,12 +5,15 @@ import { ValidationPipe, VersioningType } from "@nestjs/common";
 import { NextFunction, Request, Response } from "express";
 import { swaggerBasicAuthMiddleware } from "./common/middlewares/swagger-basic-auth.middleware";
 import { AllExceptionsFilter } from "./common/filters/all-exceptions-filter.filter";
+import { getCorsConfig } from "./common/configs/get-cors.config";
 
 async function bootstrap() {
   const SWAGGER_PATH = process.env.SWAGGER_PATH;
   const PORT = process.env.PORT ?? 3001;
 
   const app = await NestFactory.create(AppModule);
+
+  app.enableCors(getCorsConfig());
 
   app.enableShutdownHooks();
 
