@@ -6,6 +6,7 @@ import { NextFunction, Request, Response } from "express";
 import { swaggerBasicAuthMiddleware } from "./common/middlewares/swagger-basic-auth.middleware";
 import { AllExceptionsFilter } from "./common/filters/all-exceptions-filter.filter";
 import { getCorsConfig } from "./common/configs/get-cors.config";
+import { SwaggerTheme, SwaggerThemeNameEnum } from "swagger-themes";
 
 async function bootstrap() {
   const SWAGGER_PATH = process.env.SWAGGER_PATH;
@@ -65,6 +66,7 @@ async function bootstrap() {
     .build();
 
   const document = SwaggerModule.createDocument(app, config);
+  const theme = new SwaggerTheme();
 
   app.use(
     `/${SWAGGER_PATH}`,
@@ -72,7 +74,9 @@ async function bootstrap() {
       swaggerBasicAuthMiddleware(req, res, next),
   );
 
-  SwaggerModule.setup(SWAGGER_PATH!, app, document);
+  SwaggerModule.setup(SWAGGER_PATH!, app, document, {
+    customCss: theme.getBuffer(SwaggerThemeNameEnum.CLASSIC),
+  });
 
   await app.listen(PORT);
 
