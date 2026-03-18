@@ -45,6 +45,7 @@ async function bootstrap() {
     .addTag("user-v1")
     .addTag("user-v2")
     .addTag("admin-v1")
+    .addTag("health-v1")
     .addBearerAuth(
       {
         type: "http",
