@@ -38,6 +38,24 @@ async function main() {
       },
     },
   });
+
+  await prisma.user.create({
+    data: {
+      name: "Test User E2E FE",
+      email: "testusere2efe@email.com",
+      userCredentials: {
+        create: {
+          passwordHash:
+            "$2a$12$d0fXQPKs.HhLiiZJ8oBzZu9mcn0u2JWW0ExipuN4jPv1aDG0DxkAq", // StrongPass@123
+        },
+      },
+      roles: {
+        connect: {
+          name: "USER",
+        },
+      },
+    },
+  });
 }
 
 void (async () => {
