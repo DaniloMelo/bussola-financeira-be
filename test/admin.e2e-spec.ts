@@ -3,7 +3,7 @@
 
 import { INestApplication } from "@nestjs/common";
 // import { PrismaService } from "src/prisma/prisma.service";
-import * as request from "supertest";
+import request from "supertest";
 import { createTestApp, TestContext } from "./helpers/create-test-app.helper";
 import { TestDatabaseHelper } from "./helpers/test-database.helper";
 import { TestAuthHelper } from "./helpers/test-auth.helper";

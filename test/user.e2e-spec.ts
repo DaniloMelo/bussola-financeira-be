@@ -3,7 +3,7 @@
 
 import { INestApplication } from "@nestjs/common";
 import { PrismaService } from "src/prisma/prisma.service";
-import * as request from "supertest";
+import request from "supertest";
 import { IUpdateUserData } from "src/user/interfaces/update";
 import { UserApiResponseDtoV1 } from "src/user/v1/dto/swagger/user-api-response.dto";
 import { DeletedUserApiResponseDtoV1 } from "src/user/v1/dto/swagger/deleted-user-api-response.dto";
@@ -49,6 +49,25 @@ describe("User (e2e)", () => {
         .post("/v1/user")
         .send(newUser)
         .expect(201);
+      // .expect((res) => {
+      //   expect(res.body).toEqual({
+      //     id: expect.any(String),
+      //     name: "Jane Doe",
+      //     email: "jane@email.com",
+      //     deletedAt: null,
+      //     createdAt: expect.any(String),
+      //     updatedAt: expect.any(String),
+      //     userCredentials: {
+      //       id: expect.any(String),
+      //       lastLoginAt: null,
+      //     },
+      //     roles: [
+      //       {
+      //         name: "USER",
+      //       },
+      //     ],
+      //   });
+      // });
 
       const reponseBody: UserApiResponseDtoV1 = response.body;
 
@@ -63,6 +82,7 @@ describe("User (e2e)", () => {
           id: expect.any(String),
           lastLoginAt: null,
         },
+
         roles: [
           {
             name: "USER",
