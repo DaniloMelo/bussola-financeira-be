@@ -4,7 +4,7 @@
 import { Body, INestApplication } from "@nestjs/common";
 import { ILogin } from "src/auth/interfaces/login.interface";
 import { AuthApiResponseDto } from "src/auth/v1/dto/swagger/auth-api-response.dto";
-import * as request from "supertest";
+import request from "supertest";
 
 export class TestAuthHelper {
   async login(app: INestApplication, credentials: ILogin) {
