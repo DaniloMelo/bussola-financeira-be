@@ -1,0 +1,38 @@
+# .github/workflows/deploy-prod.yml
+name: CD - Deploy Production
+
+on:
+  push:
+    branches:
+      - main
+
+jobs:
+  deploy:
+    name: Deploy para Produção
+    runs-on: ubuntu-latest
+    environment:
+      name: production
+      url: https://bussola-financeira-be-prod.onrender.com
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Deploy iniciado
+        run: |
+          echo "Fazendo deploy em produção..."
+
+      - name: Aguardando deploy...
+        run: sleep 90
+
+      - name: Health check
+        run: |
+          curl -f https://bussola-financeira-be-prod.onrender.com/v1/health || exit 1
+
+      - name: Notificar sucesso
+        if: success()
+        run: echo "Deploy em produção concluído!"
+
+      - name: Notificar falha
+        if: failure()
+        run: echo "Deploy em produção falhou!"

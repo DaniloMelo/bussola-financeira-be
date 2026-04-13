@@ -1,0 +1,34 @@
+name: CD - Deploy Staging
+
+on:
+  push:
+    branches:
+      - staging
+
+jobs:
+  deploy:
+    name: Deploy para Staging
+    runs-on: ubuntu-latest
+    environment:
+      name: staging
+      url: https://bussola-financeira-be.onrender.com
+
+    steps:
+      - name: Deploy iniciado
+        run: |
+          echo "Fazendo deploy em staging..."
+
+      - name: Aguardando deploy...
+        run: sleep 90
+
+      - name: Health check
+        run: |
+          curl -f https://bussola-financeira-be.onrender.com/v1/health || exit 1
+
+      - name: Notificar sucesso
+        if: success()
+        run: echo "Deploy em staging concluído!"
+
+      - name: Notificar falha
+        if: failure()
+        run: echo "Deploy em staging falhou!"
