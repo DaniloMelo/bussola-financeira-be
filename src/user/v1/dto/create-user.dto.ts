@@ -23,14 +23,14 @@ export class CreateUserDtoV1 {
     description: "Nome do usuário.",
     example: "John Doe",
   })
-  name: string;
+  name!: string;
 
   @IsEmail({}, { message: "E-mail inválido." })
   @ApiProperty({
     description: "E-mail do usuário.",
     example: "john@email.com",
   })
-  email: string;
+  email!: string;
 
   @Transform(({ value }: TransformFnParams) => {
     if (typeof value === "string") {
@@ -45,5 +45,5 @@ export class CreateUserDtoV1 {
     description: "Senha do usuário",
     example: "password123",
   })
-  password: string;
+  password!: string;
 }

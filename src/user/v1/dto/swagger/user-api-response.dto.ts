@@ -5,7 +5,7 @@ class UserCredentialsRelation {
     description: "ID (UUID).",
     example: "4268a730-7109-4734-85c8-77e33e40118b",
   })
-  id: string;
+  id!: string;
 
   @ApiProperty({
     description:
@@ -15,7 +15,7 @@ class UserCredentialsRelation {
     format: "date-time",
     example: null,
   })
-  lastLoginAt: Date | null;
+  lastLoginAt!: Date | null;
 }
 
 class UserRolesRelation {
@@ -23,7 +23,7 @@ class UserRolesRelation {
     description: "Role do usuário",
     example: "USER",
   })
-  name: string;
+  name!: string;
 }
 
 export class UserApiResponseDtoV1 {
@@ -31,19 +31,19 @@ export class UserApiResponseDtoV1 {
     description: "ID do usuário (UUID).",
     example: "34eaa6f3-4ff8-4f70-8acb-44b70436891b",
   })
-  id: string;
+  id!: string;
 
   @ApiProperty({
     description: "Nome do usuário.",
     example: "John Doe",
   })
-  name: string;
+  name!: string;
 
   @ApiProperty({
     description: "E-mail do usuário.",
     example: "John@email.com",
   })
-  email: string;
+  email!: string;
 
   @ApiProperty({
     description: "Data de exclusão do usuário.",
@@ -52,7 +52,7 @@ export class UserApiResponseDtoV1 {
     format: "date-time",
     example: null,
   })
-  deletedAt: Date | null;
+  deletedAt!: Date | null;
 
   @ApiProperty({
     description: "Data de criação do usuário",
@@ -60,7 +60,7 @@ export class UserApiResponseDtoV1 {
     type: "string",
     format: "date-time",
   })
-  createdAt: Date;
+  createdAt!: Date;
 
   @ApiProperty({
     description: "Data da última atualização",
@@ -68,17 +68,17 @@ export class UserApiResponseDtoV1 {
     type: "string",
     format: "date-time",
   })
-  updatedAt: Date;
+  updatedAt!: Date;
 
   @ApiProperty({
     description: "Dados da tabela relacionada 'user-credentials'",
     type: () => UserCredentialsRelation,
   })
-  userCredentials: UserCredentialsRelation;
+  userCredentials!: UserCredentialsRelation;
 
   @ApiProperty({
     description: "Dados da tabela relacionada 'user-credentials'",
     type: () => [UserRolesRelation],
   })
-  roles: UserRolesRelation[];
+  roles!: UserRolesRelation[];
 }
