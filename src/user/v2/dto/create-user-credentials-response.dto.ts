@@ -5,7 +5,7 @@ export class CreateUserCredentialsResponseDtoV2 {
     description: "ID (UUID).",
     example: "4268a730-7109-4734-85c8-77e33e40118b",
   })
-  id: string;
+  id!: string;
 
   @ApiProperty({
     description:
@@ -13,5 +13,5 @@ export class CreateUserCredentialsResponseDtoV2 {
     nullable: true,
     example: null,
   })
-  lastLoginAt: Date | null;
+  lastLoginAt!: Date | null;
 }
