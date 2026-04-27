@@ -1,4 +1,3 @@
-# .github/workflows/deploy-prod.yml
 name: CD - Deploy Production
 
 on:
@@ -15,9 +14,6 @@ jobs:
       url: https://bussola-financeira-be-prod.onrender.com
 
     steps:
-      - name: Checkout code
-        uses: actions/checkout@v4
-
       - name: Deploy iniciado
         run: |
           echo "Fazendo deploy em produção..."
