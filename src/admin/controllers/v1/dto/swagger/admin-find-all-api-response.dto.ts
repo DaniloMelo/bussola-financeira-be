@@ -1,11 +1,11 @@
 import { ApiProperty } from "@nestjs/swagger";
 
 class AdminFindAllUserCredentialsRelation {
-  lastLoginAt: Date;
+  lastLoginAt!: Date;
 }
 
 class AdminFindAllRolesRelation {
-  name: string;
+  name!: string;
 }
 
 export class AdminFindAllApiResponseDtoV1 {
@@ -13,19 +13,19 @@ export class AdminFindAllApiResponseDtoV1 {
     description: "ID do usuário (UUID).",
     example: "34eaa6f3-4ff8-4f70-8acb-44b70436891b",
   })
-  id: string;
+  id!: string;
 
   @ApiProperty({
     description: "Nome do usuário.",
     example: "John Doe",
   })
-  name: string;
+  name!: string;
 
   @ApiProperty({
     description: "E-mail do usuário.",
     example: "john@email.com",
   })
-  email: string;
+  email!: string;
 
   @ApiProperty({
     description: "Data de exclusão do usuário.",
@@ -34,7 +34,7 @@ export class AdminFindAllApiResponseDtoV1 {
     format: "date-time",
     example: null,
   })
-  deletedAt: Date | null;
+  deletedAt!: Date | null;
 
   @ApiProperty({
     description: "Data de criação do usuário",
@@ -42,7 +42,7 @@ export class AdminFindAllApiResponseDtoV1 {
     format: "date-time",
     example: "2025-11-26T15:19:30.534Z",
   })
-  createdAt: Date;
+  createdAt!: Date;
 
   @ApiProperty({
     description: "Data da última atualização",
@@ -50,13 +50,13 @@ export class AdminFindAllApiResponseDtoV1 {
     format: "date-time",
     example: "2025-11-26T15:19:30.534Z",
   })
-  updatedAt: Date;
+  updatedAt!: Date;
 
   @ApiProperty({
     description: "Dados da tabela relacionada 'user-credentials'",
     type: () => AdminFindAllUserCredentialsRelation,
   })
-  userCredentials: {
+  userCredentials!: {
     lastLoginAt: AdminFindAllUserCredentialsRelation;
   };
 
@@ -64,5 +64,5 @@ export class AdminFindAllApiResponseDtoV1 {
     description: "Dados da tabela relacionada 'user-credentials'",
     type: () => [AdminFindAllRolesRelation],
   })
-  roles: AdminFindAllRolesRelation[];
+  roles!: AdminFindAllRolesRelation[];
 }

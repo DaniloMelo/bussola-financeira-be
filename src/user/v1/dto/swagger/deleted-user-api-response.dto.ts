@@ -5,7 +5,7 @@ class DeletedUserCredentialsRelation {
     description: "ID (UUID).",
     example: "4268a730-7109-4734-85c8-77e33e40118b",
   })
-  id: string;
+  id!: string;
 
   @ApiProperty({
     description:
@@ -15,7 +15,7 @@ class DeletedUserCredentialsRelation {
     format: "date-time",
     example: "2026-01-13T16:10:12.361Z",
   })
-  lastLoginAt: Date | null;
+  lastLoginAt!: Date | null;
 }
 
 class DeletedUserRolesRelation {
@@ -23,7 +23,7 @@ class DeletedUserRolesRelation {
     description: "Role do usuário",
     example: "USER",
   })
-  name: string;
+  name!: string;
 }
 
 export class DeletedUserApiResponseDtoV1 {
@@ -31,19 +31,19 @@ export class DeletedUserApiResponseDtoV1 {
     description: "ID do usuário (UUID).",
     example: "34eaa6f3-4ff8-4f70-8acb-44b70436891b",
   })
-  id: string;
+  id!: string;
 
   @ApiProperty({
     description: "Nome do usuário.",
     example: "John Doe",
   })
-  name: string;
+  name!: string;
 
   @ApiProperty({
     description: "E-mail do usuário.",
     example: "John@email.com",
   })
-  email: string;
+  email!: string;
 
   @ApiProperty({
     description: "Data de exclusão do usuário.",
@@ -52,7 +52,7 @@ export class DeletedUserApiResponseDtoV1 {
     format: "date-time",
     example: "2025-11-26T15:19:30.534Z",
   })
-  deletedAt: Date | null;
+  deletedAt!: Date | null;
 
   @ApiProperty({
     description: "Data de criação do usuário",
@@ -60,7 +60,7 @@ export class DeletedUserApiResponseDtoV1 {
     format: "date-time",
     example: "2025-11-26T15:19:30.534Z",
   })
-  createdAt: Date;
+  createdAt!: Date;
 
   @ApiProperty({
     description: "Data da última atualização",
@@ -68,17 +68,17 @@ export class DeletedUserApiResponseDtoV1 {
     format: "date-time",
     example: "2025-11-26T15:19:30.534Z",
   })
-  updatedAt: Date;
+  updatedAt!: Date;
 
   @ApiProperty({
     description: "Dados da tabela relacionada 'user-credentials'",
     type: () => DeletedUserCredentialsRelation,
   })
-  userCredentials: DeletedUserCredentialsRelation;
+  userCredentials!: DeletedUserCredentialsRelation;
 
   @ApiProperty({
     description: "Dados da tabela relacionada 'user-credentials'",
     type: () => [DeletedUserRolesRelation],
   })
-  roles: DeletedUserRolesRelation[];
+  roles!: DeletedUserRolesRelation[];
 }

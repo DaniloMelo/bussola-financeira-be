@@ -5,7 +5,7 @@ class UserRolesRelation {
     description: "Role do usuário",
     example: "USER",
   })
-  name: string;
+  name!: string;
 }
 
 export class FindMeWithRolesV1 {
@@ -13,19 +13,19 @@ export class FindMeWithRolesV1 {
     description: "ID do usuário (UUID).",
     example: "34eaa6f3-4ff8-4f70-8acb-44b70436891b",
   })
-  id: string;
+  id!: string;
 
   @ApiProperty({
     description: "Nome do usuário.",
     example: "John Doe",
   })
-  name: string;
+  name!: string;
 
   @ApiProperty({
     description: "E-mail do usuário.",
     example: "John@email.com",
   })
-  email: string;
+  email!: string;
 
   @ApiProperty({
     description: "Data de exclusão do usuário.",
@@ -34,7 +34,7 @@ export class FindMeWithRolesV1 {
     format: "date-time",
     example: null,
   })
-  deletedAt: Date | null;
+  deletedAt!: Date | null;
 
   @ApiProperty({
     description: "Data de criação do usuário",
@@ -42,7 +42,7 @@ export class FindMeWithRolesV1 {
     type: "string",
     format: "date-time",
   })
-  createdAt: Date;
+  createdAt!: Date;
 
   @ApiProperty({
     description: "Data da última atualização",
@@ -50,11 +50,11 @@ export class FindMeWithRolesV1 {
     type: "string",
     format: "date-time",
   })
-  updatedAt: Date;
+  updatedAt!: Date;
 
   @ApiProperty({
     description: "Dados da tabela relacionada 'user-credentials'",
     type: () => [UserRolesRelation],
   })
-  roles: UserRolesRelation[];
+  roles!: UserRolesRelation[];
 }

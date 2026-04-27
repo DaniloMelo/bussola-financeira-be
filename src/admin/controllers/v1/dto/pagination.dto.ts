@@ -9,7 +9,7 @@ export class PaginationDtoV1 {
     description: "Quantidade de itens por página",
     example: 10,
   })
-  limit: number;
+  limit!: number;
 
   @Type(() => Number)
   @IsInt()
@@ -17,5 +17,5 @@ export class PaginationDtoV1 {
     description: "Quantida de items pulados",
     example: 0,
   })
-  offset: number;
+  offset!: number;
 }
