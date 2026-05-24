@@ -10,7 +10,7 @@ import { Roles } from "src/common/decorators/roles.decorator";
 import { Role } from "src/common/enums/role.enum";
 import { RolesGuard } from "src/common/guards/roles.guard";
 import { PaginationDtoV1 } from "./dto/pagination.dto";
-import { AdminUserService } from "src/admin/services/admin-user.service";
+import { AdminUserService } from "src/domain/admin/services/admin-user.service";
 import { AdminFindAllApiResponseDtoV1 } from "./dto/swagger/admin-find-all-api-response.dto";
 
 @Controller({ path: "admin", version: "1" })

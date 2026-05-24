@@ -1,6 +1,6 @@
 import { ConfigModule, ConfigService } from "@nestjs/config";
 import { Test, TestingModule } from "@nestjs/testing";
-import { AdminModule } from "src/admin/admin.module";
+import { AdminModule } from "src/domain/admin/admin.module";
 import { AuthModule } from "src/infra/auth/auth.module";
 import { PrismaModule } from "src/infra/prisma/prisma.module";
 import { PrismaService } from "src/infra/prisma/prisma.service";
