@@ -1,6 +1,6 @@
 import { ConfigService } from "@nestjs/config";
 import { JwtService } from "@nestjs/jwt";
-import { IJwtPayload } from "src/auth/interfaces/jwt-payload.interface";
+import { IJwtPayload } from "src/infra/auth/interfaces/jwt-payload.interface";
 import { Random } from "src/common/utils/random";
 
 export class TestJwtHelper {

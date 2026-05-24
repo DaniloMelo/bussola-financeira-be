@@ -2,14 +2,14 @@
 /* eslint-disable @typescript-eslint/no-unsafe-argument */
 
 import { INestApplication } from "@nestjs/common";
-import { PrismaService } from "src/prisma/prisma.service";
+import { PrismaService } from "src/infra/prisma/prisma.service";
 import request from "supertest";
-import { ILogin } from "src/auth/interfaces/login.interface";
-import { AuthApiResponseDto } from "src/auth/v1/dto/swagger/auth-api-response.dto";
+import { ILogin } from "src/infra/auth/interfaces/login.interface";
+import { AuthApiResponseDto } from "src/infra/auth/v1/dto/swagger/auth-api-response.dto";
 import { TestDatabaseHelper } from "./helpers/test-database.helper";
 import { TestAuthHelper } from "./helpers/test-auth.helper";
 import { createTestApp, TestContext } from "./helpers/create-test-app.helper";
-import { LogoutApiResponseDto } from "src/auth/v1/dto/swagger/logout-api-response.dto";
+import { LogoutApiResponseDto } from "src/infra/auth/v1/dto/swagger/logout-api-response.dto";
 import { TestJwtHelper } from "./helpers/test-jwt.helper";
 
 describe("Auth (e2e)", () => {

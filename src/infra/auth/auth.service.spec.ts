@@ -2,7 +2,7 @@
 
 import { Test, TestingModule } from "@nestjs/testing";
 import { AuthService } from "./auth.service";
-import { UserService } from "src/user/user.service";
+import { UserService } from "src/domain/user/user.service";
 import { HasherProtocol } from "src/common/hasher/hasher.protocol";
 import { JwtService } from "@nestjs/jwt";
 import { ILogin } from "./interfaces/login.interface";
