@@ -4,7 +4,7 @@ import { AdminModule } from "src/admin/admin.module";
 import { AuthModule } from "src/auth/auth.module";
 import { PrismaModule } from "src/prisma/prisma.module";
 import { PrismaService } from "src/prisma/prisma.service";
-import { UserModule } from "src/user/user.module";
+import { UserModule } from "src/domain/user/user.module";
 import { TestDatabaseHelper } from "./test-database.helper";
 import {
   INestApplication,

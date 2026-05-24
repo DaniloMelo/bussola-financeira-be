@@ -4,7 +4,7 @@ import {
   Injectable,
 } from "@nestjs/common";
 import { ILogin } from "./interfaces/login.interface";
-import { UserService } from "src/user/user.service";
+import { UserService } from "src/domain/user/user.service";
 import { HasherProtocol } from "src/common/hasher/hasher.protocol";
 import { JwtService } from "@nestjs/jwt";
 import { IJwtPayload } from "./interfaces/jwt-payload.interface";

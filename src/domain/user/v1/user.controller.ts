@@ -101,7 +101,7 @@ export class UserControllerV1 {
 
   @Delete("me")
   @UseGuards(JwtAuthGuard)
-  @ApiOperation({ summary: "Exclui um usuário" })
+  @ApiOperation({ summary: "Exclui um usuário (Soft Delete)" })
   @ApiBearerAuth("access-token")
   @ApiHeader({
     name: "Authorization",
