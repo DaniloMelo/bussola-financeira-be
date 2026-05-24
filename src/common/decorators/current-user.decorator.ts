@@ -1,6 +1,6 @@
 import { createParamDecorator, ExecutionContext } from "@nestjs/common";
 import { Request } from "express";
-import { IAuthUserWithRefreshToken } from "src/auth/interfaces/request-user.interface";
+import { IAuthUserWithRefreshToken } from "src/infra/auth/interfaces/request-user.interface";
 
 type UserProperties = keyof IAuthUserWithRefreshToken;
 

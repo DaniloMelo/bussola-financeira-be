@@ -8,7 +8,7 @@ import { IUpdateUserData } from "src/domain/user/interfaces/update";
 import { UserApiResponseDtoV1 } from "src/domain/user/v1/dto/swagger/user-api-response.dto";
 import { DeletedUserApiResponseDtoV1 } from "src/domain/user/v1/dto/swagger/deleted-user-api-response.dto";
 import { TestDatabaseHelper } from "./helpers/test-database.helper";
-import { ILogin } from "src/auth/interfaces/login.interface";
+import { ILogin } from "src/infra/auth/interfaces/login.interface";
 import { TestAuthHelper } from "./helpers/test-auth.helper";
 import { createTestApp, TestContext } from "./helpers/create-test-app.helper";
 import { FindMeWithRolesV1 } from "src/domain/user/v1/dto/swagger/find-user-api.response";

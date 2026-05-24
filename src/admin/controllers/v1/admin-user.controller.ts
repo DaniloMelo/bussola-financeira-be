@@ -5,7 +5,7 @@ import {
   ApiResponse,
   ApiTags,
 } from "@nestjs/swagger";
-import { JwtAuthGuard } from "src/auth/guards/jwt-auth.guard";
+import { JwtAuthGuard } from "src/infra/auth/guards/jwt-auth.guard";
 import { Roles } from "src/common/decorators/roles.decorator";
 import { Role } from "src/common/enums/role.enum";
 import { RolesGuard } from "src/common/guards/roles.guard";

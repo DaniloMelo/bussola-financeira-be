@@ -7,7 +7,7 @@ import request from "supertest";
 import { createTestApp, TestContext } from "./helpers/create-test-app.helper";
 import { TestDatabaseHelper } from "./helpers/test-database.helper";
 import { TestAuthHelper } from "./helpers/test-auth.helper";
-import { ILogin } from "src/auth/interfaces/login.interface";
+import { ILogin } from "src/infra/auth/interfaces/login.interface";
 import { AdminFindAllApiResponseDtoV1 } from "src/admin/controllers/v1/dto/swagger/admin-find-all-api-response.dto";
 
 describe("Admin (e2e)", () => {

@@ -2,7 +2,7 @@ import { Module } from "@nestjs/common";
 import { PrismaModule } from "./infra/prisma/prisma.module";
 import { ConfigModule } from "@nestjs/config";
 import { UserModule } from "./domain/user/user.module";
-import { AuthModule } from "./auth/auth.module";
+import { AuthModule } from "./infra/auth/auth.module";
 import { AdminModule } from "./admin/admin.module";
 import { HealthModule } from "./health/health.module";
 
