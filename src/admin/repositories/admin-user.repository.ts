@@ -1,5 +1,5 @@
 import { Injectable } from "@nestjs/common";
-import { PrismaService } from "src/prisma/prisma.service";
+import { PrismaService } from "src/infra/prisma/prisma.service";
 import { PaginationDtoV1 } from "../controllers/v1/dto/pagination.dto";
 
 @Injectable()

@@ -4,7 +4,7 @@ import { AuthController } from "./v1/auth.controller";
 import { JwtModule } from "@nestjs/jwt";
 import { ConfigService } from "@nestjs/config";
 import { JwtStrategy } from "./strategies/jwt.strategy";
-import { PrismaModule } from "src/prisma/prisma.module";
+import { PrismaModule } from "src/infra/prisma/prisma.module";
 import { UserModule } from "src/domain/user/user.module";
 import { CommonModule } from "src/common/common.module";
 import { RefreshTokenStrategy } from "./strategies/refresh-token.strategy";

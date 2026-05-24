@@ -2,7 +2,7 @@
 /* eslint-disable @typescript-eslint/no-unsafe-argument */
 
 import { INestApplication } from "@nestjs/common";
-import { PrismaService } from "src/prisma/prisma.service";
+import { PrismaService } from "src/infra/prisma/prisma.service";
 import request from "supertest";
 import { IUpdateUserData } from "src/domain/user/interfaces/update";
 import { UserApiResponseDtoV1 } from "src/domain/user/v1/dto/swagger/user-api-response.dto";

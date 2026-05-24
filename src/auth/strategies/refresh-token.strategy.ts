@@ -4,7 +4,7 @@ import { PassportStrategy } from "@nestjs/passport";
 import { Request } from "express";
 import { ExtractJwt, Strategy } from "passport-jwt";
 import { IJwtPayload } from "../interfaces/jwt-payload.interface";
-import { PrismaService } from "src/prisma/prisma.service";
+import { PrismaService } from "src/infra/prisma/prisma.service";
 import { IAuthUserWithRefreshToken } from "../interfaces/request-user.interface";
 import { HasherProtocol } from "src/common/hasher/hasher.protocol";
 
