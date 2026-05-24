@@ -1,10 +1,10 @@
 import { Controller, Get } from "@nestjs/common";
 import { ApiOperation, ApiResponse, ApiTags } from "@nestjs/swagger";
 
-@Controller({ path: "health", version: "1" })
-@ApiTags("health-v1")
-export class HealthController {
-  @Get()
+@Controller({ path: "/", version: "1" })
+@ApiTags("app")
+export class AppController {
+  @Get("health")
   @ApiOperation({ summary: "Health Checker para a API" })
   @ApiResponse({
     status: 200,

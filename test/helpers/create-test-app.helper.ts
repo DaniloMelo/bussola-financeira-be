@@ -1,10 +1,10 @@
 import { ConfigModule, ConfigService } from "@nestjs/config";
 import { Test, TestingModule } from "@nestjs/testing";
-import { AdminModule } from "src/admin/admin.module";
-import { AuthModule } from "src/auth/auth.module";
-import { PrismaModule } from "src/prisma/prisma.module";
-import { PrismaService } from "src/prisma/prisma.service";
-import { UserModule } from "src/user/user.module";
+import { AdminModule } from "src/domain/admin/admin.module";
+import { AuthModule } from "src/infra/auth/auth.module";
+import { PrismaModule } from "src/infra/prisma/prisma.module";
+import { PrismaService } from "src/infra/prisma/prisma.service";
+import { UserModule } from "src/domain/user/user.module";
 import { TestDatabaseHelper } from "./test-database.helper";
 import {
   INestApplication,
