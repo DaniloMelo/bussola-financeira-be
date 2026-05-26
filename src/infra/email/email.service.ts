@@ -1,8 +1,9 @@
 import { MailerService } from "@nestjs-modules/mailer";
 import { Injectable } from "@nestjs/common";
+import { resetPasswordHtmlTemplate } from "./templates/html/reset-password-html.template";
 
 interface ResetPasswordParams {
-  name: string;
+  userName: string;
   email: string;
   resetUrl: string;
 }
@@ -12,14 +13,14 @@ export class EmailService {
   constructor(private readonly mailerService: MailerService) {}
 
   async resetPassword(params: ResetPasswordParams) {
-    const { name, email, resetUrl } = params;
+    const { userName, email, resetUrl } = params;
 
     try {
       await this.mailerService.sendMail({
         to: email,
         subject: "Recuperação de senha",
-        html: `<h1>${name}<h1> <a href="${resetUrl}">resert url</a>`,
-        text: `${name}, ${resetUrl}`,
+        html: resetPasswordHtmlTemplate(userName, resetUrl),
+        text: `${userName}, ${resetUrl}`,
       });
     } catch (error) {
       console.error(error);

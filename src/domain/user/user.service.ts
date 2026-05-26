@@ -35,7 +35,7 @@ export class UserService {
     };
 
     await this.emailService.resetPassword({
-      name: userData.name,
+      userName: userData.name,
       email: userData.email,
       resetUrl: "https://www.google.com",
     });
