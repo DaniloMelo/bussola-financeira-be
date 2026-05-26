@@ -7,6 +7,7 @@ import { HasherProtocol } from "src/common/hasher/hasher.protocol";
 import { BadRequestException } from "@nestjs/common";
 import { IStoredUser } from "./interfaces/user";
 import { IUpdateUserData } from "./interfaces/update";
+import { EmailService } from "src/infra/email/email.service";
 
 const mockUserRepository = {
   create: jest.fn(),
@@ -25,10 +26,16 @@ const mockHasherService = {
   hash: jest.fn(),
 };
 
+const mockEmailService = {
+  resetPassword: jest.fn(),
+};
+
 describe("UserService", () => {
   let userService: UserService;
   let userRepositoryMock: UserRepository;
   let hasherServiceMock: HasherProtocol;
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
+  let emailServiceMock: EmailService;
 
   beforeEach(async () => {
     const module: TestingModule = await Test.createTestingModule({
@@ -42,12 +49,17 @@ describe("UserService", () => {
           provide: HasherProtocol,
           useValue: mockHasherService,
         },
+        {
+          provide: EmailService,
+          useValue: mockEmailService,
+        },
       ],
     }).compile();
 
     userService = module.get<UserService>(UserService);
     userRepositoryMock = module.get<UserRepository>(UserRepository);
     hasherServiceMock = module.get<HasherProtocol>(HasherProtocol);
+    emailServiceMock = module.get<EmailService>(EmailService);
   });
 
   beforeEach(() => {

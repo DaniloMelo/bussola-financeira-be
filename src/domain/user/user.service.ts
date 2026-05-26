@@ -34,11 +34,11 @@ export class UserService {
       password: await this.hasherService.hash(userData.password),
     };
 
-    await this.emailService.resetPassword({
-      userName: userData.name,
-      email: userData.email,
-      resetUrl: "https://www.google.com",
-    });
+    // await this.emailService.resetPassword({
+    //   userName: userData.name,
+    //   email: userData.email,
+    //   resetUrl: "https://www.google.com",
+    // });
 
     return this.userRepository.create(newUser);
   }
