@@ -7,12 +7,14 @@ import { UserRepository } from "./user.repository";
 import { HasherProtocol } from "src/common/hasher/hasher.protocol";
 import { ICreateUser } from "./interfaces/user";
 import { IUpdateUserData } from "./interfaces/update";
+import { EmailService } from "src/infra/email/email.service";
 
 @Injectable()
 export class UserService {
   constructor(
     private readonly userRepository: UserRepository,
     private readonly hasherService: HasherProtocol,
+    private readonly emailService: EmailService,
   ) {}
 
   async create(userData: ICreateUser) {
@@ -31,6 +33,12 @@ export class UserService {
       email: userData.email,
       password: await this.hasherService.hash(userData.password),
     };
+
+    await this.emailService.resetPassword({
+      name: userData.name,
+      email: userData.email,
+      resetUrl: "https://www.google.com",
+    });
 
     return this.userRepository.create(newUser);
   }
