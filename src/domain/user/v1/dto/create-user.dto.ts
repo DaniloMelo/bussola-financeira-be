@@ -7,6 +7,7 @@ import {
   MaxLength,
   MinLength,
 } from "class-validator";
+import { IsSafeString } from "src/common/validators/safe-string.validator";
 
 export class CreateUserDtoV1 {
   @Transform(({ value }: TransformFnParams) => {
@@ -17,6 +18,7 @@ export class CreateUserDtoV1 {
   })
   @IsNotEmpty({ message: "Nome não pode ser espaços em branco." })
   @IsString({ message: "Nome precisa conter caracteres válidos." })
+  @IsSafeString({ message: "Nome precisa conter caracteres válidos." })
   @MinLength(3, { message: "Nome precisa ter o mínimo de 3 caracteres." })
   @MaxLength(100, { message: "Nome pode ter no máximo 100 caracteres." })
   @ApiProperty({
