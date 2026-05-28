@@ -41,6 +41,51 @@ describe("UpdateUserDto V1", () => {
     );
   });
 
+  it("Should fail if name contains XSS", async () => {
+    const instance = plainToInstance(UpdateUserDtoV1, {
+      name: "<script>alert('XSS')</script>John Doe",
+    });
+
+    const errors = await validate(instance);
+
+    expect(errors.length).toBe(1);
+    expect(errors[0].property).toBe("name");
+    expect(errors[0].constraints).toHaveProperty(
+      "IsSafeString",
+      "Nome precisa conter caracteres válidos.",
+    );
+  });
+
+  it("Should fail if name contains HTML injection", async () => {
+    const instance = plainToInstance(UpdateUserDtoV1, {
+      name: "<h1>John Doe</h1>",
+    });
+
+    const errors = await validate(instance);
+
+    expect(errors.length).toBe(1);
+    expect(errors[0].property).toBe("name");
+    expect(errors[0].constraints).toHaveProperty(
+      "IsSafeString",
+      "Nome precisa conter caracteres válidos.",
+    );
+  });
+
+  it("Should fail if name contains inline events handlers", async () => {
+    const instance = plainToInstance(UpdateUserDtoV1, {
+      name: "<img src=x onerror='alert(1)'>",
+    });
+
+    const errors = await validate(instance);
+
+    expect(errors.length).toBe(1);
+    expect(errors[0].property).toBe("name");
+    expect(errors[0].constraints).toHaveProperty(
+      "IsSafeString",
+      "Nome precisa conter caracteres válidos.",
+    );
+  });
+
   it("Should remove invalid white spaces from 'password'", async () => {
     const invalidUser: UpdateUserDtoV1 = {
       ...validUpdatedUser,
