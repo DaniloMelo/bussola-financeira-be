@@ -17,8 +17,8 @@ export class UpdateUserDtoV1 {
     }
     return value as string;
   })
-  @IsNotEmpty({ message: "Nome não pode ser espaços em branco." })
   @IsString({ message: "Nome precisa conter caracteres válidos." })
+  @IsNotEmpty({ message: "Nome não pode ser espaços em branco." })
   @MinLength(3, { message: "Nome precisa ter o mínimo de 3 caracteres." })
   @MaxLength(100, { message: "Nome pode ter no máximo 100 caracteres." })
   @IsSafeString({ message: "Nome precisa conter caracteres válidos." })

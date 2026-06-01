@@ -1,5 +1,3 @@
-/* eslint-disable @typescript-eslint/no-unsafe-return */
-/* eslint-disable @typescript-eslint/no-unsafe-call */
 import { Injectable } from "@nestjs/common";
 import { SanitizeProtocol } from "./sanitize.protocol";
 import sanitizeHtml from "sanitize-html";
@@ -41,5 +39,13 @@ export class SanitizeService implements SanitizeProtocol {
     cleaned = cleaned.normalize("NFC");
 
     return cleaned;
+  }
+
+  sanitizeAll(input: string): string {
+    input = this.sanitizeText(input);
+    input = this.escapeHtml(input);
+    input = this.removeUnicode(input);
+
+    return input;
   }
 }

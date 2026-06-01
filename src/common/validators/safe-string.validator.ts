@@ -26,6 +26,9 @@ export function IsSafeString(validationOptions?: ValidationOptions) {
             /<iframe/gi,
             /<object/gi,
             /<embed/gi,
+            /[\u200B-\u200D\uFEFF]/g,
+            // eslint-disable-next-line no-control-regex
+            /[\u0000-\u001F\u007F-\u009F]/g,
           ];
 
           return !dangerousPatterns.some((pattern) => pattern.test(value));
