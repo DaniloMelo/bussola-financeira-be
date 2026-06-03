@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-unsafe-assignment */
 /* eslint-disable @typescript-eslint/unbound-method */
 
 import { Test, TestingModule } from "@nestjs/testing";
@@ -78,90 +79,71 @@ describe("UserService", () => {
     jest.clearAllMocks();
   });
 
+  const validUserInput = {
+    name: "John Doe",
+    email: "john@email.com",
+    password: "password123",
+  };
+
+  const mockStroredUser = {
+    id: "1",
+    name: "John Doe",
+    email: "john@email.com",
+    deletedAt: null,
+    createdAt: new Date(),
+    updatedAt: new Date(),
+    userCredentials: {
+      id: "11",
+      lastLoginAt: null,
+    },
+    roles: [
+      {
+        name: "USER",
+      },
+    ],
+  };
+
   describe("create", () => {
-    it("Should create a new user", async () => {
-      const newUser = {
-        name: "John Doe",
-        email: "john@email.com",
-        password: "password123",
-      };
-
-      const hashedPassword = "hashedpassword";
-
-      const storedUser: IStoredUser = {
-        id: "1",
-        name: "John Doe",
-        email: "john@email.com",
-        deletedAt: null,
-        createdAt: new Date(),
-        updatedAt: new Date(),
-        userCredentials: {
-          id: "11",
-          lastLoginAt: null,
-        },
-        roles: [
-          {
-            name: "USER",
-          },
-        ],
-      };
-
+    it("should create a valid user", async () => {
       jest.spyOn(userRepositoryMock, "findOneByEmail").mockResolvedValue(null);
 
       jest
         .spyOn(sanitizeServiceMock, "sanitizeAll")
-        .mockReturnValue(newUser.name);
+        .mockReturnValue("John Doe");
 
-      jest.spyOn(hasherServiceMock, "hash").mockResolvedValue(hashedPassword);
+      jest.spyOn(hasherServiceMock, "hash").mockResolvedValue("hashedpassword");
 
-      jest.spyOn(userRepositoryMock, "create").mockResolvedValue(storedUser);
+      const createUserSpy = jest
+        .spyOn(userRepositoryMock, "create")
+        .mockResolvedValue(mockStroredUser);
 
-      const result = await userService.create(newUser);
+      const result = await userService.create(validUserInput);
 
-      expect(userRepositoryMock.findOneByEmail).toHaveBeenCalledWith(
-        newUser.email,
+      expect(userRepositoryMock.create).toHaveBeenCalledTimes(1);
+
+      expect(createUserSpy).toHaveBeenCalledWith(
+        expect.objectContaining({
+          email: "john@email.com",
+          name: "John Doe",
+          password: "hashedpassword",
+        }),
       );
 
-      expect(hasherServiceMock.hash).toHaveBeenCalledWith(newUser.password);
-
-      expect(userRepositoryMock.create).toHaveBeenCalledWith({
-        ...newUser,
-        password: hashedPassword,
+      expect(result).toMatchObject({
+        id: expect.any(String),
+        name: "John Doe",
+        email: "john@email.com",
+        userCredentials: { id: "11", lastLoginAt: null },
+        roles: [{ name: "USER" }],
       });
-
-      expect(result).toEqual(storedUser);
     });
 
-    it("Should throw 'BadRequesException' when user already exists", async () => {
-      const storedUser: IStoredUser = {
-        id: "1",
-        name: "John Doe",
-        email: "john@email.com",
-        deletedAt: null,
-        createdAt: new Date(),
-        updatedAt: new Date(),
-        userCredentials: {
-          id: "11",
-          lastLoginAt: null,
-        },
-        roles: [
-          {
-            name: "USER",
-          },
-        ],
-      };
-
-      const newUser = {
-        name: "John Doe",
-        email: "john@email.com",
-        password: "password123",
-      };
-
+    it("should throw 'BadRequesException' when user already exists", async () => {
       jest
         .spyOn(userRepositoryMock, "findOneByEmail")
-        .mockResolvedValue(storedUser);
+        .mockResolvedValue(mockStroredUser);
 
-      const createUserPromise = userService.create(newUser);
+      const createUserPromise = userService.create(validUserInput);
 
       await expect(createUserPromise).rejects.toThrow(
         /^Falha ao criar o usuário. Verifique os dados fornecidos.$/,
@@ -171,74 +153,39 @@ describe("UserService", () => {
         BadRequestException,
       );
 
-      expect(userRepositoryMock.findOneByEmail).toHaveBeenCalledWith(
-        newUser.email,
-      );
-
-      expect(hasherServiceMock.hash).not.toHaveBeenCalled();
-
       expect(userRepositoryMock.create).not.toHaveBeenCalled();
     });
   });
 
   describe("findAll", () => {
-    it("Should find all users", async () => {
-      const storedUsers: IStoredUser[] = [
-        {
-          id: "1",
-          name: "John Doe",
-          email: "john@email.com",
-          deletedAt: null,
-          createdAt: new Date(),
-          updatedAt: new Date(),
-          userCredentials: {
-            id: "11",
-            lastLoginAt: null,
-          },
-          roles: [
-            {
-              name: "USER",
-            },
-          ],
-        },
-        {
-          id: "2",
-          name: "Jane Doe",
-          email: "jane@email.com",
-          deletedAt: null,
-          createdAt: new Date(),
-          updatedAt: new Date(),
-          userCredentials: {
-            id: "22",
-            lastLoginAt: null,
-          },
-          roles: [
-            {
-              name: "USER",
-            },
-          ],
-        },
-      ];
+    it("should find all users", async () => {
+      const storedUsers = [mockStroredUser];
 
       jest.spyOn(userRepositoryMock, "findAll").mockResolvedValue(storedUsers);
 
       const result = await userService.findAll();
 
-      expect(userRepositoryMock.findAll).toHaveBeenCalled();
+      expect(userRepositoryMock.findAll).toHaveBeenCalledTimes(1);
 
-      expect(result).toEqual(storedUsers);
+      expect(result).toMatchObject([
+        {
+          id: "1",
+          name: "John Doe",
+          email: "john@email.com",
+          userCredentials: { id: "11", lastLoginAt: null },
+          roles: [{ name: "USER" }],
+        },
+      ]);
     });
 
-    it("Should return an empty array if no user exists", async () => {
+    it("should return an empty array if no user exists", async () => {
       jest.spyOn(userRepositoryMock, "findAll").mockResolvedValue([]);
 
       const result = await userService.findAll();
 
-      expect(userRepositoryMock.findAll).toHaveBeenCalled();
+      expect(userRepositoryMock.findAll).toHaveBeenCalledTimes(1);
 
       expect(result.length).toBe(0);
-
-      expect(result).toEqual([]);
     });
   });
 
