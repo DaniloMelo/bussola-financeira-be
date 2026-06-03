@@ -41,6 +41,60 @@ describe("CreateUserDto V2", () => {
     );
   });
 
+  it("Should fail if name contains XSS", async () => {
+    const invalidUser = {
+      ...validUser,
+      userName: "<script>alert('XSS')</script>John Doe",
+    };
+
+    const instance = plainToInstance(CreateUserDtoV2, invalidUser);
+
+    const errors = await validate(instance);
+
+    expect(errors.length).toBe(1);
+    expect(errors[0].property).toBe("userName");
+    expect(errors[0].constraints).toHaveProperty(
+      "IsSafeString",
+      "Nome precisa conter caracteres válidos.",
+    );
+  });
+
+  it("Should fail if name contains HTML injection", async () => {
+    const invalidUser = {
+      ...validUser,
+      userName: "<h1>John Doe</h1>",
+    };
+
+    const instance = plainToInstance(CreateUserDtoV2, invalidUser);
+
+    const errors = await validate(instance);
+
+    expect(errors.length).toBe(1);
+    expect(errors[0].property).toBe("userName");
+    expect(errors[0].constraints).toHaveProperty(
+      "IsSafeString",
+      "Nome precisa conter caracteres válidos.",
+    );
+  });
+
+  it("Should fail if name contains inline events handlers", async () => {
+    const invalidUser = {
+      ...validUser,
+      userName: "<img src=x onerror='alert(1)'>",
+    };
+
+    const instance = plainToInstance(CreateUserDtoV2, invalidUser);
+
+    const errors = await validate(instance);
+
+    expect(errors.length).toBe(1);
+    expect(errors[0].property).toBe("userName");
+    expect(errors[0].constraints).toHaveProperty(
+      "IsSafeString",
+      "Nome precisa conter caracteres válidos.",
+    );
+  });
+
   it("Should remove invalid spaces from 'userPassword'", async () => {
     const invalidUser = {
       ...validUser,

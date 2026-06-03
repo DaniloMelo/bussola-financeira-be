@@ -7,6 +7,9 @@ import { HasherProtocol } from "src/common/hasher/hasher.protocol";
 import { BadRequestException } from "@nestjs/common";
 import { IStoredUser } from "./interfaces/user";
 import { IUpdateUserData } from "./interfaces/update";
+import { EmailService } from "src/infra/email/email.service";
+import { SanitizeService } from "src/common/sanitize/sanitize.service";
+import { SanitizeProtocol } from "src/common/sanitize/sanitize.protocol";
 
 const mockUserRepository = {
   create: jest.fn(),
@@ -25,10 +28,21 @@ const mockHasherService = {
   hash: jest.fn(),
 };
 
+const mockSanitizeService = {
+  sanitizeAll: jest.fn(),
+};
+
+const mockEmailService = {
+  resetPassword: jest.fn(),
+};
+
 describe("UserService", () => {
   let userService: UserService;
   let userRepositoryMock: UserRepository;
   let hasherServiceMock: HasherProtocol;
+  let sanitizeServiceMock: SanitizeService;
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
+  let emailServiceMock: EmailService;
 
   beforeEach(async () => {
     const module: TestingModule = await Test.createTestingModule({
@@ -42,12 +56,22 @@ describe("UserService", () => {
           provide: HasherProtocol,
           useValue: mockHasherService,
         },
+        {
+          provide: EmailService,
+          useValue: mockEmailService,
+        },
+        {
+          provide: SanitizeProtocol,
+          useValue: mockSanitizeService,
+        },
       ],
     }).compile();
 
     userService = module.get<UserService>(UserService);
     userRepositoryMock = module.get<UserRepository>(UserRepository);
     hasherServiceMock = module.get<HasherProtocol>(HasherProtocol);
+    emailServiceMock = module.get<EmailService>(EmailService);
+    sanitizeServiceMock = module.get<SanitizeProtocol>(SanitizeProtocol);
   });
 
   beforeEach(() => {
@@ -83,6 +107,10 @@ describe("UserService", () => {
       };
 
       jest.spyOn(userRepositoryMock, "findOneByEmail").mockResolvedValue(null);
+
+      jest
+        .spyOn(sanitizeServiceMock, "sanitizeAll")
+        .mockReturnValue(newUser.name);
 
       jest.spyOn(hasherServiceMock, "hash").mockResolvedValue(hashedPassword);
 
@@ -409,6 +437,10 @@ describe("UserService", () => {
       jest
         .spyOn(userRepositoryMock, "findOneById")
         .mockResolvedValue(storedUser);
+
+      jest
+        .spyOn(sanitizeServiceMock, "sanitizeAll")
+        .mockReturnValue("John Doe Updated");
 
       jest.spyOn(userRepositoryMock, "findOneByEmail").mockResolvedValue(null);
 

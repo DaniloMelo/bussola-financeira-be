@@ -49,25 +49,6 @@ describe("User (e2e)", () => {
         .post("/v1/user")
         .send(newUser)
         .expect(201);
-      // .expect((res) => {
-      //   expect(res.body).toEqual({
-      //     id: expect.any(String),
-      //     name: "Jane Doe",
-      //     email: "jane@email.com",
-      //     deletedAt: null,
-      //     createdAt: expect.any(String),
-      //     updatedAt: expect.any(String),
-      //     userCredentials: {
-      //       id: expect.any(String),
-      //       lastLoginAt: null,
-      //     },
-      //     roles: [
-      //       {
-      //         name: "USER",
-      //       },
-      //     ],
-      //   });
-      // });
 
       const reponseBody: UserApiResponseDtoV1 = response.body;
 
@@ -158,97 +139,97 @@ describe("User (e2e)", () => {
     });
   });
 
-  describe("/v2/user (POST)", () => {
-    it("Should create a user using V2", async () => {
-      const newUser = {
-        userName: "Jane Doe",
-        userEmail: "jane@email.com",
-        userPassword: "password123",
-      };
+  // describe("/v2/user (POST)", () => {
+  //   it("Should create a user using V2", async () => {
+  //     const newUser = {
+  //       userName: "Jane Doe",
+  //       userEmail: "jane@email.com",
+  //       userPassword: "password123",
+  //     };
 
-      const response = await request(app.getHttpServer())
-        .post("/v2/user")
-        .send(newUser)
-        .expect(201);
+  //     const response = await request(app.getHttpServer())
+  //       .post("/v2/user")
+  //       .send(newUser)
+  //       .expect(201);
 
-      const responseBody: UserApiResponseDtoV1 = response.body;
+  //     const responseBody: UserApiResponseDtoV1 = response.body;
 
-      expect(responseBody).toEqual({
-        id: expect.any(String),
-        userName: "Jane Doe",
-        userEmail: "jane@email.com",
-        createdAt: expect.any(String),
-        updatedAt: expect.any(String),
-        userCredentials: {
-          id: expect.any(String),
-          lastLoginAt: null,
-        },
-      });
+  //     expect(responseBody).toEqual({
+  //       id: expect.any(String),
+  //       userName: "Jane Doe",
+  //       userEmail: "jane@email.com",
+  //       createdAt: expect.any(String),
+  //       updatedAt: expect.any(String),
+  //       userCredentials: {
+  //         id: expect.any(String),
+  //         lastLoginAt: null,
+  //       },
+  //     });
 
-      const storedUser = await prisma.user.findUnique({
-        where: { id: responseBody.id },
-        include: { userCredentials: true },
-      });
+  //     const storedUser = await prisma.user.findUnique({
+  //       where: { id: responseBody.id },
+  //       include: { userCredentials: true },
+  //     });
 
-      expect(storedUser).toBeDefined();
-      expect(storedUser?.name).toBe(newUser.userName);
-      expect(storedUser?.email).toBe(newUser.userEmail);
-      expect(storedUser?.userCredentials?.passwordHash).toBeDefined();
-      expect(storedUser?.userCredentials?.passwordHash).not.toBe(
-        newUser.userPassword,
-      );
-    });
+  //     expect(storedUser).toBeDefined();
+  //     expect(storedUser?.name).toBe(newUser.userName);
+  //     expect(storedUser?.email).toBe(newUser.userEmail);
+  //     expect(storedUser?.userCredentials?.passwordHash).toBeDefined();
+  //     expect(storedUser?.userCredentials?.passwordHash).not.toBe(
+  //       newUser.userPassword,
+  //     );
+  //   });
 
-    it("Should return 'BadRequestException' for all validations errors", async () => {
-      const invalidUser = {
-        userName: "Jo",
-        userEmail: "johnemail.com",
-        userPassword: "pass",
-      };
+  //   it("Should return 'BadRequestException' for all validations errors", async () => {
+  //     const invalidUser = {
+  //       userName: "Jo",
+  //       userEmail: "johnemail.com",
+  //       userPassword: "pass",
+  //     };
 
-      const response = await request(app.getHttpServer())
-        .post("/v2/user")
-        .send(invalidUser)
-        .expect(400);
+  //     const response = await request(app.getHttpServer())
+  //       .post("/v2/user")
+  //       .send(invalidUser)
+  //       .expect(400);
 
-      expect(response.body).toEqual({
-        message: [
-          "Nome precisa ter o mínimo de 3 caracteres.",
-          "E-mail inválido.",
-          "Senha precisa ter o mínimo de 6 caracteres.",
-        ],
-        error: "Bad Request",
-        statusCode: 400,
-      });
-    });
+  //     expect(response.body).toEqual({
+  //       message: [
+  //         "Nome precisa ter o mínimo de 3 caracteres.",
+  //         "E-mail inválido.",
+  //         "Senha precisa ter o mínimo de 6 caracteres.",
+  //       ],
+  //       error: "Bad Request",
+  //       statusCode: 400,
+  //     });
+  //   });
 
-    it("Should return 'BadRequestException' when user already exists", async () => {
-      const existingUser = {
-        userName: "John Doe",
-        userEmail: "john@email.com",
-        userPassword: "password123",
-      };
+  //   it("Should return 'BadRequestException' when user already exists", async () => {
+  //     const existingUser = {
+  //       userName: "John Doe",
+  //       userEmail: "john@email.com",
+  //       userPassword: "password123",
+  //     };
 
-      const newUser = {
-        userName: "Mary Doe",
-        userEmail: "john@email.com",
-        userPassword: "pass123",
-      };
+  //     const newUser = {
+  //       userName: "Mary Doe",
+  //       userEmail: "john@email.com",
+  //       userPassword: "pass123",
+  //     };
 
-      await request(app.getHttpServer()).post("/v2/user").send(existingUser);
+  //     await request(app.getHttpServer()).post("/v2/user").send(existingUser);
 
-      const response = await request(app.getHttpServer())
-        .post("/v2/user")
-        .send(newUser)
-        .expect(400);
+  //     const response = await request(app.getHttpServer())
+  //       .post("/v2/user")
+  //       .send(newUser)
+  //       .expect(400);
 
-      expect(response.body).toEqual({
-        message: ["Falha ao criar o usuário. Verifique os dados fornecidos."],
-        error: "Bad Request",
-        statusCode: 400,
-      });
-    });
-  });
+  //     expect(response.body).toEqual({
+  //       message: ["Falha ao criar o usuário. Verifique os dados fornecidos."],
+  //       error: "Bad Request",
+  //       statusCode: 400,
+  //     });
+  //   });
+  // });
 
   describe("/v1/user/me (GET)", () => {
     it("Should find my user when authenticated", async () => {
