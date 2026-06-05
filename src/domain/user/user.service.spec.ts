@@ -121,13 +121,52 @@ describe("UserService", () => {
 
       expect(userRepositoryMock.create).toHaveBeenCalledTimes(1);
 
-      expect(createUserSpy).toHaveBeenCalledWith(
-        expect.objectContaining({
-          email: "john@email.com",
-          name: "John Doe",
-          password: "hashedpassword",
-        }),
-      );
+      // expect(createUserSpy).toHaveBeenCalledWith(
+      //   expect.objectContaining({
+      //     email: "john@email.com",
+      //     name: "John Doe",
+      //     password: "hashedpassword",
+      //   }),
+      // );
+
+      expect(createUserSpy).toHaveBeenCalledWith({
+        email: "john@email.com",
+        name: "John Doe",
+        password: "hashedpassword",
+      });
+
+      expect(result).toMatchObject({
+        id: expect.any(String),
+        name: "John Doe",
+        email: "john@email.com",
+        userCredentials: { id: "11", lastLoginAt: null },
+        roles: [{ name: "USER" }],
+      });
+    });
+
+    it("should create a valid user with sanitized name", async () => {
+      const invalidUserInput = {
+        ...validUserInput,
+        name: "<script>alert(XSS)</script>John Doe",
+      };
+
+      jest.spyOn(mockUserRepository, "findOneByEmail").mockResolvedValue(null);
+
+      const sanitizeSpy = jest
+        .spyOn(mockSanitizeService, "sanitizeAll")
+        .mockReturnValue("John Doe");
+
+      jest.spyOn(hasherServiceMock, "hash").mockResolvedValue("hashedpassword");
+
+      jest
+        .spyOn(userRepositoryMock, "create")
+        .mockResolvedValue(mockStroredUser);
+
+      const result = await userService.create(invalidUserInput);
+
+      expect(sanitizeSpy).toHaveBeenCalledWith(invalidUserInput.name);
+
+      expect(sanitizeServiceMock.sanitizeAll).toHaveBeenCalledTimes(1);
 
       expect(result).toMatchObject({
         id: expect.any(String),
@@ -139,7 +178,7 @@ describe("UserService", () => {
     });
 
     it("should throw 'BadRequesException' when user already exists", async () => {
-      jest
+      const findUserSpy = jest
         .spyOn(userRepositoryMock, "findOneByEmail")
         .mockResolvedValue(mockStroredUser);
 
@@ -151,6 +190,27 @@ describe("UserService", () => {
 
       await expect(createUserPromise).rejects.toBeInstanceOf(
         BadRequestException,
+      );
+
+      expect(findUserSpy).toHaveBeenCalledWith("john@email.com");
+
+      expect(userRepositoryMock.create).not.toHaveBeenCalled();
+    });
+
+    it("should throw 'BadRequesException' if sanitize fail", async () => {
+      const invalidUserInput = {
+        ...validUserInput,
+        name: "<script>alert(XSS)</script>",
+      };
+
+      jest.spyOn(mockSanitizeService, "sanitizeAll").mockReturnValue("");
+
+      jest.spyOn(mockUserRepository, "findOneByEmail").mockResolvedValue(null);
+
+      const createUserPromise = userService.create(invalidUserInput);
+
+      await expect(createUserPromise).rejects.toThrow(
+        /^Nome precisa conter caracteres válidos.$/,
       );
 
       expect(userRepositoryMock.create).not.toHaveBeenCalled();
