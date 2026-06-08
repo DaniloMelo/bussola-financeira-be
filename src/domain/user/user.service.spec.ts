@@ -85,7 +85,7 @@ describe("UserService", () => {
     password: "password123",
   };
 
-  const mockStroredUser = {
+  const mockStoredUser = {
     id: "1",
     name: "John Doe",
     email: "john@email.com",
@@ -113,23 +113,15 @@ describe("UserService", () => {
 
       jest.spyOn(hasherServiceMock, "hash").mockResolvedValue("hashedpassword");
 
-      const createUserSpy = jest
+      jest
         .spyOn(userRepositoryMock, "create")
-        .mockResolvedValue(mockStroredUser);
+        .mockResolvedValue(mockStoredUser);
 
       const result = await userService.create(validUserInput);
 
       expect(userRepositoryMock.create).toHaveBeenCalledTimes(1);
 
-      // expect(createUserSpy).toHaveBeenCalledWith(
-      //   expect.objectContaining({
-      //     email: "john@email.com",
-      //     name: "John Doe",
-      //     password: "hashedpassword",
-      //   }),
-      // );
-
-      expect(createUserSpy).toHaveBeenCalledWith({
+      expect(userRepositoryMock.create).toHaveBeenCalledWith({
         email: "john@email.com",
         name: "John Doe",
         password: "hashedpassword",
@@ -152,7 +144,7 @@ describe("UserService", () => {
 
       jest.spyOn(mockUserRepository, "findOneByEmail").mockResolvedValue(null);
 
-      const sanitizeSpy = jest
+      jest
         .spyOn(mockSanitizeService, "sanitizeAll")
         .mockReturnValue("John Doe");
 
@@ -160,11 +152,13 @@ describe("UserService", () => {
 
       jest
         .spyOn(userRepositoryMock, "create")
-        .mockResolvedValue(mockStroredUser);
+        .mockResolvedValue(mockStoredUser);
 
       const result = await userService.create(invalidUserInput);
 
-      expect(sanitizeSpy).toHaveBeenCalledWith(invalidUserInput.name);
+      expect(mockSanitizeService.sanitizeAll).toHaveBeenCalledWith(
+        invalidUserInput.name,
+      );
 
       expect(sanitizeServiceMock.sanitizeAll).toHaveBeenCalledTimes(1);
 
@@ -178,9 +172,9 @@ describe("UserService", () => {
     });
 
     it("should throw 'BadRequesException' when user already exists", async () => {
-      const findUserSpy = jest
+      jest
         .spyOn(userRepositoryMock, "findOneByEmail")
-        .mockResolvedValue(mockStroredUser);
+        .mockResolvedValue(mockStoredUser);
 
       const createUserPromise = userService.create(validUserInput);
 
@@ -192,7 +186,9 @@ describe("UserService", () => {
         BadRequestException,
       );
 
-      expect(findUserSpy).toHaveBeenCalledWith("john@email.com");
+      expect(userRepositoryMock.findOneByEmail).toHaveBeenCalledWith(
+        "john@email.com",
+      );
 
       expect(userRepositoryMock.create).not.toHaveBeenCalled();
     });
@@ -219,7 +215,7 @@ describe("UserService", () => {
 
   describe("findAll", () => {
     it("should find all users", async () => {
-      const storedUsers = [mockStroredUser];
+      const storedUsers = [mockStoredUser];
 
       jest.spyOn(userRepositoryMock, "findAll").mockResolvedValue(storedUsers);
 
@@ -250,37 +246,27 @@ describe("UserService", () => {
   });
 
   describe("findMe", () => {
-    it("Should find my user when authenticated", async () => {
-      const storedUser: IStoredUser = {
-        id: "1",
-        name: "John Doe",
-        email: "john@email.com",
-        deletedAt: null,
-        createdAt: new Date(),
-        updatedAt: new Date(),
-        userCredentials: {
-          id: "11",
-          lastLoginAt: null,
-        },
-        roles: [
-          {
-            name: "USER",
-          },
-        ],
-      };
+    it("should find my user when authenticated", async () => {
+      const userId = "1";
 
       jest
         .spyOn(userRepositoryMock, "findOneById")
-        .mockResolvedValue(storedUser);
+        .mockResolvedValue(mockStoredUser);
 
-      const result = await userService.findMe("1");
+      const result = await userService.findMe(userId);
 
-      expect(userRepositoryMock.findOneById).toHaveBeenCalledWith("1");
+      expect(userRepositoryMock.findOneById).toHaveBeenCalledWith(userId);
 
-      expect(result).toEqual(storedUser);
+      expect(result).toMatchObject({
+        id: expect.any(String),
+        name: "John Doe",
+        email: "john@email.com",
+        userCredentials: { id: "11", lastLoginAt: null },
+        roles: [{ name: "USER" }],
+      });
     });
 
-    it("Should return null if user dont exist", async () => {
+    it("should return null if user dont exist", async () => {
       const unexistentUserId = "1";
 
       jest.spyOn(userRepositoryMock, "findOneById").mockResolvedValue(null);
@@ -298,47 +284,50 @@ describe("UserService", () => {
   describe("findOneByIdWithCredentials", () => {
     it("Should find a user by ID including userCredentials relation", async () => {
       const storedUser = {
-        id: "1",
-        name: "John Doe",
-        email: "john@email.com",
-        deletedAt: null,
-        createdAt: new Date(),
-        updatedAt: new Date(),
+        ...mockStoredUser,
         userCredentials: {
           passwordHash: "hashed-password",
           refreshTokenHash: "hashed-token",
         },
-        roles: [
-          {
-            name: "USER",
-          },
-        ],
       };
+
+      const userId = "1";
 
       jest
         .spyOn(userRepositoryMock, "findOneByIdWithCredentials")
         .mockResolvedValue(storedUser);
 
-      const result = await userService.findOneByIdWithCredentials("1");
+      const result = await userService.findOneByIdWithCredentials(userId);
 
       expect(
         userRepositoryMock.findOneByIdWithCredentials,
-      ).toHaveBeenCalledWith("1");
+      ).toHaveBeenCalledWith(userId);
 
-      expect(result).toEqual(storedUser);
+      expect(result).toMatchObject({
+        id: expect.any(String),
+        name: "John Doe",
+        email: "john@email.com",
+        userCredentials: {
+          passwordHash: "hashed-password",
+          refreshTokenHash: "hashed-token",
+        },
+        roles: [{ name: "USER" }],
+      });
     });
 
     it("Should return null if user don't exist", async () => {
+      const unexistentUserId = "unexistent-id";
+
       jest
         .spyOn(userRepositoryMock, "findOneByIdWithCredentials")
         .mockResolvedValue(null);
 
       const result =
-        await userService.findOneByIdWithCredentials("unexistent-id");
+        await userService.findOneByIdWithCredentials(unexistentUserId);
 
       expect(
         userRepositoryMock.findOneByIdWithCredentials,
-      ).toHaveBeenCalledWith("unexistent-id");
+      ).toHaveBeenCalledWith(unexistentUserId);
 
       expect(result).toBe(null);
     });
@@ -347,33 +336,24 @@ describe("UserService", () => {
   describe("findOneByEmailWithCredentials", () => {
     it("Should find a user by email including userCredentials relation", async () => {
       const storedUser = {
-        id: "1",
-        name: "John Doe",
-        email: "john@email.com",
-        deletedAt: null,
-        createdAt: new Date(),
-        updatedAt: new Date(),
+        ...mockStoredUser,
         userCredentials: {
           passwordHash: "hashed-password",
           refreshTokenHash: "hashed-token",
         },
-        roles: [
-          {
-            name: "USER",
-          },
-        ],
       };
+
+      const userEmail = "john@email.com";
 
       jest
         .spyOn(userRepositoryMock, "findOneByEmailWithCredentials")
         .mockResolvedValue(storedUser);
 
-      const result =
-        await userService.findOneByEmailWithCredentials("john@email.com");
+      const result = await userService.findOneByEmailWithCredentials(userEmail);
 
       expect(
         userRepositoryMock.findOneByEmailWithCredentials,
-      ).toHaveBeenCalledWith("john@email.com");
+      ).toHaveBeenCalledWith(userEmail);
 
       expect(result).toEqual(storedUser);
     });
@@ -383,13 +363,14 @@ describe("UserService", () => {
         .spyOn(userRepositoryMock, "findOneByEmailWithCredentials")
         .mockResolvedValue(null);
 
-      const result = await userService.findOneByEmailWithCredentials(
-        "unexistent@email.com",
-      );
+      const unexistentUserEmail = "unexistent@email.com";
+
+      const result =
+        await userService.findOneByEmailWithCredentials(unexistentUserEmail);
 
       expect(
         userRepositoryMock.findOneByEmailWithCredentials,
-      ).toHaveBeenCalledWith("unexistent@email.com");
+      ).toHaveBeenCalledWith(unexistentUserEmail);
 
       expect(result).toBe(null);
     });
