@@ -1,4 +1,3 @@
-/* eslint-disable @typescript-eslint/no-unsafe-assignment */
 /* eslint-disable @typescript-eslint/unbound-method */
 
 /* eslint-disable @typescript-eslint/no-unused-vars */
@@ -114,7 +113,7 @@ describe("UserService", () => {
       const result = await userService.create(input);
 
       expect(result).toMatchObject({
-        id: expect.any(String),
+        id: "1",
         name: "John Doe",
         email: "john@email.com",
         userCredentials: { id: "11", lastLoginAt: null },
@@ -227,41 +226,39 @@ describe("UserService", () => {
     });
   });
 
-  // describe("findMe", () => {
-  //   it("should find my user when authenticated", async () => {
-  //     const userId = "1";
+  describe("findMe", () => {
+    it("should return my user when authenticated", async () => {
+      mockUserRepository.findOneById.mockResolvedValue(createMockStoredUser());
 
-  //     jest
-  //       .spyOn(userRepositoryMock, "findOneById")
-  //       .mockResolvedValue(mockStoredUser);
+      const userId = "1";
 
-  //     const result = await userService.findMe(userId);
+      const result = await userService.findMe(userId);
 
-  //     expect(userRepositoryMock.findOneById).toHaveBeenCalledWith(userId);
+      expect(userRepositoryMock.findOneById).toHaveBeenCalledWith(userId);
 
-  //     expect(result).toMatchObject({
-  //       id: expect.any(String),
-  //       name: "John Doe",
-  //       email: "john@email.com",
-  //       userCredentials: { id: "11", lastLoginAt: null },
-  //       roles: [{ name: "USER" }],
-  //     });
-  //   });
+      expect(result).toMatchObject({
+        id: "1",
+        name: "John Doe",
+        email: "john@email.com",
+        userCredentials: { id: "11", lastLoginAt: null },
+        roles: [{ name: "USER" }],
+      });
+    });
 
-  //   it("should return null if user dont exist", async () => {
-  //     const unexistentUserId = "1";
+    it("should return null if user dont exist", async () => {
+      mockUserRepository.findOneById.mockResolvedValue(null);
 
-  //     jest.spyOn(userRepositoryMock, "findOneById").mockResolvedValue(null);
+      const unexistentUserId = "1";
 
-  //     const result = await userService.findMe(unexistentUserId);
+      const result = await userService.findMe(unexistentUserId);
 
-  //     expect(userRepositoryMock.findOneById).toHaveBeenCalledWith(
-  //       unexistentUserId,
-  //     );
+      expect(userRepositoryMock.findOneById).toHaveBeenCalledWith(
+        unexistentUserId,
+      );
 
-  //     expect(result).toBe(null);
-  //   });
-  // });
+      expect(result).toBe(null);
+    });
+  });
 
   // describe("findOneByIdWithCredentials", () => {
   //   it("should find a user by ID including userCredentials relation", async () => {
