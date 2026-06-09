@@ -1,3 +1,5 @@
+/* eslint-disable @typescript-eslint/no-unsafe-assignment */
+/* eslint-disable @typescript-eslint/no-unsafe-argument */
 /* eslint-disable @typescript-eslint/unbound-method */
 
 /* eslint-disable @typescript-eslint/no-unused-vars */
@@ -133,7 +135,7 @@ describe("UserService", () => {
         "plain-text-password123",
       );
 
-      expect(mockUserRepository.create).toHaveBeenCalledWith({
+      expect(userRepositoryMock.create).toHaveBeenCalledWith({
         email: "john@email.com",
         name: "John Doe",
         password: "hashed-password123",
@@ -148,9 +150,9 @@ describe("UserService", () => {
       });
       await userService.create(input);
 
-      expect(mockSanitizeService.sanitizeAll).toHaveBeenCalledWith(input.name);
+      expect(sanitizeServiceMock.sanitizeAll).toHaveBeenCalledWith(input.name);
 
-      expect(mockUserRepository.create).toHaveBeenCalledWith({
+      expect(userRepositoryMock.create).toHaveBeenCalledWith({
         email: "john@email.com",
         name: "John Doe",
         password: "hashed-password123",
@@ -260,57 +262,54 @@ describe("UserService", () => {
     });
   });
 
-  // describe("findOneByIdWithCredentials", () => {
-  //   it("should find a user by ID including userCredentials relation", async () => {
-  //     const storedUser = {
-  //       ...mockStoredUser,
-  //       userCredentials: {
-  //         passwordHash: "hashed-password",
-  //         refreshTokenHash: "hashed-token",
-  //       },
-  //     };
+  describe("findOneByIdWithCredentials", () => {
+    it("should find a user by ID including userCredentials relation", async () => {
+      const storedUser = createMockStoredUser({
+        userCredentials: {
+          passwordHash: "hashed-password",
+          refreshTokenHash: "hashed-token",
+        },
+      });
 
-  //     const userId = "1";
+      mockUserRepository.findOneByIdWithCredentials.mockResolvedValue(
+        storedUser,
+      );
 
-  //     jest
-  //       .spyOn(userRepositoryMock, "findOneByIdWithCredentials")
-  //       .mockResolvedValue(storedUser);
+      const userId = "1";
 
-  //     const result = await userService.findOneByIdWithCredentials(userId);
+      const result = await userService.findOneByIdWithCredentials(userId);
 
-  //     expect(
-  //       userRepositoryMock.findOneByIdWithCredentials,
-  //     ).toHaveBeenCalledWith(userId);
+      expect(
+        userRepositoryMock.findOneByIdWithCredentials,
+      ).toHaveBeenCalledWith(userId);
 
-  //     expect(result).toMatchObject({
-  //       id: expect.any(String),
-  //       name: "John Doe",
-  //       email: "john@email.com",
-  //       userCredentials: {
-  //         passwordHash: "hashed-password",
-  //         refreshTokenHash: "hashed-token",
-  //       },
-  //       roles: [{ name: "USER" }],
-  //     });
-  //   });
+      expect(result).toMatchObject({
+        id: "1",
+        name: "John Doe",
+        email: "john@email.com",
+        userCredentials: {
+          passwordHash: "hashed-password",
+          refreshTokenHash: "hashed-token",
+        },
+        roles: [{ name: "USER" }],
+      });
+    });
 
-  //   it("should return null if user don't exist", async () => {
-  //     const unexistentUserId = "unexistent-id";
+    it("should return null if user don't exist", async () => {
+      mockUserRepository.findOneByIdWithCredentials.mockResolvedValue(null);
 
-  //     jest
-  //       .spyOn(userRepositoryMock, "findOneByIdWithCredentials")
-  //       .mockResolvedValue(null);
+      const unexistentUserId = "unexistent-id";
 
-  //     const result =
-  //       await userService.findOneByIdWithCredentials(unexistentUserId);
+      const result =
+        await userService.findOneByIdWithCredentials(unexistentUserId);
 
-  //     expect(
-  //       userRepositoryMock.findOneByIdWithCredentials,
-  //     ).toHaveBeenCalledWith(unexistentUserId);
+      expect(
+        userRepositoryMock.findOneByIdWithCredentials,
+      ).toHaveBeenCalledWith(unexistentUserId);
 
-  //     expect(result).toBe(null);
-  //   });
-  // });
+      expect(result).toBe(null);
+    });
+  });
 
   // describe("findOneByEmailWithCredentials", () => {
   //   it("should find a user by email including userCredentials relation", async () => {
