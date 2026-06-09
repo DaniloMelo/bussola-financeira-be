@@ -197,37 +197,35 @@ describe("UserService", () => {
     });
   });
 
-  // describe("findAll", () => {
-  //   it("should find all users", async () => {
-  //     const storedUsers = [mockStoredUser];
+  describe("findAll", () => {
+    it("should return an array of users", async () => {
+      mockUserRepository.findAll.mockResolvedValue([createMockStoredUser()]);
 
-  //     jest.spyOn(userRepositoryMock, "findAll").mockResolvedValue(storedUsers);
+      const result = await userService.findAll();
 
-  //     const result = await userService.findAll();
+      expect(userRepositoryMock.findAll).toHaveBeenCalledTimes(1);
 
-  //     expect(userRepositoryMock.findAll).toHaveBeenCalledTimes(1);
+      expect(result).toMatchObject([
+        {
+          id: "1",
+          name: "John Doe",
+          email: "john@email.com",
+          userCredentials: { id: "11", lastLoginAt: null },
+          roles: [{ name: "USER" }],
+        },
+      ]);
+    });
 
-  //     expect(result).toMatchObject([
-  //       {
-  //         id: "1",
-  //         name: "John Doe",
-  //         email: "john@email.com",
-  //         userCredentials: { id: "11", lastLoginAt: null },
-  //         roles: [{ name: "USER" }],
-  //       },
-  //     ]);
-  //   });
+    it("should return an empty array if no users where found or exists", async () => {
+      mockUserRepository.findAll.mockResolvedValue([]);
 
-  //   it("should return an empty array if no user exists", async () => {
-  //     jest.spyOn(userRepositoryMock, "findAll").mockResolvedValue([]);
+      const result = await userService.findAll();
 
-  //     const result = await userService.findAll();
+      expect(userRepositoryMock.findAll).toHaveBeenCalledTimes(1);
 
-  //     expect(userRepositoryMock.findAll).toHaveBeenCalledTimes(1);
-
-  //     expect(result.length).toBe(0);
-  //   });
-  // });
+      expect(result.length).toBe(0);
+    });
+  });
 
   // describe("findMe", () => {
   //   it("should find my user when authenticated", async () => {
