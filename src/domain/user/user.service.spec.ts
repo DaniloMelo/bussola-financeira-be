@@ -311,48 +311,54 @@ describe("UserService", () => {
     });
   });
 
-  // describe("findOneByEmailWithCredentials", () => {
-  //   it("should find a user by email including userCredentials relation", async () => {
-  //     const storedUser = {
-  //       ...mockStoredUser,
-  //       userCredentials: {
-  //         passwordHash: "hashed-password",
-  //         refreshTokenHash: "hashed-token",
-  //       },
-  //     };
+  describe("findOneByEmailWithCredentials", () => {
+    it("should find a user by email including userCredentials relation", async () => {
+      const storedUser = createMockStoredUser({
+        userCredentials: {
+          passwordHash: "hashed-password",
+          refreshTokenHash: "hashed-token",
+        },
+      });
 
-  //     const userEmail = "john@email.com";
+      mockUserRepository.findOneByEmailWithCredentials.mockResolvedValue(
+        storedUser,
+      );
 
-  //     jest
-  //       .spyOn(userRepositoryMock, "findOneByEmailWithCredentials")
-  //       .mockResolvedValue(storedUser);
+      const userEmail = "john@email.com";
 
-  //     const result = await userService.findOneByEmailWithCredentials(userEmail);
+      const result = await userService.findOneByEmailWithCredentials(userEmail);
 
-  //     expect(
-  //       userRepositoryMock.findOneByEmailWithCredentials,
-  //     ).toHaveBeenCalledWith(userEmail);
+      expect(
+        userRepositoryMock.findOneByEmailWithCredentials,
+      ).toHaveBeenCalledWith(userEmail);
 
-  //     expect(result).toEqual(storedUser);
-  //   });
+      expect(result).toMatchObject({
+        id: "1",
+        name: "John Doe",
+        email: "john@email.com",
+        userCredentials: {
+          passwordHash: "hashed-password",
+          refreshTokenHash: "hashed-token",
+        },
+        roles: [{ name: "USER" }],
+      });
+    });
 
-  //   it("should return null if user don't exist", async () => {
-  //     jest
-  //       .spyOn(userRepositoryMock, "findOneByEmailWithCredentials")
-  //       .mockResolvedValue(null);
+    it("should return null if user don't exist", async () => {
+      mockUserRepository.findOneByEmailWithCredentials.mockResolvedValue(null);
 
-  //     const unexistentUserEmail = "unexistent@email.com";
+      const unexistentUserEmail = "unexistent@email.com";
 
-  //     const result =
-  //       await userService.findOneByEmailWithCredentials(unexistentUserEmail);
+      const result =
+        await userService.findOneByEmailWithCredentials(unexistentUserEmail);
 
-  //     expect(
-  //       userRepositoryMock.findOneByEmailWithCredentials,
-  //     ).toHaveBeenCalledWith(unexistentUserEmail);
+      expect(
+        userRepositoryMock.findOneByEmailWithCredentials,
+      ).toHaveBeenCalledWith(unexistentUserEmail);
 
-  //     expect(result).toBe(null);
-  //   });
-  // });
+      expect(result).toBe(null);
+    });
+  });
 
   // describe("update", () => {
   //   it("should successfully update all properties", async () => {
