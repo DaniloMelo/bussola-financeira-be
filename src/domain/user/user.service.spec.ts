@@ -1,16 +1,12 @@
 /* eslint-disable @typescript-eslint/no-unsafe-assignment */
-/* eslint-disable @typescript-eslint/no-unsafe-argument */
 /* eslint-disable @typescript-eslint/unbound-method */
-
-/* eslint-disable @typescript-eslint/no-unused-vars */
 
 import { Test, TestingModule } from "@nestjs/testing";
 import { UserService } from "./user.service";
 import { UserRepository } from "./user.repository";
 import { HasherProtocol } from "src/common/hasher/hasher.protocol";
 import { BadRequestException } from "@nestjs/common";
-import { ICreateUser, IStoredUser } from "./interfaces/user";
-import { IUpdateUserData } from "./interfaces/update";
+import { ICreateUser } from "./interfaces/user";
 import { EmailService } from "src/infra/email/email.service";
 import { SanitizeService } from "src/common/sanitize/sanitize.service";
 import { SanitizeProtocol } from "src/common/sanitize/sanitize.protocol";
@@ -45,6 +41,7 @@ describe("UserService", () => {
   let userRepositoryMock: UserRepository;
   let hasherServiceMock: HasherProtocol;
   let sanitizeServiceMock: SanitizeService;
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
   let emailServiceMock: EmailService;
 
   beforeEach(async () => {
@@ -360,401 +357,256 @@ describe("UserService", () => {
     });
   });
 
-  // describe("update", () => {
-  //   it("should successfully update all properties", async () => {
-  //     const storedUpdatedUser = {
-  //       ...mockStoredUser,
-  //       name: "John Doe Updated",
-  //       email: "john_updated@email.com",
-  //     };
-
-  //     const hashedPassword = "hashedPasswod";
-
-  //     const userDataToUpdate: IUpdateUserData = {
-  //       name: "John Doe Updated",
-  //       email: "john_updated@email.com",
-  //       password: "updated_password123",
-  //     };
-
-  //     jest
-  //       .spyOn(userRepositoryMock, "findOneById")
-  //       .mockResolvedValue(mockStoredUser);
-
-  //     jest
-  //       .spyOn(sanitizeServiceMock, "sanitizeAll")
-  //       .mockReturnValue("John Doe Updated");
-
-  //     jest.spyOn(userRepositoryMock, "findOneByEmail").mockResolvedValue(null);
-
-  //     jest.spyOn(hasherServiceMock, "hash").mockResolvedValue(hashedPassword);
-
-  //     jest
-  //       .spyOn(userRepositoryMock, "update")
-  //       .mockResolvedValue(storedUpdatedUser);
-
-  //     const result = await userService.update(
-  //       mockStoredUser.id,
-  //       userDataToUpdate,
-  //     );
-
-  //     expect(hasherServiceMock.hash).toHaveBeenCalledWith(
-  //       userDataToUpdate.password,
-  //     );
-
-  //     expect(userRepositoryMock.update).toHaveBeenCalledWith(
-  //       mockStoredUser.id,
-  //       {
-  //         ...userDataToUpdate,
-  //         password: hashedPassword,
-  //       },
-  //     );
-
-  //     expect(result).toEqual(storedUpdatedUser);
-  //   });
-
-  //   it("Should update 'name' only", async () => {
-  //     const storedUser: IStoredUser = {
-  //       id: "1",
-  //       name: "John Doe",
-  //       email: "john@email.com",
-  //       deletedAt: null,
-  //       createdAt: new Date(),
-  //       updatedAt: new Date(),
-  //       userCredentials: {
-  //         id: "11",
-  //         lastLoginAt: null,
-  //       },
-  //       roles: [
-  //         {
-  //           name: "USER",
-  //         },
-  //       ],
-  //     };
-
-  //     const userDataToUpdate: IUpdateUserData = {
-  //       name: "John Doe Updated",
-  //       email: undefined,
-  //       password: undefined,
-  //     };
-
-  //     const storedUpdatedUser: IStoredUser = {
-  //       id: "1",
-  //       name: "John Doe Updated",
-  //       email: "john@email.com",
-  //       deletedAt: null,
-  //       createdAt: new Date(),
-  //       updatedAt: new Date(),
-  //       userCredentials: {
-  //         id: "11",
-  //         lastLoginAt: null,
-  //       },
-  //       roles: [
-  //         {
-  //           name: "USER",
-  //         },
-  //       ],
-  //     };
-
-  //     jest
-  //       .spyOn(userRepositoryMock, "findOneById")
-  //       .mockResolvedValue(storedUser);
-
-  //     jest
-  //       .spyOn(userRepositoryMock, "update")
-  //       .mockResolvedValue(storedUpdatedUser);
-
-  //     const result = await userService.update(storedUser.id, userDataToUpdate);
-
-  //     expect(userRepositoryMock.findOneById).toHaveBeenCalledWith(
-  //       storedUser.id,
-  //     );
-
-  //     expect(userRepositoryMock.findOneByEmail).not.toHaveBeenCalled();
-
-  //     expect(hasherServiceMock.hash).not.toHaveBeenCalled();
-
-  //     expect(userRepositoryMock.update).toHaveBeenCalledWith(
-  //       storedUser.id,
-  //       userDataToUpdate,
-  //     );
-
-  //     expect(result).toEqual(storedUpdatedUser);
-  //   });
-
-  //   it("Should update 'email' only", async () => {
-  //     const storedUser: IStoredUser = {
-  //       id: "1",
-  //       name: "John Doe",
-  //       email: "john@email.com",
-  //       deletedAt: null,
-  //       createdAt: new Date(),
-  //       updatedAt: new Date(),
-  //       userCredentials: {
-  //         id: "11",
-  //         lastLoginAt: null,
-  //       },
-  //       roles: [
-  //         {
-  //           name: "USER",
-  //         },
-  //       ],
-  //     };
-
-  //     const userDataToUpdate: IUpdateUserData = {
-  //       name: undefined,
-  //       email: "john_updated@email.com",
-  //       password: undefined,
-  //     };
-
-  //     const storedUpdatedUser: IStoredUser = {
-  //       id: "1",
-  //       name: "John Doe",
-  //       email: "john_updated@email.com",
-  //       deletedAt: null,
-  //       createdAt: new Date(),
-  //       updatedAt: new Date(),
-  //       userCredentials: {
-  //         id: "11",
-  //         lastLoginAt: null,
-  //       },
-  //       roles: [
-  //         {
-  //           name: "USER",
-  //         },
-  //       ],
-  //     };
-
-  //     jest
-  //       .spyOn(userRepositoryMock, "findOneById")
-  //       .mockResolvedValue(storedUser);
-
-  //     jest.spyOn(userRepositoryMock, "findOneByEmail").mockResolvedValue(null);
-
-  //     jest
-  //       .spyOn(userRepositoryMock, "update")
-  //       .mockResolvedValue(storedUpdatedUser);
-
-  //     const result = await userService.update(storedUser.id, userDataToUpdate);
-
-  //     expect(userRepositoryMock.findOneById).toHaveBeenCalledWith(
-  //       storedUser.id,
-  //     );
-
-  //     expect(userRepositoryMock.findOneByEmail).toHaveBeenCalledWith(
-  //       userDataToUpdate.email,
-  //     );
-
-  //     expect(hasherServiceMock.hash).not.toHaveBeenCalled();
-
-  //     expect(userRepositoryMock.update).toHaveBeenCalledWith(
-  //       storedUser.id,
-  //       userDataToUpdate,
-  //     );
-
-  //     expect(result).toEqual(storedUpdatedUser);
-  //   });
-
-  //   it("Should update 'password' only", async () => {
-  //     const storedUser: IStoredUser = {
-  //       id: "1",
-  //       name: "John Doe",
-  //       email: "john@email.com",
-  //       deletedAt: null,
-  //       createdAt: new Date(),
-  //       updatedAt: new Date(),
-  //       userCredentials: {
-  //         id: "11",
-  //         lastLoginAt: null,
-  //       },
-  //       roles: [
-  //         {
-  //           name: "USER",
-  //         },
-  //       ],
-  //     };
-
-  //     const hashedPassword = "hashedpassword";
-
-  //     const storedUpdatedUser: IStoredUser = {
-  //       id: "1",
-  //       name: "John Doe",
-  //       email: "john@email.com",
-  //       deletedAt: null,
-  //       createdAt: new Date(),
-  //       updatedAt: new Date(),
-  //       userCredentials: {
-  //         id: "11",
-  //         lastLoginAt: null,
-  //       },
-  //       roles: [
-  //         {
-  //           name: "USER",
-  //         },
-  //       ],
-  //     };
-
-  //     const userDataToUpdate: IUpdateUserData = {
-  //       name: undefined,
-  //       email: undefined,
-  //       password: "updated_password123",
-  //     };
-
-  //     jest
-  //       .spyOn(userRepositoryMock, "findOneById")
-  //       .mockResolvedValue(storedUser);
-
-  //     jest.spyOn(hasherServiceMock, "hash").mockResolvedValue(hashedPassword);
-
-  //     jest
-  //       .spyOn(userRepositoryMock, "update")
-  //       .mockResolvedValue(storedUpdatedUser);
-
-  //     const result = await userService.update(storedUser.id, userDataToUpdate);
-
-  //     expect(userRepositoryMock.findOneById).toHaveBeenCalledWith(
-  //       storedUser.id,
-  //     );
-
-  //     expect(hasherServiceMock.hash).toHaveBeenCalledWith(
-  //       userDataToUpdate.password,
-  //     );
-
-  //     expect(userRepositoryMock.update).toHaveBeenCalledWith(storedUser.id, {
-  //       ...userDataToUpdate,
-  //       password: hashedPassword,
-  //     });
-
-  //     expect(result).toEqual(storedUpdatedUser);
-  //   });
-
-  //   it("Should throw 'BadRequestException' when no data is provided", async () => {
-  //     const storedUser: IStoredUser = {
-  //       id: "1",
-  //       name: "John Doe",
-  //       email: "john@email.com",
-  //       deletedAt: null,
-  //       createdAt: new Date(),
-  //       updatedAt: new Date(),
-  //       userCredentials: {
-  //         id: "11",
-  //         lastLoginAt: null,
-  //       },
-  //       roles: [
-  //         {
-  //           name: "USER",
-  //         },
-  //       ],
-  //     };
-
-  //     const userDataToUpdate: IUpdateUserData = {
-  //       name: undefined,
-  //       email: undefined,
-  //       password: undefined,
-  //     };
-
-  //     jest
-  //       .spyOn(userRepositoryMock, "findOneById")
-  //       .mockResolvedValue(storedUser);
-
-  //     const updateUserPromise = userService.update(
-  //       storedUser.id,
-  //       userDataToUpdate,
-  //     );
-
-  //     await expect(updateUserPromise).rejects.toThrow(
-  //       /^Nenhum dado foi fornecido.$/,
-  //     );
-
-  //     await expect(updateUserPromise).rejects.toBeInstanceOf(
-  //       BadRequestException,
-  //     );
-
-  //     expect(userRepositoryMock.findOneById).not.toHaveBeenCalled();
-
-  //     expect(userRepositoryMock.findOneByEmail).not.toHaveBeenCalled();
-
-  //     expect(hasherServiceMock.hash).not.toHaveBeenCalled();
-
-  //     expect(userRepositoryMock.update).not.toHaveBeenCalled();
-  //   });
-
-  //   it("Should throw 'BadRequestException' when email already in use", async () => {
-  //     const storedUser: IStoredUser = {
-  //       id: "1",
-  //       name: "John Doe",
-  //       email: "john@email.com",
-  //       deletedAt: null,
-  //       createdAt: new Date(),
-  //       updatedAt: new Date(),
-  //       userCredentials: {
-  //         id: "11",
-  //         lastLoginAt: null,
-  //       },
-  //       roles: [
-  //         {
-  //           name: "USER",
-  //         },
-  //       ],
-  //     };
-
-  //     const anotherStoredUser: IStoredUser = {
-  //       id: "2",
-  //       name: "Jane Doe",
-  //       email: "jane@email.com",
-  //       deletedAt: null,
-  //       createdAt: new Date(),
-  //       updatedAt: new Date(),
-  //       userCredentials: {
-  //         id: "22",
-  //         lastLoginAt: null,
-  //       },
-  //       roles: [
-  //         {
-  //           name: "USER",
-  //         },
-  //       ],
-  //     };
-
-  //     const userDataToUpdate: IUpdateUserData = {
-  //       name: undefined,
-  //       email: "jane@email.com",
-  //       password: undefined,
-  //     };
-
-  //     jest
-  //       .spyOn(userRepositoryMock, "findOneById")
-  //       .mockResolvedValue(storedUser);
-
-  //     jest
-  //       .spyOn(userRepositoryMock, "findOneByEmail")
-  //       .mockResolvedValue(anotherStoredUser);
-
-  //     const loginUserPromise = userService.update(
-  //       storedUser.id,
-  //       userDataToUpdate,
-  //     );
-
-  //     await expect(loginUserPromise).rejects.toThrow(
-  //       /^Impossível atualizar o seu usuário. Verifique as suas credenciais e tente novamente.$/,
-  //     );
-
-  //     await expect(loginUserPromise).rejects.toBeInstanceOf(
-  //       BadRequestException,
-  //     );
-
-  //     expect(userRepositoryMock.findOneById).toHaveBeenCalledWith(
-  //       storedUser.id,
-  //     );
-
-  //     expect(userRepositoryMock.findOneByEmail).toHaveBeenCalledWith(
-  //       userDataToUpdate.email,
-  //     );
-
-  //     expect(hasherServiceMock.hash).not.toHaveBeenCalled();
-
-  //     expect(userRepositoryMock.update).not.toHaveBeenCalled();
-  //   });
-  // });
+  describe("update", () => {
+    function createMocksDefaultSetup() {
+      mockUserRepository.findOneById.mockResolvedValue(createMockStoredUser());
+      mockSanitizeService.sanitizeAll.mockReturnValue("Updated John Doe");
+      mockUserRepository.findOneByEmail.mockResolvedValue(null);
+      mockHasherService.hash.mockResolvedValue("Updated-hashed-password123");
+      const updatedUserMock = createMockStoredUser({
+        name: "Updated John Doe",
+        email: "updated_john@email.com",
+      });
+      mockUserRepository.update.mockResolvedValue(updatedUserMock);
+    }
+
+    it("should successfully update all properties", async () => {
+      createMocksDefaultSetup();
+
+      const userId = "1";
+      const input = createUserInput({
+        name: "Updated John Doe",
+        email: "updated_john@email.com",
+        password: "Updated-plain-text-password123",
+      });
+      const result = await userService.update(userId, input);
+
+      expect(userRepositoryMock.update).toHaveBeenCalledWith(userId, {
+        name: "Updated John Doe",
+        email: "updated_john@email.com",
+        password: "Updated-hashed-password123",
+      });
+
+      expect(result).toMatchObject({
+        id: "1",
+        name: "Updated John Doe",
+        email: "updated_john@email.com",
+        userCredentials: { id: "11", lastLoginAt: null },
+        roles: [{ name: "USER" }],
+      });
+
+      expect(result).not.toHaveProperty("password");
+    });
+
+    it("should update 'name' only", async () => {
+      createMocksDefaultSetup();
+      mockUserRepository.update.mockResolvedValue(
+        createMockStoredUser({ name: "Updated John Doe" }),
+      );
+
+      const userId = "1";
+      const input = createUserInput({
+        name: "Updated John Doe",
+        email: undefined,
+        password: undefined,
+      });
+      const result = await userService.update(userId, input);
+
+      expect(userRepositoryMock.update).toHaveBeenCalledWith(userId, {
+        name: "Updated John Doe",
+        email: undefined,
+        password: undefined,
+      });
+
+      expect(result).toMatchObject({
+        id: "1",
+        name: "Updated John Doe",
+        email: "john@email.com",
+        userCredentials: { id: "11", lastLoginAt: null },
+        roles: [{ name: "USER" }],
+      });
+    });
+
+    it("should sanitize 'name' before update", async () => {
+      createMocksDefaultSetup();
+
+      const userId = "1";
+      const input = createUserInput({
+        name: "<script>alert('XSS')</script>Updated John Doe",
+        email: undefined,
+        password: undefined,
+      });
+      await userService.update(userId, input);
+
+      expect(sanitizeServiceMock.sanitizeAll).toHaveBeenCalledWith(
+        "<script>alert('XSS')</script>Updated John Doe",
+      );
+
+      expect(userRepositoryMock.update).toHaveBeenCalledWith(userId, {
+        name: "Updated John Doe",
+        email: undefined,
+        password: undefined,
+      });
+    });
+
+    it("should throw 'BadRequestException' when sanitize fail", async () => {
+      createMocksDefaultSetup();
+      mockSanitizeService.sanitizeAll.mockReturnValue("");
+
+      const input = createUserInput({
+        name: "<script>alert('XSS')</script>",
+        email: undefined,
+        password: undefined,
+      });
+      const createUserPromise = userService.update("1", input);
+
+      await expect(createUserPromise).rejects.toThrow(
+        /^Nome precisa conter caracteres válidos.$/,
+      );
+
+      expect(userRepositoryMock.update).not.toHaveBeenCalled();
+    });
+
+    it("should update 'email' only", async () => {
+      createMocksDefaultSetup();
+      mockUserRepository.update.mockResolvedValue(
+        createMockStoredUser({ email: "updated_john@email.com" }),
+      );
+
+      const userId = "1";
+      const input = createUserInput({
+        name: undefined,
+        email: "updated_john@email.com",
+        password: undefined,
+      });
+
+      const result = await userService.update(userId, input);
+
+      expect(userRepositoryMock.update).toHaveBeenCalledWith(userId, {
+        name: undefined,
+        email: "updated_john@email.com",
+        password: undefined,
+      });
+
+      expect(result).toMatchObject({
+        id: "1",
+        name: "John Doe",
+        email: "updated_john@email.com",
+        userCredentials: { id: "11", lastLoginAt: null },
+        roles: [{ name: "USER" }],
+      });
+    });
+
+    it("should throw 'BadRequestException' when email already in use", async () => {
+      createMocksDefaultSetup();
+      const alreadyExistentUser = createMockStoredUser({
+        id: "2",
+        name: "Jane Doe",
+        email: "jane@email.com",
+        userCredentials: {
+          id: "22",
+          lastLoginAt: null,
+        },
+      });
+      mockUserRepository.findOneByEmail.mockResolvedValue(alreadyExistentUser);
+
+      const userId = "1";
+      const input = createUserInput({
+        name: undefined,
+        email: "jane@email.com",
+        password: undefined,
+      });
+      const updateUserPromise = userService.update(userId, input);
+
+      await expect(updateUserPromise).rejects.toThrow(
+        /^Impossível atualizar o seu usuário. Verifique as suas credenciais e tente novamente.$/,
+      );
+
+      await expect(updateUserPromise).rejects.toBeInstanceOf(
+        BadRequestException,
+      );
+
+      expect(userRepositoryMock.update).not.toHaveBeenCalled();
+    });
+
+    it("should update 'password' only", async () => {
+      createMocksDefaultSetup();
+      mockUserRepository.update.mockResolvedValue(
+        createMockStoredUser({ name: "John Doe", email: "john@email.com" }),
+      );
+
+      const userId = "1";
+      const input = createUserInput({
+        name: undefined,
+        email: undefined,
+        password: "Updated-plain-text-password123",
+      });
+      const result = await userService.update(userId, input);
+
+      expect(userRepositoryMock.update).toHaveBeenCalledWith(userId, {
+        name: undefined,
+        email: undefined,
+        password: "Updated-hashed-password123",
+      });
+
+      expect(result).toMatchObject({
+        id: "1",
+        name: "John Doe",
+        email: "john@email.com",
+        userCredentials: { id: "11", lastLoginAt: null },
+        roles: [{ name: "USER" }],
+      });
+
+      expect(result).not.toHaveProperty("password");
+    });
+
+    it("should hash password before update", async () => {
+      createMocksDefaultSetup();
+      mockUserRepository.update.mockResolvedValue(
+        createMockStoredUser({ name: "John Doe", email: "john@email.com" }),
+      );
+
+      const userId = "1";
+      const input = createUserInput({
+        name: undefined,
+        email: undefined,
+        password: "Updated-plain-text-password123",
+      });
+
+      await userService.update(userId, input);
+
+      expect(hasherServiceMock.hash).toHaveBeenCalledWith(input.password);
+
+      expect(userRepositoryMock.update).toHaveBeenCalledWith(userId, {
+        name: undefined,
+        email: undefined,
+        password: "Updated-hashed-password123",
+      });
+    });
+
+    it("should throw 'BadRequestException' when no data is provided", async () => {
+      createMockStoredUser();
+
+      const userId = "1";
+      const input = createUserInput({
+        name: undefined,
+        email: undefined,
+        password: undefined,
+      });
+
+      const updateUserPromise = userService.update(userId, input);
+
+      await expect(updateUserPromise).rejects.toThrow(
+        /^Nenhum dado foi fornecido.$/,
+      );
+
+      await expect(updateUserPromise).rejects.toBeInstanceOf(
+        BadRequestException,
+      );
+
+      expect(userRepositoryMock.update).not.toHaveBeenCalled();
+    });
+  });
 
   // describe("softDelete", () => {
   //   it("Should softly delete user", async () => {
