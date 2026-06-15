@@ -608,59 +608,39 @@ describe("UserService", () => {
     });
   });
 
-  // describe("softDelete", () => {
-  //   it("Should softly delete user", async () => {
-  //     const userToDelete: IStoredUser = {
-  //       id: "1",
-  //       name: "John Doe",
-  //       email: "john@email.com",
-  //       deletedAt: null,
-  //       updatedAt: new Date(),
-  //       createdAt: new Date(),
-  //       userCredentials: {
-  //         id: "11",
-  //         lastLoginAt: null,
-  //       },
-  //       roles: [
-  //         {
-  //           name: "USER",
-  //         },
-  //       ],
-  //     };
+  describe("softDelete", () => {
+    it("should softly delete user", async () => {
+      const userToDelete = createMockStoredUser({
+        deletedAt: new Date(),
+      });
+      const userId = "1";
 
-  //     jest
-  //       .spyOn(userRepositoryMock, "findOneById")
-  //       .mockResolvedValue(userToDelete);
+      mockUserRepository.findOneById.mockResolvedValue(createMockStoredUser());
+      mockUserRepository.softDelete.mockResolvedValue(userToDelete);
 
-  //     jest
-  //       .spyOn(userRepositoryMock, "softDelete")
-  //       .mockResolvedValue({ ...userToDelete, deletedAt: new Date() });
+      const result = await userService.softDelete(userId);
 
-  //     const result = await userService.softDelete(userToDelete.id);
+      expect(userRepositoryMock.softDelete).toHaveBeenCalledWith(userId);
 
-  //     expect(userRepositoryMock.findOneById).toHaveBeenCalledWith("1");
+      expect(result.deletedAt).not.toBeNull();
+    });
 
-  //     expect(userRepositoryMock.softDelete).toHaveBeenCalledWith("1");
+    it("should throw 'NotFoundException' if user dont exist", async () => {
+      mockUserRepository.findOneById.mockResolvedValue(null);
 
-  //     expect(result.deletedAt).not.toBeNull();
-  //   });
+      const deleteUserPromise = userService.softDelete("unexistent-id");
 
-  //   it("Should throw 'NotFoundException' if user dont exist", async () => {
-  //     jest.spyOn(userRepositoryMock, "findOneById").mockResolvedValue(null);
+      await expect(deleteUserPromise).rejects.toThrow(
+        /^Impossível excluir esse usuário.$/,
+      );
 
-  //     const deleteUserPromise = userService.softDelete("unexistent-id");
+      await expect(deleteUserPromise).rejects.toBeInstanceOf(
+        BadRequestException,
+      );
 
-  //     await expect(deleteUserPromise).rejects.toThrow(
-  //       /^Impossível excluir esse usuário.$/,
-  //     );
-
-  //     await expect(deleteUserPromise).rejects.toBeInstanceOf(
-  //       BadRequestException,
-  //     );
-
-  //     expect(userRepositoryMock.update).not.toHaveBeenCalled();
-  //   });
-  // });
+      expect(userRepositoryMock.softDelete).not.toHaveBeenCalled();
+    });
+  });
 
   // describe("saveRefreshTokenAndLastLoginAt", () => {
   //   it("Should save lastLoginAt and refreshTokenHash after login", async () => {
