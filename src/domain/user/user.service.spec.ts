@@ -642,43 +642,47 @@ describe("UserService", () => {
     });
   });
 
-  // describe("saveRefreshTokenAndLastLoginAt", () => {
-  //   it("Should save lastLoginAt and refreshTokenHash after login", async () => {
-  //     const userId = "1";
-  //     const hashedRefreshToken = "hashed_refresh_token";
+  describe("saveRefreshTokenAndLastLoginAt", () => {
+    it("should save lastLoginAt and refresh token after login", async () => {
+      const userId = "1";
+      const hashedRefreshToken = "hashed_refresh_token";
+      const mockStoredUser = createMockStoredUser({
+        userCredentials: {
+          id: "11",
+          lastLoginAt: new Date(),
+          refreshTokenHash: hashedRefreshToken,
+        },
+      });
 
-  //     const storedUser = {
-  //       id: "1",
-  //       name: "John Doe",
-  //       email: "john@email.com",
-  //       deletedAt: null,
-  //       updatedAt: new Date(),
-  //       createdAt: new Date(),
-  //       userCredentials: {
-  //         id: "11",
-  //         userId: "1",
-  //         passwordHash: "hashed_password",
-  //         refreshTokenHash: "hashed_refresh_token",
-  //         lastLoginAt: new Date(),
-  //       },
-  //     };
+      mockUserRepository.saveRefreshTokenAndLastLoginAt.mockResolvedValue(
+        mockStoredUser,
+      );
 
-  //     jest
-  //       .spyOn(userRepositoryMock, "saveRefreshTokenAndLastLoginAt")
-  //       .mockResolvedValue(storedUser);
+      const result = await userService.saveRefreshTokenAndLastLoginAt(
+        userId,
+        hashedRefreshToken,
+      );
 
-  //     const result = await userService.saveRefreshTokenAndLastLoginAt(
-  //       userId,
-  //       hashedRefreshToken,
-  //     );
+      expect(
+        userRepositoryMock.saveRefreshTokenAndLastLoginAt,
+      ).toHaveBeenCalledWith(userId, hashedRefreshToken);
 
-  //     expect(
-  //       userRepositoryMock.saveRefreshTokenAndLastLoginAt,
-  //     ).toHaveBeenCalledWith(userId, hashedRefreshToken);
+      expect(result).not.toHaveProperty("password");
+      expect(result.userCredentials!.lastLoginAt).not.toBeNull();
 
-  //     expect(result).toEqual(storedUser);
-  //   });
-  // });
+      expect(result).toMatchObject({
+        id: "1",
+        name: "John Doe",
+        email: "john@email.com",
+        userCredentials: {
+          id: "11",
+          lastLoginAt: expect.any(Date),
+          refreshTokenHash: hashedRefreshToken,
+        },
+        roles: [{ name: "USER" }],
+      });
+    });
+  });
 
   // describe("updateRefreshToken", () => {
   //   it("Should update refresh token", async () => {
