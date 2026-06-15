@@ -275,6 +275,7 @@ describe("UserService", () => {
       const userId = "1";
 
       const result = await userService.findOneByIdWithCredentials(userId);
+      console.log(result);
 
       expect(
         userRepositoryMock.findOneByIdWithCredentials,
@@ -645,7 +646,7 @@ describe("UserService", () => {
   describe("saveRefreshTokenAndLastLoginAt", () => {
     it("should save lastLoginAt and refresh token after login", async () => {
       const userId = "1";
-      const hashedRefreshToken = "hashed_refresh_token";
+      const hashedRefreshToken = "hashed-refresh-token";
       const mockStoredUser = createMockStoredUser({
         userCredentials: {
           id: "11",
@@ -684,89 +685,74 @@ describe("UserService", () => {
     });
   });
 
-  // describe("updateRefreshToken", () => {
-  //   it("Should update refresh token", async () => {
-  //     const userId = "1";
-  //     const updatedRefreshTokenHash = "updated_refresh_token_hash";
+  describe("updateRefreshToken", () => {
+    it("should update refresh token", async () => {
+      const userId = "1";
+      const updatedRefreshTokenHash = "updated-refresh-token-hash";
+      const mockStoredUser = createMockStoredUser({
+        userCredentials: {
+          id: "11",
+          lastLoginAt: new Date(),
+          refreshTokenHash: updatedRefreshTokenHash,
+        },
+      });
 
-  //     const storedUser = {
-  //       id: "1",
-  //       name: "John Doe",
-  //       email: "john@email.com",
-  //       deletedAt: null,
-  //       updatedAt: new Date(),
-  //       createdAt: new Date(),
-  //       userCredentials: {
-  //         id: "11",
-  //         userId: "1",
-  //         passwordHash: "hashed_password",
-  //         refreshTokenHash: "updated_refresh_token_hash",
-  //         lastLoginAt: new Date(),
-  //       },
-  //       roles: [
-  //         {
-  //           name: "USER",
-  //         },
-  //       ],
-  //     };
+      mockUserRepository.updateRefreshToken.mockResolvedValue(mockStoredUser);
 
-  //     jest
-  //       .spyOn(userRepositoryMock, "updateRefreshToken")
-  //       .mockResolvedValue(storedUser);
+      const result = await userService.updateRefreshToken(
+        userId,
+        updatedRefreshTokenHash,
+      );
 
-  //     const result = await userService.updateRefreshToken(
-  //       userId,
-  //       updatedRefreshTokenHash,
-  //     );
+      expect(userRepositoryMock.updateRefreshToken).toHaveBeenCalledWith(
+        userId,
+        updatedRefreshTokenHash,
+      );
 
-  //     expect(userRepositoryMock.updateRefreshToken).toHaveBeenCalledWith(
-  //       userId,
-  //       updatedRefreshTokenHash,
-  //     );
+      expect(result).toMatchObject({
+        id: "1",
+        name: "John Doe",
+        email: "john@email.com",
+        userCredentials: {
+          id: "11",
+          lastLoginAt: expect.any(Date),
+          refreshTokenHash: updatedRefreshTokenHash,
+        },
+        roles: [{ name: "USER" }],
+      });
+    });
 
-  //     expect(result).toEqual(storedUser);
-  //   });
+    it("should invalidate the refresh token", async () => {
+      const userId = "1";
+      const refreshToken = null;
+      const mockStoredUser = createMockStoredUser({
+        userCredentials: {
+          id: "11",
+          lastLoginAt: new Date(),
+          refreshTokenHash: refreshToken,
+        },
+      });
 
-  //   it("Should update refresh to a null value", async () => {
-  //     const userId = "1";
-  //     const updatedRefreshTokenHash = null;
+      mockUserRepository.updateRefreshToken.mockResolvedValue(mockStoredUser);
 
-  //     const storedUser = {
-  //       id: "1",
-  //       name: "John Doe",
-  //       email: "john@email.com",
-  //       deletedAt: null,
-  //       updatedAt: new Date(),
-  //       createdAt: new Date(),
-  //       userCredentials: {
-  //         id: "11",
-  //         userId: "1",
-  //         passwordHash: "hashed_password",
-  //         refreshTokenHash: null,
-  //         lastLoginAt: new Date(),
-  //       },
-  //       roles: [
-  //         {
-  //           name: "USER",
-  //         },
-  //       ],
-  //     };
+      const result = await userService.updateRefreshToken(userId, refreshToken);
 
-  //     jest
-  //       .spyOn(userRepositoryMock, "updateRefreshToken")
-  //       .mockResolvedValue(storedUser);
+      expect(userRepositoryMock.updateRefreshToken).toHaveBeenCalledWith(
+        userId,
+        refreshToken,
+      );
 
-  //     const result = await userService.updateRefreshToken(
-  //       userId,
-  //       updatedRefreshTokenHash,
-  //     );
-
-  //     expect(userRepositoryMock.updateRefreshToken).toHaveBeenCalledWith(
-  //       userId,
-  //       updatedRefreshTokenHash,
-  //     );
-
-  //     expect(result).toEqual(storedUser);
-  //   });
-  // });
+      expect(result).toMatchObject({
+        id: "1",
+        name: "John Doe",
+        email: "john@email.com",
+        userCredentials: {
+          id: "11",
+          lastLoginAt: expect.any(Date),
+          refreshTokenHash: refreshToken,
+        },
+        roles: [{ name: "USER" }],
+      });
+    });
+  });
 });
