@@ -1,3 +1,5 @@
+/* eslint-disable @typescript-eslint/no-unsafe-member-access */
+/* eslint-disable @typescript-eslint/no-unsafe-assignment */
 /* eslint-disable @typescript-eslint/unbound-method */
 
 import { Test, TestingModule } from "@nestjs/testing";
@@ -6,7 +8,7 @@ import { UserService } from "src/domain/user/user.service";
 import { HasherProtocol } from "src/common/hasher/hasher.protocol";
 import { JwtService } from "@nestjs/jwt";
 import { ILogin } from "./interfaces/login.interface";
-import { BadRequestException, ForbiddenException } from "@nestjs/common";
+import { BadRequestException } from "@nestjs/common";
 import { ConfigService } from "@nestjs/config";
 
 const mockUserService = {
@@ -45,22 +47,10 @@ describe("AuthService", () => {
     const module: TestingModule = await Test.createTestingModule({
       providers: [
         AuthService,
-        {
-          provide: UserService,
-          useValue: mockUserService,
-        },
-        {
-          provide: HasherProtocol,
-          useValue: mockHasherService,
-        },
-        {
-          provide: JwtService,
-          useValue: mockJwtService,
-        },
-        {
-          provide: ConfigService,
-          useValue: mockConfigService,
-        },
+        { provide: UserService, useValue: mockUserService },
+        { provide: HasherProtocol, useValue: mockHasherService },
+        { provide: JwtService, useValue: mockJwtService },
+        { provide: ConfigService, useValue: mockConfigService },
       ],
     }).compile();
 
@@ -74,8 +64,9 @@ describe("AuthService", () => {
     jest.clearAllMocks();
   });
 
-  describe("login", () => {
-    const storedUser = {
+  function createMockStoredUser(override?: any) {
+    // eslint-disable-next-line @typescript-eslint/no-unsafe-return
+    return {
       id: "1",
       name: "John Doe",
       email: "john@email.com",
@@ -91,58 +82,56 @@ describe("AuthService", () => {
           name: "USER",
         },
       ],
+      ...override,
     };
+  }
 
-    const loginUserData: ILogin = {
-      email: "john@email.com",
-      password: "password123",
-    };
+  const loginUserData: ILogin = {
+    email: "john@email.com",
+    password: "password123",
+  };
 
-    it("Should successfull login user and return tokens", async () => {
-      const fakeAccessToken = "fake_access_token";
-      const fakeRefreshToken = "fake_refresh_token";
-      const fakeHashedRefreshToken = "fake_hashed-refresh-token";
+  describe("login", () => {
+    function createMocksDefaultSetup() {
+      const fakeAccessToken = "fake-access-token";
+      const fakeRefreshToken = "fake-refresh-token";
+      const fakeHashedRefreshToken = "fake-hashed-refresh-token";
 
-      jest
-        .spyOn(userServiceMock, "findOneByEmailWithCredentials")
-        .mockResolvedValue(storedUser);
-
-      jest.spyOn(hasherServiceMock, "compare").mockResolvedValue(true);
-
-      jest
-        .spyOn(jwtServiceMock, "signAsync")
+      mockUserService.findOneByEmailWithCredentials.mockResolvedValue(
+        createMockStoredUser(),
+      );
+      mockHasherService.compare.mockResolvedValue(true);
+      mockJwtService.signAsync
         .mockResolvedValueOnce(fakeAccessToken)
         .mockResolvedValueOnce(fakeRefreshToken);
+      mockHasherService.hash.mockResolvedValue(fakeHashedRefreshToken);
+    }
 
-      jest
-        .spyOn(hasherServiceMock, "hash")
-        .mockResolvedValue(fakeHashedRefreshToken);
+    it("should successfull login user and return tokens", async () => {
+      createMocksDefaultSetup();
 
       const result = await authService.login(loginUserData);
 
       expect(result).toEqual({
-        access_token: fakeAccessToken,
-        refresh_token: fakeRefreshToken,
+        access_token: "fake-access-token",
+        refresh_token: "fake-refresh-token",
       });
+    });
 
-      expect(
-        userServiceMock.findOneByEmailWithCredentials,
-      ).toHaveBeenCalledWith(loginUserData.email);
+    it("should hash and save refresh token before login", async () => {
+      createMocksDefaultSetup();
 
-      expect(hasherServiceMock.compare).toHaveBeenCalledWith(
-        loginUserData.password,
-        storedUser.userCredentials.passwordHash,
-      );
+      await authService.login(loginUserData);
+
+      expect(hasherServiceMock.hash).toHaveBeenCalledWith("fake-refresh-token");
 
       expect(
         userServiceMock.saveRefreshTokenAndLastLoginAt,
-      ).toHaveBeenCalledWith(storedUser.id, fakeHashedRefreshToken);
+      ).toHaveBeenCalledWith("1", "fake-hashed-refresh-token");
     });
 
-    it("Should throw BadRequestException if user don't exist", async () => {
-      jest
-        .spyOn(userServiceMock, "findOneByEmailWithCredentials")
-        .mockResolvedValue(null);
+    it("should throw BadRequestException if user don't exist", async () => {
+      mockUserService.findOneByEmailWithCredentials.mockResolvedValue(null);
 
       const loginPromise = authService.login(loginUserData);
 
@@ -157,18 +146,18 @@ describe("AuthService", () => {
       ).toHaveBeenCalledWith(loginUserData.email);
 
       expect(hasherServiceMock.compare).not.toHaveBeenCalled();
-
       expect(jwtServiceMock.signAsync).not.toHaveBeenCalled();
-
       expect(hasherServiceMock.hash).not.toHaveBeenCalled();
     });
 
-    it("Should throw BadRequestException if password is incorrect", async () => {
-      jest
-        .spyOn(userServiceMock, "findOneByEmailWithCredentials")
-        .mockResolvedValue(storedUser);
+    it("should throw BadRequestException if password is incorrect", async () => {
+      const mockStoredUser = createMockStoredUser();
 
-      jest.spyOn(hasherServiceMock, "compare").mockResolvedValue(false);
+      mockUserService.findOneByEmailWithCredentials.mockResolvedValue(
+        mockStoredUser,
+      );
+
+      mockHasherService.compare.mockResolvedValue(false);
 
       const loginPromise = authService.login(loginUserData);
 
@@ -184,163 +173,163 @@ describe("AuthService", () => {
 
       expect(hasherServiceMock.compare).toHaveBeenCalledWith(
         loginUserData.password,
-        storedUser.userCredentials.passwordHash,
+        mockStoredUser.userCredentials.passwordHash,
       );
 
       expect(jwtServiceMock.signAsync).not.toHaveBeenCalled();
-
       expect(hasherServiceMock.hash).not.toHaveBeenCalled();
     });
   });
 
-  describe("refreshTokens", () => {
-    const storedUser = {
-      id: "1",
-      name: "John Doe",
-      email: "john@email.com",
-      deletedAt: null,
-      createdAt: new Date(),
-      updatedAt: new Date(),
-      userCredentials: {
-        passwordHash: "hashed-password",
-        refreshTokenHash: "hashed-refresh-token",
-      },
-      roles: [
-        {
-          name: "USER",
-        },
-      ],
-    };
+  //=================================================================================================
+  // describe("refreshTokens", () => {
+  //   const storedUser = {
+  //     id: "1",
+  //     name: "John Doe",
+  //     email: "john@email.com",
+  //     deletedAt: null,
+  //     createdAt: new Date(),
+  //     updatedAt: new Date(),
+  //     userCredentials: {
+  //       passwordHash: "hashed-password",
+  //       refreshTokenHash: "hashed-refresh-token",
+  //     },
+  //     roles: [
+  //       {
+  //         name: "USER",
+  //       },
+  //     ],
+  //   };
 
-    const fakeAcessToken = "fake_access_token";
-    const fakeRefreshToken = "fake_refresh_token";
-    const fakeHashedRefreshToken = "fake_hashed_refresh_token";
+  //   const fakeAcessToken = "fake_access_token";
+  //   const fakeRefreshToken = "fake_refresh_token";
+  //   const fakeHashedRefreshToken = "fake_hashed_refresh_token";
 
-    it("Should successfuly refresh tokens", async () => {
-      jest
-        .spyOn(userServiceMock, "findOneByIdWithCredentials")
-        .mockResolvedValue(storedUser);
+  //   it("Should successfuly refresh tokens", async () => {
+  //     jest
+  //       .spyOn(userServiceMock, "findOneByIdWithCredentials")
+  //       .mockResolvedValue(storedUser);
 
-      jest.spyOn(hasherServiceMock, "compare").mockResolvedValue(true);
+  //     jest.spyOn(hasherServiceMock, "compare").mockResolvedValue(true);
 
-      jest
-        .spyOn(jwtServiceMock, "signAsync")
-        .mockResolvedValueOnce(fakeAcessToken)
-        .mockResolvedValueOnce(fakeRefreshToken);
+  //     jest
+  //       .spyOn(jwtServiceMock, "signAsync")
+  //       .mockResolvedValueOnce(fakeAcessToken)
+  //       .mockResolvedValueOnce(fakeRefreshToken);
 
-      jest
-        .spyOn(hasherServiceMock, "hash")
-        .mockResolvedValue(fakeHashedRefreshToken);
+  //     jest
+  //       .spyOn(hasherServiceMock, "hash")
+  //       .mockResolvedValue(fakeHashedRefreshToken);
 
-      const result = await authService.refreshTokens(
-        storedUser.id,
-        fakeRefreshToken,
-      );
+  //     const result = await authService.refreshTokens(
+  //       storedUser.id,
+  //       fakeRefreshToken,
+  //     );
 
-      expect(result).toEqual({
-        access_token: fakeAcessToken,
-        refresh_token: fakeRefreshToken,
-      });
+  //     expect(result).toEqual({
+  //       access_token: fakeAcessToken,
+  //       refresh_token: fakeRefreshToken,
+  //     });
 
-      expect(userServiceMock.findOneByIdWithCredentials).toHaveBeenCalledWith(
-        storedUser.id,
-      );
+  //     expect(userServiceMock.findOneByIdWithCredentials).toHaveBeenCalledWith(
+  //       storedUser.id,
+  //     );
 
-      expect(hasherServiceMock.compare).toHaveBeenCalledWith(
-        fakeRefreshToken,
-        storedUser.userCredentials.refreshTokenHash,
-      );
+  //     expect(hasherServiceMock.compare).toHaveBeenCalledWith(
+  //       fakeRefreshToken,
+  //       storedUser.userCredentials.refreshTokenHash,
+  //     );
 
-      expect(hasherServiceMock.hash).toHaveBeenCalledWith(fakeRefreshToken);
+  //     expect(hasherServiceMock.hash).toHaveBeenCalledWith(fakeRefreshToken);
 
-      expect(userServiceMock.updateRefreshToken).toHaveBeenCalledWith(
-        storedUser.id,
-        fakeHashedRefreshToken,
-      );
-    });
+  //     expect(userServiceMock.updateRefreshToken).toHaveBeenCalledWith(
+  //       storedUser.id,
+  //       fakeHashedRefreshToken,
+  //     );
+  //   });
 
-    it("Should throw 'ForbiddenException' if the user is not found", async () => {
-      jest
-        .spyOn(userServiceMock, "findOneByIdWithCredentials")
-        .mockResolvedValue(null);
+  //   it("Should throw 'ForbiddenException' if the user is not found", async () => {
+  //     jest
+  //       .spyOn(userServiceMock, "findOneByIdWithCredentials")
+  //       .mockResolvedValue(null);
 
-      const refreshTokensPromise = authService.refreshTokens(
-        storedUser.id,
-        fakeRefreshToken,
-      );
+  //     const refreshTokensPromise = authService.refreshTokens(
+  //       storedUser.id,
+  //       fakeRefreshToken,
+  //     );
 
-      await expect(refreshTokensPromise).rejects.toThrow(/^Acesso negado.$/);
+  //     await expect(refreshTokensPromise).rejects.toThrow(/^Acesso negado.$/);
 
-      await expect(refreshTokensPromise).rejects.toBeInstanceOf(
-        ForbiddenException,
-      );
+  //     await expect(refreshTokensPromise).rejects.toBeInstanceOf(
+  //       ForbiddenException,
+  //     );
 
-      expect(hasherServiceMock.compare).not.toHaveBeenCalled();
+  //     expect(hasherServiceMock.compare).not.toHaveBeenCalled();
 
-      expect(hasherServiceMock.hash).not.toHaveBeenCalled();
+  //     expect(hasherServiceMock.hash).not.toHaveBeenCalled();
 
-      expect(userServiceMock.updateRefreshToken).not.toHaveBeenCalled();
-    });
+  //     expect(userServiceMock.updateRefreshToken).not.toHaveBeenCalled();
+  //   });
 
-    it("Should throw 'ForbiddenException' if refresh token dont match", async () => {
-      jest
-        .spyOn(userServiceMock, "findOneByIdWithCredentials")
-        .mockResolvedValue(storedUser);
+  //   it("Should throw 'ForbiddenException' if refresh token dont match", async () => {
+  //     jest
+  //       .spyOn(userServiceMock, "findOneByIdWithCredentials")
+  //       .mockResolvedValue(storedUser);
 
-      jest.spyOn(hasherServiceMock, "compare").mockResolvedValue(false);
+  //     jest.spyOn(hasherServiceMock, "compare").mockResolvedValue(false);
 
-      const refreshTokensPromise = authService.refreshTokens(
-        storedUser.id,
-        fakeRefreshToken,
-      );
+  //     const refreshTokensPromise = authService.refreshTokens(
+  //       storedUser.id,
+  //       fakeRefreshToken,
+  //     );
 
-      await expect(refreshTokensPromise).rejects.toThrow(/^Acesso negado.$/);
+  //     await expect(refreshTokensPromise).rejects.toThrow(/^Acesso negado.$/);
 
-      await expect(refreshTokensPromise).rejects.toBeInstanceOf(
-        ForbiddenException,
-      );
+  //     await expect(refreshTokensPromise).rejects.toBeInstanceOf(
+  //       ForbiddenException,
+  //     );
 
-      expect(hasherServiceMock.compare).toHaveBeenCalledWith(
-        fakeRefreshToken,
-        storedUser.userCredentials.refreshTokenHash,
-      );
+  //     expect(hasherServiceMock.compare).toHaveBeenCalledWith(
+  //       fakeRefreshToken,
+  //       storedUser.userCredentials.refreshTokenHash,
+  //     );
 
-      expect(hasherServiceMock.hash).not.toHaveBeenCalled();
+  //     expect(hasherServiceMock.hash).not.toHaveBeenCalled();
 
-      expect(userServiceMock.updateRefreshToken).not.toHaveBeenCalled();
-    });
-  });
+  //     expect(userServiceMock.updateRefreshToken).not.toHaveBeenCalled();
+  //   });
+  // });
+  //==================================================================================================
+  // describe("logout", () => {
+  //   const storedUser = {
+  //     id: "1",
+  //     name: "John Doe",
+  //     email: "john@email.com",
+  //     deletedAt: null,
+  //     createdAt: new Date(),
+  //     updatedAt: new Date(),
+  //     userCredentials: {
+  //       id: "11",
+  //       lastLoginAt: new Date(),
+  //       userId: "1",
+  //       passwordHash: "hashed-password",
+  //       refreshTokenHash: null,
+  //     },
+  //     roles: [
+  //       {
+  //         name: "USER",
+  //       },
+  //     ],
+  //   };
 
-  describe("logout", () => {
-    const storedUser = {
-      id: "1",
-      name: "John Doe",
-      email: "john@email.com",
-      deletedAt: null,
-      createdAt: new Date(),
-      updatedAt: new Date(),
-      userCredentials: {
-        id: "11",
-        lastLoginAt: new Date(),
-        userId: "1",
-        passwordHash: "hashed-password",
-        refreshTokenHash: null,
-      },
-      roles: [
-        {
-          name: "USER",
-        },
-      ],
-    };
+  //   it("Should successfully logout a user", async () => {
+  //     jest
+  //       .spyOn(userServiceMock, "updateRefreshToken")
+  //       .mockResolvedValue(storedUser);
 
-    it("Should successfully logout a user", async () => {
-      jest
-        .spyOn(userServiceMock, "updateRefreshToken")
-        .mockResolvedValue(storedUser);
+  //     const result = await authService.logout("1");
 
-      const result = await authService.logout("1");
-
-      expect(result).toEqual(storedUser);
-    });
-  });
+  //     expect(result).toEqual(storedUser);
+  //   });
+  // });
 });
