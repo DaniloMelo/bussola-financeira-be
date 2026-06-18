@@ -74,6 +74,7 @@ describe("AuthService", () => {
       createdAt: new Date(),
       updatedAt: new Date(),
       userCredentials: {
+        id: "11",
         passwordHash: "hashed-password",
         refreshTokenHash: null,
       },
@@ -296,37 +297,24 @@ describe("AuthService", () => {
     });
   });
 
-  //==================================================================================================
-  // describe("logout", () => {
-  //   const storedUser = {
-  //     id: "1",
-  //     name: "John Doe",
-  //     email: "john@email.com",
-  //     deletedAt: null,
-  //     createdAt: new Date(),
-  //     updatedAt: new Date(),
-  //     userCredentials: {
-  //       id: "11",
-  //       lastLoginAt: new Date(),
-  //       userId: "1",
-  //       passwordHash: "hashed-password",
-  //       refreshTokenHash: null,
-  //     },
-  //     roles: [
-  //       {
-  //         name: "USER",
-  //       },
-  //     ],
-  //   };
+  describe("logout", () => {
+    it("should update refresh token to a null value", async () => {
+      mockUserService.updateRefreshToken.mockResolvedValue(
+        createMockStoredUser(),
+      );
 
-  //   it("Should successfully logout a user", async () => {
-  //     jest
-  //       .spyOn(userServiceMock, "updateRefreshToken")
-  //       .mockResolvedValue(storedUser);
+      const result = await authService.logout(storedUserId);
 
-  //     const result = await authService.logout("1");
-
-  //     expect(result).toEqual(storedUser);
-  //   });
-  // });
+      expect(result).toMatchObject({
+        id: "1",
+        name: "John Doe",
+        email: "john@email.com",
+        userCredentials: {
+          id: "11",
+          refreshTokenHash: null,
+        },
+        roles: [{ name: "USER" }],
+      });
+    });
+  });
 });
