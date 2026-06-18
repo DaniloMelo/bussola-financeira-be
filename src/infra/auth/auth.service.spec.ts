@@ -8,7 +8,7 @@ import { UserService } from "src/domain/user/user.service";
 import { HasherProtocol } from "src/common/hasher/hasher.protocol";
 import { JwtService } from "@nestjs/jwt";
 import { ILogin } from "./interfaces/login.interface";
-import { BadRequestException } from "@nestjs/common";
+import { BadRequestException, ForbiddenException } from "@nestjs/common";
 import { ConfigService } from "@nestjs/config";
 
 const mockUserService = {
@@ -91,12 +91,13 @@ describe("AuthService", () => {
     password: "password123",
   };
 
+  const storedUserId = "1";
+  const fakeAccessToken = "fake-access-token";
+  const fakeRefreshToken = "fake-refresh-token";
+  const fakeHashedRefreshToken = "fake-hashed-refresh-token";
+
   describe("login", () => {
     function createMocksDefaultSetup() {
-      const fakeAccessToken = "fake-access-token";
-      const fakeRefreshToken = "fake-refresh-token";
-      const fakeHashedRefreshToken = "fake-hashed-refresh-token";
-
       mockUserService.findOneByEmailWithCredentials.mockResolvedValue(
         createMockStoredUser(),
       );
@@ -113,8 +114,8 @@ describe("AuthService", () => {
       const result = await authService.login(loginUserData);
 
       expect(result).toEqual({
-        access_token: "fake-access-token",
-        refresh_token: "fake-refresh-token",
+        access_token: fakeAccessToken,
+        refresh_token: fakeRefreshToken,
       });
     });
 
@@ -123,11 +124,11 @@ describe("AuthService", () => {
 
       await authService.login(loginUserData);
 
-      expect(hasherServiceMock.hash).toHaveBeenCalledWith("fake-refresh-token");
+      expect(hasherServiceMock.hash).toHaveBeenCalledWith(fakeRefreshToken);
 
       expect(
         userServiceMock.saveRefreshTokenAndLastLoginAt,
-      ).toHaveBeenCalledWith("1", "fake-hashed-refresh-token");
+      ).toHaveBeenCalledWith(storedUserId, fakeHashedRefreshToken);
     });
 
     it("should throw BadRequestException if user don't exist", async () => {
@@ -181,124 +182,120 @@ describe("AuthService", () => {
     });
   });
 
-  //=================================================================================================
-  // describe("refreshTokens", () => {
-  //   const storedUser = {
-  //     id: "1",
-  //     name: "John Doe",
-  //     email: "john@email.com",
-  //     deletedAt: null,
-  //     createdAt: new Date(),
-  //     updatedAt: new Date(),
-  //     userCredentials: {
-  //       passwordHash: "hashed-password",
-  //       refreshTokenHash: "hashed-refresh-token",
-  //     },
-  //     roles: [
-  //       {
-  //         name: "USER",
-  //       },
-  //     ],
-  //   };
+  describe("refreshTokens", () => {
+    function createMocksDefaultSetup() {
+      const mockStoredUser = createMockStoredUser({
+        userCredentials: {
+          refreshTokenHash: fakeHashedRefreshToken,
+        },
+      });
 
-  //   const fakeAcessToken = "fake_access_token";
-  //   const fakeRefreshToken = "fake_refresh_token";
-  //   const fakeHashedRefreshToken = "fake_hashed_refresh_token";
+      mockUserService.findOneByIdWithCredentials.mockResolvedValue(
+        mockStoredUser,
+      );
+      mockHasherService.compare.mockResolvedValue(true);
+      mockJwtService.signAsync
+        .mockResolvedValueOnce(fakeAccessToken)
+        .mockResolvedValueOnce(fakeRefreshToken);
+      mockHasherService.hash.mockResolvedValue(fakeHashedRefreshToken);
+    }
 
-  //   it("Should successfuly refresh tokens", async () => {
-  //     jest
-  //       .spyOn(userServiceMock, "findOneByIdWithCredentials")
-  //       .mockResolvedValue(storedUser);
+    it("should successfuly refresh tokens", async () => {
+      createMocksDefaultSetup();
 
-  //     jest.spyOn(hasherServiceMock, "compare").mockResolvedValue(true);
+      const result = await authService.refreshTokens(
+        storedUserId,
+        fakeRefreshToken,
+      );
 
-  //     jest
-  //       .spyOn(jwtServiceMock, "signAsync")
-  //       .mockResolvedValueOnce(fakeAcessToken)
-  //       .mockResolvedValueOnce(fakeRefreshToken);
+      expect(result).toEqual({
+        access_token: fakeAccessToken,
+        refresh_token: fakeRefreshToken,
+      });
+    });
 
-  //     jest
-  //       .spyOn(hasherServiceMock, "hash")
-  //       .mockResolvedValue(fakeHashedRefreshToken);
+    it("should hash the new refresh token before saving", async () => {
+      createMocksDefaultSetup();
 
-  //     const result = await authService.refreshTokens(
-  //       storedUser.id,
-  //       fakeRefreshToken,
-  //     );
+      await authService.refreshTokens(storedUserId, fakeRefreshToken);
 
-  //     expect(result).toEqual({
-  //       access_token: fakeAcessToken,
-  //       refresh_token: fakeRefreshToken,
-  //     });
+      expect(hasherServiceMock.hash).toHaveBeenCalledWith(fakeRefreshToken);
 
-  //     expect(userServiceMock.findOneByIdWithCredentials).toHaveBeenCalledWith(
-  //       storedUser.id,
-  //     );
+      expect(userServiceMock.updateRefreshToken).toHaveBeenCalledWith(
+        storedUserId,
+        fakeHashedRefreshToken,
+      );
+    });
 
-  //     expect(hasherServiceMock.compare).toHaveBeenCalledWith(
-  //       fakeRefreshToken,
-  //       storedUser.userCredentials.refreshTokenHash,
-  //     );
+    it("should throw 'ForbiddenException' if the user is not found", async () => {
+      mockUserService.findOneByIdWithCredentials.mockResolvedValue(null);
 
-  //     expect(hasherServiceMock.hash).toHaveBeenCalledWith(fakeRefreshToken);
+      const refreshTokensPromise = authService.refreshTokens(
+        storedUserId,
+        fakeRefreshToken,
+      );
 
-  //     expect(userServiceMock.updateRefreshToken).toHaveBeenCalledWith(
-  //       storedUser.id,
-  //       fakeHashedRefreshToken,
-  //     );
-  //   });
+      await expect(refreshTokensPromise).rejects.toThrow(/^Acesso negado.$/);
 
-  //   it("Should throw 'ForbiddenException' if the user is not found", async () => {
-  //     jest
-  //       .spyOn(userServiceMock, "findOneByIdWithCredentials")
-  //       .mockResolvedValue(null);
+      await expect(refreshTokensPromise).rejects.toBeInstanceOf(
+        ForbiddenException,
+      );
 
-  //     const refreshTokensPromise = authService.refreshTokens(
-  //       storedUser.id,
-  //       fakeRefreshToken,
-  //     );
+      expect(userServiceMock.updateRefreshToken).not.toHaveBeenCalled();
+    });
 
-  //     await expect(refreshTokensPromise).rejects.toThrow(/^Acesso negado.$/);
+    it("should throw a 'ForbiddenException' when the refresh token is null or does not exist in the database", async () => {
+      mockUserService.findOneByIdWithCredentials.mockResolvedValue(
+        createMockStoredUser(),
+      );
 
-  //     await expect(refreshTokensPromise).rejects.toBeInstanceOf(
-  //       ForbiddenException,
-  //     );
+      const refreshTokensPromise = authService.refreshTokens(
+        storedUserId,
+        fakeRefreshToken,
+      );
 
-  //     expect(hasherServiceMock.compare).not.toHaveBeenCalled();
+      await expect(refreshTokensPromise).rejects.toThrow(/^Acesso negado.$/);
 
-  //     expect(hasherServiceMock.hash).not.toHaveBeenCalled();
+      await expect(refreshTokensPromise).rejects.toBeInstanceOf(
+        ForbiddenException,
+      );
 
-  //     expect(userServiceMock.updateRefreshToken).not.toHaveBeenCalled();
-  //   });
+      expect(userServiceMock.updateRefreshToken).not.toHaveBeenCalled();
+    });
 
-  //   it("Should throw 'ForbiddenException' if refresh token dont match", async () => {
-  //     jest
-  //       .spyOn(userServiceMock, "findOneByIdWithCredentials")
-  //       .mockResolvedValue(storedUser);
+    it("should throw 'ForbiddenException' if refresh token dont match", async () => {
+      const mockStoredUser = createMockStoredUser({
+        userCredentials: {
+          refreshTokenHash: fakeHashedRefreshToken,
+        },
+      });
 
-  //     jest.spyOn(hasherServiceMock, "compare").mockResolvedValue(false);
+      mockUserService.findOneByIdWithCredentials.mockResolvedValue(
+        mockStoredUser,
+      );
 
-  //     const refreshTokensPromise = authService.refreshTokens(
-  //       storedUser.id,
-  //       fakeRefreshToken,
-  //     );
+      jest.spyOn(hasherServiceMock, "compare").mockResolvedValue(false);
 
-  //     await expect(refreshTokensPromise).rejects.toThrow(/^Acesso negado.$/);
+      const refreshTokensPromise = authService.refreshTokens(
+        storedUserId,
+        fakeRefreshToken,
+      );
 
-  //     await expect(refreshTokensPromise).rejects.toBeInstanceOf(
-  //       ForbiddenException,
-  //     );
+      await expect(refreshTokensPromise).rejects.toThrow(/^Acesso negado.$/);
 
-  //     expect(hasherServiceMock.compare).toHaveBeenCalledWith(
-  //       fakeRefreshToken,
-  //       storedUser.userCredentials.refreshTokenHash,
-  //     );
+      await expect(refreshTokensPromise).rejects.toBeInstanceOf(
+        ForbiddenException,
+      );
 
-  //     expect(hasherServiceMock.hash).not.toHaveBeenCalled();
+      expect(hasherServiceMock.compare).toHaveBeenCalledWith(
+        fakeRefreshToken,
+        fakeHashedRefreshToken,
+      );
 
-  //     expect(userServiceMock.updateRefreshToken).not.toHaveBeenCalled();
-  //   });
-  // });
+      expect(userServiceMock.updateRefreshToken).not.toHaveBeenCalled();
+    });
+  });
+
   //==================================================================================================
   // describe("logout", () => {
   //   const storedUser = {
