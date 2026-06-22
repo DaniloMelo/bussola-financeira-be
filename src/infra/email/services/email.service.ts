@@ -1,7 +1,7 @@
 import { MailerService } from "@nestjs-modules/mailer";
 import { Injectable } from "@nestjs/common";
-import { resetPasswordHtmlTemplate } from "./templates/html/reset-password-html.template";
-import { resetPasswordTextTemplate } from "./templates/text/reset-password-txt.template";
+import { resetPasswordHtmlTemplate } from "../templates/html/reset-password-html.template";
+import { resetPasswordTextTemplate } from "../templates/text/reset-password-txt.template";
 
 interface ResetPasswordParams {
   userName: string;

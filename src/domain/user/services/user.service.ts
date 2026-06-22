@@ -7,7 +7,7 @@ import { UserRepository } from "../repositories/user.repository";
 import { HasherProtocol } from "src/common/hasher/hasher.protocol";
 import { ICreateUser } from "../interfaces/user";
 import { IUpdateUserData } from "../interfaces/update";
-import { EmailService } from "src/infra/email/email.service";
+import { EmailService } from "src/infra/email/services/email.service";
 import { SanitizeProtocol } from "src/common/sanitize/sanitize.protocol";
 import { USER_CONSTANTS } from "../utils/constants/user.constant";
 
