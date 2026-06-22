@@ -200,8 +200,18 @@ export class UserRepository {
         },
       },
       include: {
-        // TODO: incluir relacao roles e tirar senha
-        userCredentials: true,
+        userCredentials: {
+          select: {
+            id: true,
+            lastLoginAt: true,
+            refreshTokenHash: true,
+          },
+        },
+        roles: {
+          select: {
+            name: true,
+          },
+        },
       },
     });
   }
