@@ -16,7 +16,7 @@ import {
   ApiTags,
 } from "@nestjs/swagger";
 
-import { AuthService } from "../auth.service";
+import { AuthService } from "../services/auth.service";
 import { JwtAuthGuard } from "../guards/jwt-auth.guard";
 import { JwtRefreshTokenGuard } from "../guards/jwt-refresh-token.guard";
 import { LoginDtoV1 } from "./dto/login.dto";

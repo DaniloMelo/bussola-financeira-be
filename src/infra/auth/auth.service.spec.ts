@@ -3,8 +3,7 @@
 /* eslint-disable @typescript-eslint/unbound-method */
 
 import { Test, TestingModule } from "@nestjs/testing";
-import { AuthService } from "./auth.service";
-// import { UserService } from "src/domain/user/services/user.service";
+import { AuthService } from "./services/auth.service";
 import { HasherProtocol } from "src/common/hasher/hasher.protocol";
 import { JwtService } from "@nestjs/jwt";
 import { ILogin } from "./interfaces/login.interface";

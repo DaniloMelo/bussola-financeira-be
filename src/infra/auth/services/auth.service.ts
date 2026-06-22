@@ -3,10 +3,10 @@ import {
   ForbiddenException,
   Injectable,
 } from "@nestjs/common";
-import { ILogin } from "./interfaces/login.interface";
+import { ILogin } from "../interfaces/login.interface";
 import { HasherProtocol } from "src/common/hasher/hasher.protocol";
 import { JwtService } from "@nestjs/jwt";
-import { IJwtPayload } from "./interfaces/jwt-payload.interface";
+import { IJwtPayload } from "../interfaces/jwt-payload.interface";
 import { ConfigService } from "@nestjs/config";
 import { Random } from "src/common/utils/random";
 import { UserAuthService } from "src/domain/user/services/user-auth.service";
