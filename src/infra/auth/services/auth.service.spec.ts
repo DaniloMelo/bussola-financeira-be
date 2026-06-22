@@ -3,10 +3,10 @@
 /* eslint-disable @typescript-eslint/unbound-method */
 
 import { Test, TestingModule } from "@nestjs/testing";
-import { AuthService } from "./services/auth.service";
+import { AuthService } from "./auth.service";
 import { HasherProtocol } from "src/common/hasher/hasher.protocol";
 import { JwtService } from "@nestjs/jwt";
-import { ILogin } from "./interfaces/login.interface";
+import { ILogin } from "../interfaces/login.interface";
 import { BadRequestException, ForbiddenException } from "@nestjs/common";
 import { ConfigService } from "@nestjs/config";
 import { UserAuthService } from "src/domain/user/services/user-auth.service";
