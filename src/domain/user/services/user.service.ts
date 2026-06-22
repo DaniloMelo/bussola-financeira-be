@@ -3,7 +3,7 @@ import {
   Injectable,
   NotFoundException,
 } from "@nestjs/common";
-import { UserRepository } from "../user.repository";
+import { UserRepository } from "../repositories/user.repository";
 import { HasherProtocol } from "src/common/hasher/hasher.protocol";
 import { ICreateUser } from "../interfaces/user";
 import { IUpdateUserData } from "../interfaces/update";

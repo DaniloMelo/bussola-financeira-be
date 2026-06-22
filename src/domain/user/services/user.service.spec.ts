@@ -3,7 +3,7 @@
 
 import { Test, TestingModule } from "@nestjs/testing";
 import { UserService } from "./user.service";
-import { UserRepository } from "../user.repository";
+import { UserRepository } from "../repositories/user.repository";
 import { HasherProtocol } from "src/common/hasher/hasher.protocol";
 import { BadRequestException } from "@nestjs/common";
 import { ICreateUser } from "../interfaces/user";

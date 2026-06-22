@@ -3,7 +3,7 @@
 
 import { Test, TestingModule } from "@nestjs/testing";
 import { UserAuthService } from "./user-auth.service";
-import { UserRepository } from "../user.repository";
+import { UserRepository } from "../repositories/user.repository";
 
 const mockUserRepository = {
   findOneByIdWithCredentials: jest.fn(),
