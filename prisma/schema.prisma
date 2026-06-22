@@ -22,10 +22,12 @@ model User {
 }
 
 model UserCredentials {
-  id               String    @id @default(uuid())
-  passwordHash     String    @map(name: "password_hash")
-  refreshTokenHash String?   @map(name: "refresh_token_hash")
-  lastLoginAt      DateTime? @map(name: "last_login_at")
+  id                     String    @id @default(uuid())
+  passwordHash           String    @map(name: "password_hash")
+  refreshTokenHash       String?   @map(name: "refresh_token_hash")
+  resetPasswordTokenHash String?   @map(name: "reset_password_token_hash")
+  resetPasswordExpiresAt DateTime? @map(name: "reset-password-expires-at")
+  lastLoginAt            DateTime? @map(name: "last_login_at")
 
   userId String @unique @map(name: "user_id")
   user   User   @relation(fields: [userId], references: [id])
