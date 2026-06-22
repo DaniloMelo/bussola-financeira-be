@@ -16,16 +16,11 @@ export class EmailService {
   async resetPassword(params: ResetPasswordParams) {
     const { userName, email, resetUrl } = params;
 
-    try {
-      await this.mailerService.sendMail({
-        to: email,
-        subject: "Recuperação de senha",
-        html: resetPasswordHtmlTemplate(userName, resetUrl),
-        text: resetPasswordTextTemplate(userName, resetUrl),
-      });
-    } catch (error) {
-      console.error(error);
-      throw error;
-    }
+    await this.mailerService.sendMail({
+      to: email,
+      subject: "Recuperação de senha",
+      html: resetPasswordHtmlTemplate(userName, resetUrl),
+      text: resetPasswordTextTemplate(userName, resetUrl),
+    });
   }
 }
