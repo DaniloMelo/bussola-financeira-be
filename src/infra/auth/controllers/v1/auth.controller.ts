@@ -23,11 +23,16 @@ import { LoginDtoV1 } from "./dto/login.dto";
 import { AuthApiResponseDto } from "./dto/swagger/auth-api-response.dto";
 import { LogoutApiResponseDto } from "./dto/swagger/logout-api-response.dto";
 import { CurrentUser } from "src/common/decorators/current-user.decorator";
+import { UserPasswordService } from "src/domain/user/services/user-password.service";
+import { RequestResetPasswordDtoV1 } from "./dto/request-reset-password.dto";
 
 @Controller({ path: "auth", version: "1" })
 @ApiTags("auth-v1")
 export class AuthController {
-  constructor(private readonly authService: AuthService) {}
+  constructor(
+    private readonly authService: AuthService,
+    private readonly userPasswordService: UserPasswordService,
+  ) {}
 
   @Post("login")
   @HttpCode(HttpStatus.OK)
@@ -90,5 +95,19 @@ export class AuthController {
   })
   logout(@CurrentUser("id") userId: string) {
     return this.authService.logout(userId);
+  }
+
+  @Post("password/request-reset")
+  @ApiOperation({ summary: "Solicita o reset de senha" })
+  @ApiResponse({
+    status: 200,
+    description: "Solicitação enviada",
+    example: {
+      message:
+        "Caso tenha um usuário cadastrado, receberá um email com instruções de como redefinir a sua senha.",
+    },
+  })
+  requestResetPassword(@Body() userInputData: RequestResetPasswordDtoV1) {
+    return this.userPasswordService.requestPasswordReset(userInputData);
   }
 }

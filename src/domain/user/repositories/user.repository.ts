@@ -245,4 +245,21 @@ export class UserRepository {
       },
     });
   }
+
+  async saveResetPasswordToken(userId: string, token: string, exp: Date) {
+    return await this.prisma.user.update({
+      where: {
+        id: userId,
+        deletedAt: null,
+      },
+      data: {
+        userCredentials: {
+          update: {
+            resetPasswordTokenHash: token,
+            resetPasswordExpiresAt: exp,
+          },
+        },
+      },
+    });
+  }
 }
