@@ -1,11 +1,11 @@
-import { Injectable } from "@nestjs/common";
+import { BadRequestException, Injectable } from "@nestjs/common";
 import { UserRepository } from "../repositories/user.repository";
 import { Random } from "src/common/utils/random";
 import { HasherProtocol } from "src/common/hasher/hasher.protocol";
 import { ConfigService } from "@nestjs/config";
 import { EmailService } from "src/infra/email/services/email.service";
 import { RequestResetPasswordDtoV1 } from "src/infra/auth/controllers/v1/dto/request-reset-password.dto";
-// import { ResetPasswordDtoV1 } from "src/infra/auth/controllers/v1/dto/reset-password.dto";
+import { ResetPasswordDtoV1 } from "src/infra/auth/controllers/v1/dto/reset-password.dto";
 
 @Injectable()
 export class UserPasswordService {
@@ -55,45 +55,66 @@ export class UserPasswordService {
     };
   }
 
-  // async resetPassword(resetPasswordParams: ResetPasswordDtoV1) {
-  //   // Valida token
-  //   const storedTokenData = await this.userRepository.findResetPasswordToken();
-  //   const { resetPasswordTokenHash, resetPasswordExpiresAt, user } =
-  //     storedTokenData!;
+  async resetPassword(resetPasswordParams: ResetPasswordDtoV1) {
+    const { rawToken, email, password } = resetPasswordParams;
 
-  //   // Verifica expiração
-  //   if (
-  //     !storedTokenData ||
-  //     !resetPasswordTokenHash ||
-  //     !resetPasswordExpiresAt
-  //   ) {
-  //     throw new BadRequestException(
-  //       "Solicitação inválida. Faça uma nova solicitação ou tente mais tarde.",
-  //     );
-  //   }
+    const userData = await this.userRepository.findResetPasswordToken(email);
 
-  //   const now = new Date();
-  //   if (resetPasswordExpiresAt > now) {
-  //     throw new BadRequestException(
-  //       "Solicitação expirada. Faça uma nova solicitação ou tente mais tarde.",
-  //     );
-  //   }
+    if (
+      !userData ||
+      !userData.userCredentials?.resetPasswordTokenHash ||
+      !userData.userCredentials?.resetPasswordExpiresAt
+    ) {
+      throw new BadRequestException(
+        "Solicitação inválida. Faça uma nova solicitação ou tente novamente mais tarde.",
+      );
+    }
 
-  //   // Atualiza senha
-  //   const newPasswordHash = await this.hasherService.hash(
-  //     resetPasswordParams.password,
-  //   );
+    const { userCredentials, id: userId, name: userName } = userData;
+    const { resetPasswordTokenHash, resetPasswordExpiresAt } = userCredentials;
 
-  //   const updatedPassword = {
-  //     name: undefined,
-  //     email: undefined,
-  //     password: newPasswordHash,
-  //   };
+    if (!resetPasswordTokenHash || !resetPasswordExpiresAt) {
+      throw new BadRequestException(
+        "Solicitação inválida. Faça uma nova solicitação ou tente novamente mais tarde.",
+      );
+    }
 
-  //   await this.userRepository.update(user.id, updatedPassword);
+    const isValidToken = await this.hasherService.compare(
+      rawToken,
+      resetPasswordTokenHash,
+    );
+    if (!isValidToken) {
+      await this.userRepository.invalidateResetPasswordToken(userId);
 
-  //   // Invalida token usado
+      throw new BadRequestException(
+        "Solicitação inválida. Faça uma nova solicitação ou tente novamente mais tarde.",
+      );
+    }
 
-  //   // Envia email notificando
-  // }
+    const now = new Date();
+    if (now > resetPasswordExpiresAt) {
+      await this.userRepository.invalidateResetPasswordToken(userId);
+
+      throw new BadRequestException(
+        "Solicitação expirada. Faça uma nova solicitação ou tente novamente mais mais tarde.",
+      );
+    }
+
+    const newHashedPassword = await this.hasherService.hash(password);
+    const updatedPassword = {
+      name: undefined,
+      email: undefined,
+      password: newHashedPassword,
+    };
+    await this.userRepository.update(userId, updatedPassword);
+
+    await this.userRepository.invalidateResetPasswordToken(userId);
+
+    // TODO: Estudar sobre filas para envio de emails.
+    await this.emailService.resetPasswordNotification({ userName, email });
+
+    return {
+      message: "Senha alterada com sucesso.",
+    };
+  }
 }
