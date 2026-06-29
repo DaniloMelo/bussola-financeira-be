@@ -1,6 +1,10 @@
 import { textLayout } from "./text.layout";
 
-export function resetPasswordTextTemplate(userName: string, resetUrl: string) {
+export function resetPasswordTextTemplate(
+  userName: string,
+  resetUrl: string,
+  subject: string,
+) {
   const content = `
 Olá, ${userName}!
 
@@ -17,5 +21,5 @@ Atenção: Esse link expira em 15 minutos.
 Se você não conseguir clicar no link, copie e cole o endereço completo no seu navegador.
 `.trim();
 
-  return textLayout(content, "Recuperação de Senha");
+  return textLayout(content, subject);
 }
