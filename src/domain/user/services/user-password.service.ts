@@ -5,6 +5,7 @@ import { HasherProtocol } from "src/common/hasher/hasher.protocol";
 import { ConfigService } from "@nestjs/config";
 import { EmailService } from "src/infra/email/services/email.service";
 import { RequestResetPasswordDtoV1 } from "src/infra/auth/controllers/v1/dto/request-reset-password.dto";
+// import { ResetPasswordDtoV1 } from "src/infra/auth/controllers/v1/dto/reset-password.dto";
 
 @Injectable()
 export class UserPasswordService {
@@ -39,7 +40,7 @@ export class UserPasswordService {
     );
 
     const frontUrl = this.configService.get<string>("FRONTEND_URL_ORIGIN");
-    const resetUrl = `${frontUrl}/reset-password?token=${token}`;
+    const resetUrl = `${frontUrl}/reset-password?token=${token}&email=${encodeURIComponent(existingUser.email)}`;
 
     // TODO: Estudar sobre filas para envio de emails.
     await this.emailService.resetPassword({
@@ -54,5 +55,45 @@ export class UserPasswordService {
     };
   }
 
-  // resetPassword(token: string, password: string) {}
+  // async resetPassword(resetPasswordParams: ResetPasswordDtoV1) {
+  //   // Valida token
+  //   const storedTokenData = await this.userRepository.findResetPasswordToken();
+  //   const { resetPasswordTokenHash, resetPasswordExpiresAt, user } =
+  //     storedTokenData!;
+
+  //   // Verifica expiração
+  //   if (
+  //     !storedTokenData ||
+  //     !resetPasswordTokenHash ||
+  //     !resetPasswordExpiresAt
+  //   ) {
+  //     throw new BadRequestException(
+  //       "Solicitação inválida. Faça uma nova solicitação ou tente mais tarde.",
+  //     );
+  //   }
+
+  //   const now = new Date();
+  //   if (resetPasswordExpiresAt > now) {
+  //     throw new BadRequestException(
+  //       "Solicitação expirada. Faça uma nova solicitação ou tente mais tarde.",
+  //     );
+  //   }
+
+  //   // Atualiza senha
+  //   const newPasswordHash = await this.hasherService.hash(
+  //     resetPasswordParams.password,
+  //   );
+
+  //   const updatedPassword = {
+  //     name: undefined,
+  //     email: undefined,
+  //     password: newPasswordHash,
+  //   };
+
+  //   await this.userRepository.update(user.id, updatedPassword);
+
+  //   // Invalida token usado
+
+  //   // Envia email notificando
+  // }
 }
