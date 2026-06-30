@@ -25,6 +25,7 @@ import { LogoutApiResponseDto } from "./dto/swagger/logout-api-response.dto";
 import { CurrentUser } from "src/common/decorators/current-user.decorator";
 import { UserPasswordService } from "src/domain/user/services/user-password.service";
 import { RequestResetPasswordDtoV1 } from "./dto/request-reset-password.dto";
+import { ResetPasswordDtoV1 } from "./dto/reset-password.dto";
 
 @Controller({ path: "auth", version: "1" })
 @ApiTags("auth-v1")
@@ -97,7 +98,7 @@ export class AuthController {
     return this.authService.logout(userId);
   }
 
-  @Post("password/request-reset")
+  @Post("request-reset-password")
   @ApiOperation({ summary: "Solicita o reset de senha" })
   @ApiResponse({
     status: 200,
@@ -109,5 +110,25 @@ export class AuthController {
   })
   requestResetPassword(@Body() userInputData: RequestResetPasswordDtoV1) {
     return this.userPasswordService.requestPasswordReset(userInputData);
+  }
+
+  @Post("reset-password")
+  @ApiOperation({ summary: "Executa o reset de senha" })
+  @ApiResponse({
+    status: 200,
+    description: "Reset realizado",
+    example: {
+      message: "Senha alterada com sucesso.",
+    },
+  })
+  @ApiResponse({
+    status: 401,
+    description: "Tempo para reset expirado",
+    example: new UnauthorizedException([
+      "Solicitação expirada. Faça uma nova solicitação ou tente novamente mais mais tarde.",
+    ]).getResponse(),
+  })
+  resetPassword(@Body() userInputData: ResetPasswordDtoV1) {
+    return this.userPasswordService.resetPassword(userInputData);
   }
 }

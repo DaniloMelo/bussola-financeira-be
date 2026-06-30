@@ -1,4 +1,4 @@
-import { BadRequestException, Injectable } from "@nestjs/common";
+import { Injectable, UnauthorizedException } from "@nestjs/common";
 import { UserRepository } from "../repositories/user.repository";
 import { Random } from "src/common/utils/random";
 import { HasherProtocol } from "src/common/hasher/hasher.protocol";
@@ -65,7 +65,7 @@ export class UserPasswordService {
       !userData.userCredentials?.resetPasswordTokenHash ||
       !userData.userCredentials?.resetPasswordExpiresAt
     ) {
-      throw new BadRequestException(
+      throw new UnauthorizedException(
         "Solicitação inválida. Faça uma nova solicitação ou tente novamente mais tarde.",
       );
     }
@@ -74,7 +74,7 @@ export class UserPasswordService {
     const { resetPasswordTokenHash, resetPasswordExpiresAt } = userCredentials;
 
     if (!resetPasswordTokenHash || !resetPasswordExpiresAt) {
-      throw new BadRequestException(
+      throw new UnauthorizedException(
         "Solicitação inválida. Faça uma nova solicitação ou tente novamente mais tarde.",
       );
     }
@@ -86,7 +86,7 @@ export class UserPasswordService {
     if (!isValidToken) {
       await this.userRepository.invalidateResetPasswordToken(userId);
 
-      throw new BadRequestException(
+      throw new UnauthorizedException(
         "Solicitação inválida. Faça uma nova solicitação ou tente novamente mais tarde.",
       );
     }
@@ -95,7 +95,7 @@ export class UserPasswordService {
     if (now > resetPasswordExpiresAt) {
       await this.userRepository.invalidateResetPasswordToken(userId);
 
-      throw new BadRequestException(
+      throw new UnauthorizedException(
         "Solicitação expirada. Faça uma nova solicitação ou tente novamente mais mais tarde.",
       );
     }

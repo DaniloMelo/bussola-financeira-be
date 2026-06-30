@@ -10,7 +10,7 @@ export class ResetPasswordDtoV1 {
     description: "Token para reset de senha (extraído da URL)",
     example: "token-unico-aleatorio-123",
   })
-  tokenRaw!: string;
+  rawToken!: string;
 
   @IsEmail({}, { message: "E-mail inválido." })
   @ApiProperty({
