@@ -14,6 +14,7 @@ export class UserPasswordService {
     private readonly userRepository: UserRepository,
     private readonly hasherService: HasherProtocol,
     private readonly emailService: EmailService,
+    private readonly random: Random,
   ) {}
 
   async requestPasswordReset(userInputData: RequestResetPasswordDtoV1) {
@@ -29,7 +30,7 @@ export class UserPasswordService {
       };
     }
 
-    const token = new Random().text();
+    const token = this.random.text();
     const hashedToken = await this.hasherService.hash(token);
     const expiresAt = new Date(Date.now() + 15 * 60 * 1000);
 
