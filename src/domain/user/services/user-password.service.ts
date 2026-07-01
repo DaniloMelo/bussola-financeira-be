@@ -72,13 +72,8 @@ export class UserPasswordService {
     }
 
     const { userCredentials, id: userId, name: userName } = userData;
-    const { resetPasswordTokenHash, resetPasswordExpiresAt } = userCredentials;
-
-    if (!resetPasswordTokenHash || !resetPasswordExpiresAt) {
-      throw new UnauthorizedException(
-        "Solicitação inválida. Faça uma nova solicitação ou tente novamente mais tarde.",
-      );
-    }
+    const resetPasswordTokenHash = userCredentials.resetPasswordTokenHash!;
+    const resetPasswordExpiresAt = userCredentials.resetPasswordExpiresAt!;
 
     const isValidToken = await this.hasherService.compare(
       rawToken,
@@ -97,7 +92,7 @@ export class UserPasswordService {
       await this.userRepository.invalidateResetPasswordToken(userId);
 
       throw new UnauthorizedException(
-        "Solicitação expirada. Faça uma nova solicitação ou tente novamente mais mais tarde.",
+        "Solicitação expirada. Faça uma nova solicitação ou tente novamente mais tarde.",
       );
     }
 

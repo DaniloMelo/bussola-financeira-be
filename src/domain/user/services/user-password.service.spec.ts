@@ -9,6 +9,8 @@ import { UserRepository } from "../repositories/user.repository";
 import { HasherProtocol } from "src/common/hasher/hasher.protocol";
 import { EmailService } from "src/infra/email/services/email.service";
 import { Random } from "src/common/utils/random";
+import { ResetPasswordDtoV1 } from "src/infra/auth/controllers/v1/dto/reset-password.dto";
+import { UnauthorizedException } from "@nestjs/common";
 
 const mockConfigService = {
   get: jest.fn((key: string) => {
@@ -93,7 +95,6 @@ describe("UserPasswordService", () => {
 
   const rawResetPasswordToken = "raw-reset-password-token";
   const hashedResetPasswordToken = "hashed-reset-password-token";
-  // const tokenExp = new Date(Date.now() + 15 * 60 * 1000);
 
   describe("requestPasswordReset", () => {
     function createMocksDefaultSetup() {
@@ -154,7 +155,7 @@ describe("UserPasswordService", () => {
       expect(resetUrl.searchParams.get("email")).toBe("john@email.com");
     });
 
-    it("should send email", async () => {
+    it("should send email for request password reset", async () => {
       createMocksDefaultSetup();
 
       await userPasswordService.requestPasswordReset({
@@ -183,5 +184,141 @@ describe("UserPasswordService", () => {
     });
   });
 
-  // describe("resetPawassword", () => {});
+  describe("resetPawassword", () => {
+    function createMocksDefaultSetup() {
+      mockUserRepository.findResetPasswordToken.mockResolvedValue({
+        name: "John Doe",
+        id: "1",
+        userCredentials: {
+          resetPasswordTokenHash: hashedResetPasswordToken,
+          resetPasswordExpiresAt: new Date(Date.now() + 10 * 60 * 1000),
+        },
+      });
+
+      mockHasherService.compare.mockResolvedValue(true);
+      mockHasherService.hash.mockResolvedValue("new-hashed-password");
+      mockUserRepository.update.mockResolvedValue(true);
+      mockUserRepository.invalidateResetPasswordToken.mockResolvedValue(true);
+    }
+
+    function createUserInput(overide?: Partial<ResetPasswordDtoV1>) {
+      return {
+        rawToken: rawResetPasswordToken,
+        email: "john@email.com",
+        password: "reseted-password-123",
+        ...overide,
+      };
+    }
+
+    it("should successfully reset password", async () => {
+      createMocksDefaultSetup();
+
+      const result = await userPasswordService.resetPassword(createUserInput());
+
+      expect(result).toEqual({
+        message: "Senha alterada com sucesso.",
+      });
+    });
+
+    it("should hash and save the new password", async () => {
+      createMocksDefaultSetup();
+
+      await userPasswordService.resetPassword(createUserInput());
+
+      expect(hasherServiceMock.hash).toHaveBeenCalledWith(
+        "reseted-password-123",
+      );
+      expect(userRepositoryMock.update).toHaveBeenCalledWith("1", {
+        name: undefined,
+        email: undefined,
+        password: "new-hashed-password",
+      });
+    });
+
+    it("should invalidate the used reset password token when the password is changed", async () => {
+      createMocksDefaultSetup();
+
+      await userPasswordService.resetPassword(createUserInput());
+
+      expect(
+        userRepositoryMock.invalidateResetPasswordToken,
+      ).toHaveBeenCalledWith("1");
+    });
+
+    it("should send email notification when the password is changed", async () => {
+      createMocksDefaultSetup();
+
+      await userPasswordService.resetPassword(createUserInput());
+
+      expect(emailServiceMock.resetPasswordNotification).toHaveBeenCalledWith({
+        userName: "John Doe",
+        email: "john@email.com",
+      });
+    });
+
+    it("should throw 'UnauthorizedException' user or token is invalid or unexistent", async () => {
+      createMocksDefaultSetup();
+      mockUserRepository.findResetPasswordToken.mockResolvedValue(null);
+
+      const input = createUserInput({
+        email: "unexistent-user@email.com",
+      });
+      const resetPasswordPromise = userPasswordService.resetPassword(input);
+
+      await expect(resetPasswordPromise).rejects.toThrow(
+        /^Solicitação inválida. Faça uma nova solicitação ou tente novamente mais tarde.$/,
+      );
+
+      await expect(resetPasswordPromise).rejects.toBeInstanceOf(
+        UnauthorizedException,
+      );
+    });
+
+    it("should throw 'UnauthorizedException' and invalidate token when the provided token is invalid", async () => {
+      createMocksDefaultSetup();
+      mockHasherService.compare.mockResolvedValue(false);
+
+      const resetPasswordPromise =
+        userPasswordService.resetPassword(createUserInput());
+
+      await expect(resetPasswordPromise).rejects.toThrow(
+        /^Solicitação inválida. Faça uma nova solicitação ou tente novamente mais tarde.$/,
+      );
+
+      await expect(resetPasswordPromise).rejects.toBeInstanceOf(
+        UnauthorizedException,
+      );
+
+      expect(
+        userRepositoryMock.invalidateResetPasswordToken,
+      ).toHaveBeenCalledWith("1");
+    });
+
+    it("should throw 'UnauthorizedException' and invalidate token when the token has expired", async () => {
+      mockUserRepository.findResetPasswordToken.mockResolvedValue({
+        name: "John Doe",
+        id: "1",
+        userCredentials: {
+          resetPasswordTokenHash: hashedResetPasswordToken,
+          resetPasswordExpiresAt: new Date(Date.now() - 10 * 60 * 1000),
+        },
+      });
+      mockHasherService.compare.mockResolvedValue(true);
+
+      const resetPasswordPromise =
+        userPasswordService.resetPassword(createUserInput());
+
+      await expect(resetPasswordPromise).rejects.toThrow(
+        /^Solicitação expirada. Faça uma nova solicitação ou tente novamente mais tarde.$/,
+      );
+
+      await expect(resetPasswordPromise).rejects.toBeInstanceOf(
+        UnauthorizedException,
+      );
+
+      expect(
+        userRepositoryMock.invalidateResetPasswordToken,
+      ).toHaveBeenCalledWith("1");
+    });
+  });
 });
