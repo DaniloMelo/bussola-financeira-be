@@ -3,13 +3,13 @@ import {
   Injectable,
   NotFoundException,
 } from "@nestjs/common";
-import { UserRepository } from "./user.repository";
+import { UserRepository } from "../repositories/user.repository";
 import { HasherProtocol } from "src/common/hasher/hasher.protocol";
-import { ICreateUser } from "./interfaces/user";
-import { IUpdateUserData } from "./interfaces/update";
-import { EmailService } from "src/infra/email/email.service";
+import { ICreateUser } from "../interfaces/user";
+import { IUpdateUserData } from "../interfaces/update";
+import { EmailService } from "src/infra/email/services/email.service";
 import { SanitizeProtocol } from "src/common/sanitize/sanitize.protocol";
-import { USER_CONSTANTS } from "./utils/constants/user.constant";
+import { USER_CONSTANTS } from "../utils/constants/user.constant";
 
 @Injectable()
 export class UserService {
@@ -57,14 +57,6 @@ export class UserService {
 
   async findAll() {
     return this.userRepository.findAll();
-  }
-
-  async findOneByIdWithCredentials(userId: string) {
-    return this.userRepository.findOneByIdWithCredentials(userId);
-  }
-
-  async findOneByEmailWithCredentials(email: string) {
-    return this.userRepository.findOneByEmailWithCredentials(email);
   }
 
   async update(userId: string, userData: IUpdateUserData) {
@@ -122,22 +114,5 @@ export class UserService {
     }
 
     return await this.userRepository.softDelete(userId);
-  }
-
-  async saveRefreshTokenAndLastLoginAt(
-    userId: string,
-    refreshTokenHash: string,
-  ) {
-    return await this.userRepository.saveRefreshTokenAndLastLoginAt(
-      userId,
-      refreshTokenHash,
-    );
-  }
-
-  async updateRefreshToken(userId: string, refreshTokenHash: string | null) {
-    return await this.userRepository.updateRefreshToken(
-      userId,
-      refreshTokenHash,
-    );
   }
 }

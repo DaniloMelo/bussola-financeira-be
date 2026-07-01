@@ -3,27 +3,27 @@ import {
   ForbiddenException,
   Injectable,
 } from "@nestjs/common";
-import { ILogin } from "./interfaces/login.interface";
-import { UserService } from "src/domain/user/user.service";
+import { ILogin } from "../interfaces/login.interface";
 import { HasherProtocol } from "src/common/hasher/hasher.protocol";
 import { JwtService } from "@nestjs/jwt";
-import { IJwtPayload } from "./interfaces/jwt-payload.interface";
+import { IJwtPayload } from "../interfaces/jwt-payload.interface";
 import { ConfigService } from "@nestjs/config";
 import { Random } from "src/common/utils/random";
+import { UserAuthService } from "src/domain/user/services/user-auth.service";
 
 @Injectable()
 export class AuthService {
   constructor(
-    private readonly userService: UserService,
+    private readonly configService: ConfigService,
+    private readonly userAuthService: UserAuthService,
     private readonly hasherService: HasherProtocol,
     private readonly jwtService: JwtService,
-    private readonly configService: ConfigService,
+    private readonly random: Random,
   ) {}
 
   async login(loginData: ILogin) {
-    const existingUser = await this.userService.findOneByEmailWithCredentials(
-      loginData.email,
-    );
+    const existingUser =
+      await this.userAuthService.findOneByEmailWithCredentials(loginData.email);
 
     if (!existingUser) {
       throw new BadRequestException(
@@ -51,7 +51,7 @@ export class AuthService {
       tokens.refresh_token,
     );
 
-    await this.userService.saveRefreshTokenAndLastLoginAt(
+    await this.userAuthService.saveRefreshTokenAndLastLoginAt(
       existingUser.id,
       refreshTokenHash,
     );
@@ -61,7 +61,7 @@ export class AuthService {
 
   async refreshTokens(userId: string, refreshToken: string) {
     const existingUser =
-      await this.userService.findOneByIdWithCredentials(userId);
+      await this.userAuthService.findOneByIdWithCredentials(userId);
 
     if (!existingUser || !existingUser.userCredentials?.refreshTokenHash) {
       throw new ForbiddenException("Acesso negado.");
@@ -85,7 +85,7 @@ export class AuthService {
       tokens.refresh_token,
     );
 
-    await this.userService.updateRefreshToken(
+    await this.userAuthService.updateRefreshToken(
       existingUser.id,
       refreshTokenHash,
     );
@@ -94,7 +94,7 @@ export class AuthService {
   }
 
   async logout(userId: string) {
-    return await this.userService.updateRefreshToken(userId, null);
+    return await this.userAuthService.updateRefreshToken(userId, null);
   }
 
   private async generateJwtTokens(id: string, roles: { name: string }[]) {
@@ -116,14 +116,16 @@ export class AuthService {
 
     const [accessToken, refreshToken] = await Promise.all([
       this.jwtService.signAsync(
-        { ...payload, jti: new Random().text() },
+        // { ...payload, jti: new Random().text() },
+        { ...payload, jti: this.random.text() },
         {
           secret: jwtAccessTokenSecret,
           expiresIn: jwtAccessTokenExp,
         },
       ),
       this.jwtService.signAsync(
-        { ...payload, jti: new Random().text() },
+        // { ...payload, jti: new Random().text() },
+        { ...payload, jti: this.random.text() },
         {
           secret: jwtRefreshTokenSecret,
           expiresIn: jwtRefreshTokenExp,

@@ -4,16 +4,13 @@ import * as bcrypt from "bcryptjs";
 
 @Injectable()
 export class BcryptService extends HasherProtocol {
-  async hash(password: string): Promise<string> {
+  async hash(rawText: string): Promise<string> {
     const salt = await bcrypt.genSalt(12);
-    const hash = await bcrypt.hash(password, salt);
-
+    const hash = await bcrypt.hash(rawText, salt);
     return hash;
   }
-
-  async compare(password: string, passwordHash: string): Promise<boolean> {
-    const isPasswordValid = await bcrypt.compare(password, passwordHash);
-
+  async compare(rawText: string, textHash: string): Promise<boolean> {
+    const isPasswordValid = await bcrypt.compare(rawText, textHash);
     return isPasswordValid;
   }
 }

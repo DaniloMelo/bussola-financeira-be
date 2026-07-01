@@ -1,7 +1,11 @@
 import { buttonPartial } from "./button.partial";
 import { htmlLayout } from "./html.layout";
 
-export function resetPasswordHtmlTemplate(userName: string, resetUrl: string) {
+export function resetPasswordHtmlTemplate(
+  userName: string,
+  resetUrl: string,
+  subject: string,
+) {
   const content = `
       <p
         style="margin: 0 0 15px; font-size: 16px; line-height: 24px; color: #333333; font-family: Arial, Helvetica, sans-serif;">
@@ -49,5 +53,5 @@ export function resetPasswordHtmlTemplate(userName: string, resetUrl: string) {
       </p>
     `;
 
-  return htmlLayout(content, "Recuperação de Senha");
+  return htmlLayout(content, subject);
 }

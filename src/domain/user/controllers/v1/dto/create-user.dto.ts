@@ -8,7 +8,7 @@ import {
   MaxLength,
   MinLength,
 } from "class-validator";
-import { USER_CONSTANTS } from "../../utils/constants/user.constant";
+import { USER_CONSTANTS } from "../../../utils/constants/user.constant";
 
 export class CreateUserDtoV1 {
   @Transform(({ value }: TransformFnParams) => {

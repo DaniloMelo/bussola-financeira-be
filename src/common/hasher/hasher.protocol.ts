@@ -1,4 +1,4 @@
 export abstract class HasherProtocol {
-  abstract hash(password: string): Promise<string>;
-  abstract compare(password: string, passwordHash: string): Promise<boolean>;
+  abstract hash(rawText: string): Promise<string>;
+  abstract compare(rawText: string, textHash: string): Promise<boolean>;
 }
