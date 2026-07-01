@@ -16,18 +16,24 @@ import {
   ApiTags,
 } from "@nestjs/swagger";
 
-import { AuthService } from "../auth.service";
-import { JwtAuthGuard } from "../guards/jwt-auth.guard";
-import { JwtRefreshTokenGuard } from "../guards/jwt-refresh-token.guard";
+import { AuthService } from "../../services/auth.service";
+import { JwtAuthGuard } from "../../guards/jwt-auth.guard";
+import { JwtRefreshTokenGuard } from "../../guards/jwt-refresh-token.guard";
 import { LoginDtoV1 } from "./dto/login.dto";
 import { AuthApiResponseDto } from "./dto/swagger/auth-api-response.dto";
 import { LogoutApiResponseDto } from "./dto/swagger/logout-api-response.dto";
 import { CurrentUser } from "src/common/decorators/current-user.decorator";
+import { UserPasswordService } from "src/domain/user/services/user-password.service";
+import { RequestResetPasswordDtoV1 } from "./dto/request-reset-password.dto";
+import { ResetPasswordDtoV1 } from "./dto/reset-password.dto";
 
 @Controller({ path: "auth", version: "1" })
 @ApiTags("auth-v1")
 export class AuthController {
-  constructor(private readonly authService: AuthService) {}
+  constructor(
+    private readonly authService: AuthService,
+    private readonly userPasswordService: UserPasswordService,
+  ) {}
 
   @Post("login")
   @HttpCode(HttpStatus.OK)
@@ -90,5 +96,39 @@ export class AuthController {
   })
   logout(@CurrentUser("id") userId: string) {
     return this.authService.logout(userId);
+  }
+
+  @Post("request-reset-password")
+  @ApiOperation({ summary: "Solicita o reset de senha" })
+  @ApiResponse({
+    status: 200,
+    description: "Solicitação enviada",
+    example: {
+      message:
+        "Caso tenha um usuário cadastrado, receberá um email com instruções de como redefinir a sua senha.",
+    },
+  })
+  requestResetPassword(@Body() userInputData: RequestResetPasswordDtoV1) {
+    return this.userPasswordService.requestPasswordReset(userInputData);
+  }
+
+  @Post("reset-password")
+  @ApiOperation({ summary: "Executa o reset de senha" })
+  @ApiResponse({
+    status: 200,
+    description: "Reset realizado",
+    example: {
+      message: "Senha alterada com sucesso.",
+    },
+  })
+  @ApiResponse({
+    status: 401,
+    description: "Tempo para reset expirado",
+    example: new UnauthorizedException([
+      "Solicitação expirada. Faça uma nova solicitação ou tente novamente mais mais tarde.",
+    ]).getResponse(),
+  })
+  resetPassword(@Body() userInputData: ResetPasswordDtoV1) {
+    return this.userPasswordService.resetPassword(userInputData);
   }
 }

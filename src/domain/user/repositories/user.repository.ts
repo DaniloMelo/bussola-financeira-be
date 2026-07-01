@@ -1,7 +1,7 @@
 import { Injectable } from "@nestjs/common";
 import { PrismaService } from "src/infra/prisma/prisma.service";
-import { CreateUserDtoV1 } from "./v1/dto/create-user.dto";
-import { IUpdateUserData } from "./interfaces/update";
+import { CreateUserDtoV1 } from "../controllers/v1/dto/create-user.dto";
+import { IUpdateUserData } from "../interfaces/update";
 
 @Injectable()
 export class UserRepository {
@@ -186,7 +186,7 @@ export class UserRepository {
     userId: string,
     refreshTokenHash: string,
   ) {
-    return this.prisma.user.update({
+    return await this.prisma.user.update({
       where: {
         id: userId,
         deletedAt: null,
@@ -240,6 +240,57 @@ export class UserRepository {
         roles: {
           select: {
             name: true,
+          },
+        },
+      },
+    });
+  }
+
+  async saveResetPasswordToken(userId: string, token: string, exp: Date) {
+    return await this.prisma.user.update({
+      where: {
+        id: userId,
+        deletedAt: null,
+      },
+      data: {
+        userCredentials: {
+          update: {
+            resetPasswordTokenHash: token,
+            resetPasswordExpiresAt: exp,
+          },
+        },
+      },
+    });
+  }
+
+  async findResetPasswordToken(email: string) {
+    return await this.prisma.user.findUnique({
+      where: { email },
+      select: {
+        id: true,
+        name: true,
+
+        userCredentials: {
+          select: {
+            resetPasswordTokenHash: true,
+            resetPasswordExpiresAt: true,
+          },
+        },
+      },
+    });
+  }
+
+  async invalidateResetPasswordToken(userId: string) {
+    return await this.prisma.user.update({
+      where: {
+        id: userId,
+        deletedAt: null,
+      },
+      data: {
+        userCredentials: {
+          update: {
+            resetPasswordTokenHash: null,
+            resetPasswordExpiresAt: null,
           },
         },
       },

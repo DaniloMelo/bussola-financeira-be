@@ -5,13 +5,13 @@ import { INestApplication } from "@nestjs/common";
 import { PrismaService } from "src/infra/prisma/prisma.service";
 import request from "supertest";
 import { IUpdateUserData } from "src/domain/user/interfaces/update";
-import { UserApiResponseDtoV1 } from "src/domain/user/v1/dto/swagger/user-api-response.dto";
-import { DeletedUserApiResponseDtoV1 } from "src/domain/user/v1/dto/swagger/deleted-user-api-response.dto";
+import { UserApiResponseDtoV1 } from "src/domain/user/controllers/v1/dto/swagger/user-api-response.dto";
+import { DeletedUserApiResponseDtoV1 } from "src/domain/user/controllers/v1/dto/swagger/deleted-user-api-response.dto";
 import { TestDatabaseHelper } from "./helpers/test-database.helper";
 import { ILogin } from "src/infra/auth/interfaces/login.interface";
 import { TestAuthHelper } from "./helpers/test-auth.helper";
 import { createTestApp, TestContext } from "./helpers/create-test-app.helper";
-import { FindMeWithRolesV1 } from "src/domain/user/v1/dto/swagger/find-user-api.response";
+import { FindMeWithRolesV1 } from "src/domain/user/controllers/v1/dto/swagger/find-user-api.response";
 
 describe("User (e2e)", () => {
   let app: INestApplication;

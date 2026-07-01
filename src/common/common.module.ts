@@ -3,6 +3,7 @@ import { HasherProtocol } from "./hasher/hasher.protocol";
 import { BcryptService } from "./hasher/bcrypt.service";
 import { SanitizeService } from "./sanitize/sanitize.service";
 import { SanitizeProtocol } from "./sanitize/sanitize.protocol";
+import { Random } from "./utils/random";
 
 @Module({
   providers: [
@@ -14,7 +15,8 @@ import { SanitizeProtocol } from "./sanitize/sanitize.protocol";
       provide: SanitizeProtocol,
       useClass: SanitizeService,
     },
+    Random,
   ],
-  exports: [HasherProtocol, SanitizeProtocol],
+  exports: [HasherProtocol, SanitizeProtocol, Random],
 })
 export class CommonModule {}

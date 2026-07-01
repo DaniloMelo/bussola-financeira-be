@@ -3,7 +3,7 @@
 
 import { Body, INestApplication } from "@nestjs/common";
 import { ILogin } from "src/infra/auth/interfaces/login.interface";
-import { AuthApiResponseDto } from "src/infra/auth/v1/dto/swagger/auth-api-response.dto";
+import { AuthApiResponseDto } from "src/infra/auth/controllers/v1/dto/swagger/auth-api-response.dto";
 import request from "supertest";
 
 export class TestAuthHelper {

@@ -16,7 +16,7 @@ import {
   ApiTags,
 } from "@nestjs/swagger";
 import { JwtAuthGuard } from "src/infra/auth/guards/jwt-auth.guard";
-import { UserService } from "../user.service";
+import { UserService } from "../../services/user.service";
 import { CreateUserDtoV1 } from "./dto/create-user.dto";
 import { DeletedUserApiResponseDtoV1 } from "./dto/swagger/deleted-user-api-response.dto";
 import { UpdateUserApiResponseDtoV1 } from "./dto/swagger/update-user-api-response.dto";

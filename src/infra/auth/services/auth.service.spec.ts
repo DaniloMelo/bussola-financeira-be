@@ -4,14 +4,25 @@
 
 import { Test, TestingModule } from "@nestjs/testing";
 import { AuthService } from "./auth.service";
-import { UserService } from "src/domain/user/user.service";
 import { HasherProtocol } from "src/common/hasher/hasher.protocol";
 import { JwtService } from "@nestjs/jwt";
-import { ILogin } from "./interfaces/login.interface";
+import { ILogin } from "../interfaces/login.interface";
 import { BadRequestException, ForbiddenException } from "@nestjs/common";
 import { ConfigService } from "@nestjs/config";
+import { UserAuthService } from "src/domain/user/services/user-auth.service";
+import { Random } from "src/common/utils/random";
 
-const mockUserService = {
+const mockConfigService = {
+  get: jest.fn((key: string) => {
+    if (key === "JWT_SECRET") return "local_test_secret";
+    if (key === "JWT_EXP") return "900";
+    if (key === "JWT_REFRESH_SECRET") return "local_test_refresh_secret";
+    if (key === "JWT_REFRESH_EXP") return "604800";
+    return null;
+  }),
+};
+
+const mockUserAuthService = {
   findOneByEmailWithCredentials: jest.fn(),
   findOneByIdWithCredentials: jest.fn(),
   saveRefreshTokenAndLastLoginAt: jest.fn(),
@@ -27,19 +38,13 @@ const mockJwtService = {
   signAsync: jest.fn(),
 };
 
-const mockConfigService = {
-  get: jest.fn((key: string) => {
-    if (key === "JWT_SECRET") return "local_test_secret";
-    if (key === "JWT_EXP") return "900";
-    if (key === "JWT_REFRESH_SECRET") return "local_test_refresh_secret";
-    if (key === "JWT_REFRESH_EXP") return "604800";
-    return null;
-  }),
+const mockRandom = {
+  text: jest.fn(),
 };
 
 describe("AuthService", () => {
   let authService: AuthService;
-  let userServiceMock: UserService;
+  let userAuthServiceMock: UserAuthService;
   let hasherServiceMock: HasherProtocol;
   let jwtServiceMock: JwtService;
 
@@ -47,15 +52,16 @@ describe("AuthService", () => {
     const module: TestingModule = await Test.createTestingModule({
       providers: [
         AuthService,
-        { provide: UserService, useValue: mockUserService },
+        { provide: UserAuthService, useValue: mockUserAuthService },
         { provide: HasherProtocol, useValue: mockHasherService },
         { provide: JwtService, useValue: mockJwtService },
         { provide: ConfigService, useValue: mockConfigService },
+        { provide: Random, useValue: mockRandom },
       ],
     }).compile();
 
     authService = module.get<AuthService>(AuthService);
-    userServiceMock = module.get<UserService>(UserService);
+    userAuthServiceMock = module.get<UserAuthService>(UserAuthService);
     hasherServiceMock = module.get<HasherProtocol>(HasherProtocol);
     jwtServiceMock = module.get<JwtService>(JwtService);
   });
@@ -99,7 +105,7 @@ describe("AuthService", () => {
 
   describe("login", () => {
     function createMocksDefaultSetup() {
-      mockUserService.findOneByEmailWithCredentials.mockResolvedValue(
+      mockUserAuthService.findOneByEmailWithCredentials.mockResolvedValue(
         createMockStoredUser(),
       );
       mockHasherService.compare.mockResolvedValue(true);
@@ -128,12 +134,12 @@ describe("AuthService", () => {
       expect(hasherServiceMock.hash).toHaveBeenCalledWith(fakeRefreshToken);
 
       expect(
-        userServiceMock.saveRefreshTokenAndLastLoginAt,
+        userAuthServiceMock.saveRefreshTokenAndLastLoginAt,
       ).toHaveBeenCalledWith(storedUserId, fakeHashedRefreshToken);
     });
 
     it("should throw BadRequestException if user don't exist", async () => {
-      mockUserService.findOneByEmailWithCredentials.mockResolvedValue(null);
+      mockUserAuthService.findOneByEmailWithCredentials.mockResolvedValue(null);
 
       const loginPromise = authService.login(loginUserData);
 
@@ -144,7 +150,7 @@ describe("AuthService", () => {
       await expect(loginPromise).rejects.toBeInstanceOf(BadRequestException);
 
       expect(
-        userServiceMock.findOneByEmailWithCredentials,
+        userAuthServiceMock.findOneByEmailWithCredentials,
       ).toHaveBeenCalledWith(loginUserData.email);
 
       expect(hasherServiceMock.compare).not.toHaveBeenCalled();
@@ -155,7 +161,7 @@ describe("AuthService", () => {
     it("should throw BadRequestException if password is incorrect", async () => {
       const mockStoredUser = createMockStoredUser();
 
-      mockUserService.findOneByEmailWithCredentials.mockResolvedValue(
+      mockUserAuthService.findOneByEmailWithCredentials.mockResolvedValue(
         mockStoredUser,
       );
 
@@ -170,7 +176,7 @@ describe("AuthService", () => {
       await expect(loginPromise).rejects.toBeInstanceOf(BadRequestException);
 
       expect(
-        userServiceMock.findOneByEmailWithCredentials,
+        userAuthServiceMock.findOneByEmailWithCredentials,
       ).toHaveBeenCalledWith(loginUserData.email);
 
       expect(hasherServiceMock.compare).toHaveBeenCalledWith(
@@ -191,7 +197,7 @@ describe("AuthService", () => {
         },
       });
 
-      mockUserService.findOneByIdWithCredentials.mockResolvedValue(
+      mockUserAuthService.findOneByIdWithCredentials.mockResolvedValue(
         mockStoredUser,
       );
       mockHasherService.compare.mockResolvedValue(true);
@@ -222,14 +228,14 @@ describe("AuthService", () => {
 
       expect(hasherServiceMock.hash).toHaveBeenCalledWith(fakeRefreshToken);
 
-      expect(userServiceMock.updateRefreshToken).toHaveBeenCalledWith(
+      expect(userAuthServiceMock.updateRefreshToken).toHaveBeenCalledWith(
         storedUserId,
         fakeHashedRefreshToken,
       );
     });
 
     it("should throw 'ForbiddenException' if the user is not found", async () => {
-      mockUserService.findOneByIdWithCredentials.mockResolvedValue(null);
+      mockUserAuthService.findOneByIdWithCredentials.mockResolvedValue(null);
 
       const refreshTokensPromise = authService.refreshTokens(
         storedUserId,
@@ -242,11 +248,11 @@ describe("AuthService", () => {
         ForbiddenException,
       );
 
-      expect(userServiceMock.updateRefreshToken).not.toHaveBeenCalled();
+      expect(userAuthServiceMock.updateRefreshToken).not.toHaveBeenCalled();
     });
 
     it("should throw a 'ForbiddenException' when the refresh token is null or does not exist in the database", async () => {
-      mockUserService.findOneByIdWithCredentials.mockResolvedValue(
+      mockUserAuthService.findOneByIdWithCredentials.mockResolvedValue(
         createMockStoredUser(),
       );
 
@@ -261,7 +267,7 @@ describe("AuthService", () => {
         ForbiddenException,
       );
 
-      expect(userServiceMock.updateRefreshToken).not.toHaveBeenCalled();
+      expect(userAuthServiceMock.updateRefreshToken).not.toHaveBeenCalled();
     });
 
     it("should throw 'ForbiddenException' if refresh token dont match", async () => {
@@ -271,7 +277,7 @@ describe("AuthService", () => {
         },
       });
 
-      mockUserService.findOneByIdWithCredentials.mockResolvedValue(
+      mockUserAuthService.findOneByIdWithCredentials.mockResolvedValue(
         mockStoredUser,
       );
 
@@ -293,13 +299,13 @@ describe("AuthService", () => {
         fakeHashedRefreshToken,
       );
 
-      expect(userServiceMock.updateRefreshToken).not.toHaveBeenCalled();
+      expect(userAuthServiceMock.updateRefreshToken).not.toHaveBeenCalled();
     });
   });
 
   describe("logout", () => {
     it("should update refresh token to a null value", async () => {
-      mockUserService.updateRefreshToken.mockResolvedValue(
+      mockUserAuthService.updateRefreshToken.mockResolvedValue(
         createMockStoredUser(),
       );
 
