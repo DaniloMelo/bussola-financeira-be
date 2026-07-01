@@ -11,9 +11,9 @@ import { RefreshTokenStrategy } from "./strategies/refresh-token.strategy";
 
 @Module({
   imports: [
-    UserModule,
     PrismaModule,
     CommonModule,
+    UserModule,
     JwtModule.registerAsync({
       inject: [ConfigService],
       useFactory: (configService: ConfigService) => ({

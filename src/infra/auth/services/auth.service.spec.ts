@@ -10,6 +10,17 @@ import { ILogin } from "../interfaces/login.interface";
 import { BadRequestException, ForbiddenException } from "@nestjs/common";
 import { ConfigService } from "@nestjs/config";
 import { UserAuthService } from "src/domain/user/services/user-auth.service";
+import { Random } from "src/common/utils/random";
+
+const mockConfigService = {
+  get: jest.fn((key: string) => {
+    if (key === "JWT_SECRET") return "local_test_secret";
+    if (key === "JWT_EXP") return "900";
+    if (key === "JWT_REFRESH_SECRET") return "local_test_refresh_secret";
+    if (key === "JWT_REFRESH_EXP") return "604800";
+    return null;
+  }),
+};
 
 const mockUserAuthService = {
   findOneByEmailWithCredentials: jest.fn(),
@@ -27,14 +38,8 @@ const mockJwtService = {
   signAsync: jest.fn(),
 };
 
-const mockConfigService = {
-  get: jest.fn((key: string) => {
-    if (key === "JWT_SECRET") return "local_test_secret";
-    if (key === "JWT_EXP") return "900";
-    if (key === "JWT_REFRESH_SECRET") return "local_test_refresh_secret";
-    if (key === "JWT_REFRESH_EXP") return "604800";
-    return null;
-  }),
+const mockRandom = {
+  text: jest.fn(),
 };
 
 describe("AuthService", () => {
@@ -51,6 +56,7 @@ describe("AuthService", () => {
         { provide: HasherProtocol, useValue: mockHasherService },
         { provide: JwtService, useValue: mockJwtService },
         { provide: ConfigService, useValue: mockConfigService },
+        { provide: Random, useValue: mockRandom },
       ],
     }).compile();
 

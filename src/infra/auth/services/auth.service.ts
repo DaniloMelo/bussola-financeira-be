@@ -14,10 +14,11 @@ import { UserAuthService } from "src/domain/user/services/user-auth.service";
 @Injectable()
 export class AuthService {
   constructor(
+    private readonly configService: ConfigService,
     private readonly userAuthService: UserAuthService,
     private readonly hasherService: HasherProtocol,
     private readonly jwtService: JwtService,
-    private readonly configService: ConfigService,
+    private readonly random: Random,
   ) {}
 
   async login(loginData: ILogin) {
@@ -115,14 +116,16 @@ export class AuthService {
 
     const [accessToken, refreshToken] = await Promise.all([
       this.jwtService.signAsync(
-        { ...payload, jti: new Random().text() },
+        // { ...payload, jti: new Random().text() },
+        { ...payload, jti: this.random.text() },
         {
           secret: jwtAccessTokenSecret,
           expiresIn: jwtAccessTokenExp,
         },
       ),
       this.jwtService.signAsync(
-        { ...payload, jti: new Random().text() },
+        // { ...payload, jti: new Random().text() },
+        { ...payload, jti: this.random.text() },
         {
           secret: jwtRefreshTokenSecret,
           expiresIn: jwtRefreshTokenExp,

@@ -1,3 +1,6 @@
+import { Injectable } from "@nestjs/common";
+
+@Injectable()
 export class Random {
   text(rounds: number = 5) {
     let value: string = "";
