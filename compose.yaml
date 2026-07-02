@@ -14,10 +14,14 @@ services:
       - ".env"
     environment:
       - DATABASE_URL_TEST=postgresql://local_user_e2e_test:local_password_e2e_test@database_test:5432/local_db_e2e_test?schema=public
+      - REDIS_HOST=redis
+      - REDIS_HOST=redis
     depends_on:
       database_dev:
         condition: service_healthy
       database_test:
+        condition: service_healthy
+      redis:
         condition: service_healthy
 
   database_dev:
@@ -51,6 +55,17 @@ services:
     healthcheck:
       test:
         ["CMD-SHELL", "pg_isready -U local_user_e2e_test -d local_db_e2e_test"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  redis:
+    container_name: "redis-dev"
+    image: "redis:7-alpine"
+    ports:
+      - "6379:6379"
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
       interval: 10s
       timeout: 5s
       retries: 5

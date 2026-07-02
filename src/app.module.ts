@@ -6,11 +6,13 @@ import { AuthModule } from "./infra/auth/auth.module";
 import { AdminModule } from "./domain/admin/admin.module";
 import { AppController } from "./app.controller";
 import { EmailModule } from "./infra/email/email.module";
+import { QueueModule } from "./infra/queue/queue.module";
 
 @Module({
   imports: [
     ConfigModule.forRoot({ isGlobal: true }),
     PrismaModule,
+    QueueModule,
     EmailModule,
     UserModule,
     AuthModule,
