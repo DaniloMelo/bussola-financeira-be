@@ -1,4 +1,4 @@
 export enum EmailJobs {
-  RESET_PASSWORD = "RESET_PASSWORD",
-  RESET_PASSWORD_NOTIFICATION = "RESET_PASSWORD_NOTIFICATION",
+  RESET_PASSWORD = "reset_password",
+  RESET_PASSWORD_NOTIFICATION = "reset_password_notification",
 }
