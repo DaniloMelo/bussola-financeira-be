@@ -43,7 +43,6 @@ export class UserPasswordService {
     const frontUrl = this.configService.get<string>("FRONTEND_URL_ORIGIN");
     const resetUrl = `${frontUrl}/reset-password?token=${token}&email=${encodeURIComponent(existingUser.email)}`;
 
-    // TODO: Estudar sobre filas para envio de emails.
     await this.emailService.resetPassword({
       email: existingUser.email,
       userName: existingUser.name,
@@ -106,7 +105,6 @@ export class UserPasswordService {
 
     await this.userRepository.invalidateResetPasswordToken(userId);
 
-    // TODO: Estudar sobre filas para envio de emails.
     await this.emailService.resetPasswordNotification({ userName, email });
 
     return {
