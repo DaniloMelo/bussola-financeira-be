@@ -12,20 +12,24 @@ import { EmailProcessor } from "./processors/email.processor";
       imports: [ConfigModule],
       inject: [ConfigService],
       // eslint-disable-next-line @typescript-eslint/require-await
-      useFactory: async (configService: ConfigService) => ({
-        transport: {
-          host: configService.get("EMAIL_HOST"),
-          port: configService.get("EMAIL_PORT"),
-          secure: false,
-          auth: {
-            user: configService.get("EMAIL_USERNAME"),
-            pass: configService.get("EMAIL_PASSWORD"),
+      useFactory: async (configService: ConfigService) => {
+        const isDevelopment = configService.get("NODE_ENV") === "development";
+
+        return {
+          transport: {
+            host: configService.get("EMAIL_HOST"),
+            port: Number(configService.get("EMAIL_PORT")),
+            secure: !isDevelopment,
+            auth: {
+              user: configService.get("EMAIL_USERNAME"),
+              pass: configService.get("EMAIL_PASSWORD"),
+            },
           },
-        },
-        defaults: {
-          from: `"${configService.get("EMAIL_FROM_NAME")}" <${configService.get("EMAIL_FROM_ADDRESS")}>`,
-        },
-      }),
+          defaults: {
+            from: `"${configService.get("EMAIL_FROM_NAME")}" <${configService.get("EMAIL_FROM_ADDRESS")}>`,
+          },
+        };
+      },
     }),
 
     BullModule.registerQueue({
