@@ -70,7 +70,6 @@ export class UserPasswordService {
       );
     }
 
-    // eslint-disable-next-line @typescript-eslint/no-unused-vars
     const { userCredentials, id: userId, name: userName } = userData;
     const resetPasswordTokenHash = userCredentials.resetPasswordTokenHash!;
     const resetPasswordExpiresAt = userCredentials.resetPasswordExpiresAt!;
@@ -106,7 +105,7 @@ export class UserPasswordService {
 
     await this.userRepository.invalidateResetPasswordToken(userId);
 
-    // await this.emailService.resetPasswordNotification({ userName, email });
+    await this.emailService.resetPasswordNotification({ userName, email });
 
     return {
       message: "Senha alterada com sucesso.",
