@@ -13,13 +13,13 @@ import { EmailProcessor } from "./processors/email.processor";
       inject: [ConfigService],
       // eslint-disable-next-line @typescript-eslint/require-await
       useFactory: async (configService: ConfigService) => {
-        const isDevelopment = configService.get("NODE_ENV") === "development";
+        // const isDevelopment = configService.get("NODE_ENV") === "development";
 
         return {
           transport: {
             host: configService.get("EMAIL_HOST"),
             port: Number(configService.get("EMAIL_PORT")),
-            secure: !isDevelopment,
+            secure: false,
             auth: {
               user: configService.get("EMAIL_USERNAME"),
               pass: configService.get("EMAIL_PASSWORD"),
