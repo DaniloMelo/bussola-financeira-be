@@ -1,11 +1,11 @@
-import { MailerService } from "@nestjs-modules/mailer";
-import { Injectable } from "@nestjs/common";
-import { resetPasswordHtmlTemplate } from "../templates/html/reset-password-html.template";
-import { resetPasswordTextTemplate } from "../templates/text/reset-password-txt.template";
-import { resetPasswordNotificationHtmlTemplate } from "../templates/html/reset-password-notification-html.template";
-import { resetPasswordNotificationTextTemplate } from "../templates/text/reset-password-notification-txt.template";
+/* eslint-disable @typescript-eslint/no-unsafe-member-access */
+import { Injectable, Logger } from "@nestjs/common";
+import { Queue } from "bull";
+import { EmailJobs } from "../enums/email-queue.enum";
+import { InjectQueue } from "@nestjs/bull";
+import { EMAIL_QUEUE } from "../constants/email.constant";
 
-interface ResetPasswordParams {
+export interface ResetPasswordParams {
   userName: string;
   email: string;
   resetUrl: string;
@@ -13,31 +13,50 @@ interface ResetPasswordParams {
 
 @Injectable()
 export class EmailService {
-  constructor(private readonly mailerService: MailerService) {}
+  private readonly logger = new Logger(EmailService.name);
+
+  constructor(
+    @InjectQueue(EMAIL_QUEUE)
+    private readonly emailQueue: Queue,
+  ) {}
 
   async resetPassword(params: ResetPasswordParams) {
     const { userName, email, resetUrl } = params;
-    const subject = "Solicitação de recuperação de senha";
 
-    await this.mailerService.sendMail({
-      to: email,
-      subject,
-      html: resetPasswordHtmlTemplate(userName, resetUrl, subject),
-      text: resetPasswordTextTemplate(userName, resetUrl, subject),
-    });
+    try {
+      const job = await this.emailQueue.add(
+        EmailJobs.RESET_PASSWORD,
+        { userName, email, resetUrl },
+        { priority: 1, attempts: 5 },
+      );
+
+      this.logger.log(`Job #${job.id} adicionado à fila para: ${email}`);
+
+      return { jobId: job.id };
+    } catch (error: any) {
+      this.logger.error(`Erro ao adicionar job à fila: ${error.message}`);
+      throw error;
+    }
   }
 
   async resetPasswordNotification(
     params: Omit<ResetPasswordParams, "resetUrl">,
   ) {
     const { userName, email } = params;
-    const subject = "Senha alterada";
 
-    await this.mailerService.sendMail({
-      to: email,
-      subject,
-      html: resetPasswordNotificationHtmlTemplate(userName, subject),
-      text: resetPasswordNotificationTextTemplate(userName, subject),
-    });
+    try {
+      const job = await this.emailQueue.add(
+        EmailJobs.RESET_PASSWORD_NOTIFICATION,
+        { userName, email },
+        { priority: 1, attempts: 5 },
+      );
+
+      this.logger.log(`Job #${job.id} adicionado à fila para: ${email}`);
+
+      return { jobId: job.id };
+    } catch (error: any) {
+      this.logger.error(`Erro ao adicionar job à fila: ${error.message}`);
+      throw error;
+    }
   }
 }
