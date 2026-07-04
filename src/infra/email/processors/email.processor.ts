@@ -1,5 +1,3 @@
-/* eslint-disable no-useless-catch */
-
 import { Process, Processor } from "@nestjs/bull";
 import { EMAIL_QUEUE } from "../constants/email.constant";
 import { MailerService } from "@nestjs-modules/mailer";
@@ -10,9 +8,12 @@ import { resetPasswordHtmlTemplate } from "../templates/html/reset-password-html
 import { resetPasswordTextTemplate } from "../templates/text/reset-password-txt.template";
 import { resetPasswordNotificationHtmlTemplate } from "../templates/html/reset-password-notification-html.template";
 import { resetPasswordNotificationTextTemplate } from "../templates/text/reset-password-notification-txt.template";
+import { Logger } from "@nestjs/common";
 
 @Processor(EMAIL_QUEUE)
 export class EmailProcessor {
+  private readonly logger = new Logger(EmailProcessor.name);
+
   constructor(private readonly mailerService: MailerService) {}
 
   @Process(EmailJobs.RESET_PASSWORD)
@@ -21,13 +22,18 @@ export class EmailProcessor {
     const subject = "Solicitação de recuperação de senha";
 
     try {
+      this.logger.log(`Processando envio de e-mail para o job ${job.id}`);
+
       await this.mailerService.sendMail({
         to: email,
         subject,
         html: resetPasswordHtmlTemplate(userName, resetUrl, subject),
         text: resetPasswordTextTemplate(userName, resetUrl, subject),
       });
+
+      this.logger.log(`E-mail enviado com sucesso para o job ${job.id}`);
     } catch (error) {
+      this.logger.error(`Falha ao processar o job ${job.id}:`, error);
       throw error;
     }
   }
@@ -40,13 +46,18 @@ export class EmailProcessor {
     const subject = "Senha alterada";
 
     try {
+      this.logger.log(`Processando envio de e-mail para o job ${job.id}`);
+
       await this.mailerService.sendMail({
         to: email,
         subject,
         html: resetPasswordNotificationHtmlTemplate(userName, subject),
         text: resetPasswordNotificationTextTemplate(userName, subject),
       });
+
+      this.logger.log(`E-mail enviado com sucesso para o job ${job.id}`);
     } catch (error) {
+      this.logger.error(`Falha ao processar o job ${job.id}:`, error);
       throw error;
     }
   }
