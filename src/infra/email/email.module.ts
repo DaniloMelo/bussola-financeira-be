@@ -20,9 +20,14 @@ import { EmailProcessor } from "./processors/email.processor";
             host: configService.get("EMAIL_HOST"),
             port: Number(configService.get("EMAIL_PORT")),
             secure: false,
+            requireTLS: true,
             auth: {
               user: configService.get("EMAIL_USERNAME"),
               pass: configService.get("EMAIL_PASSWORD"),
+            },
+            tls: {
+              ciphers: "SSLv3",
+              rejectUnauthorized: false,
             },
           },
           defaults: {
