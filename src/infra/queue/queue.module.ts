@@ -12,8 +12,13 @@ import { ConfigModule, ConfigService } from "@nestjs/config";
         const redisUrl = configService.get<string>("REDIS_URL");
 
         const defaultJobOptions = {
-          removeOnComplete: true,
-          removeOnFail: true,
+          removeOnComplete: {
+            age: 3600,
+            count: 100,
+          },
+          removeOnFail: {
+            age: 86400,
+          },
           attempts: 5,
           backoff: {
             type: "exponential" as const,
@@ -25,9 +30,12 @@ import { ConfigModule, ConfigService } from "@nestjs/config";
           return {
             url: redisUrl,
             redis: {
-              tls: {},
+              tls: {
+                rejectUnauthorized: false,
+              },
               maxRetriesPerRequest: null,
-              connectTimeout: 10000,
+              enableReadyCheck: false,
+              connectTimeout: 30000,
             },
             defaultJobOptions,
           };

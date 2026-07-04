@@ -8,37 +8,33 @@ import { EmailProcessor } from "./processors/email.processor";
 
 @Module({
   imports: [
+    BullModule.registerQueue({
+      name: EMAIL_QUEUE,
+    }),
     MailerModule.forRootAsync({
       imports: [ConfigModule],
       inject: [ConfigService],
       // eslint-disable-next-line @typescript-eslint/require-await
       useFactory: async (configService: ConfigService) => {
-        // const isDevelopment = configService.get("NODE_ENV") === "development";
-
         return {
           transport: {
-            host: configService.get("EMAIL_HOST"),
-            port: Number(configService.get("EMAIL_PORT")),
+            host: configService.get<string>("EMAIL_HOST"),
+            port: configService.get<number>("EMAIL_PORT"),
             secure: false,
             requireTLS: true,
             auth: {
-              user: configService.get("EMAIL_USERNAME"),
-              pass: configService.get("EMAIL_PASSWORD"),
+              user: configService.get<string>("EMAIL_USERNAME"),
+              pass: configService.get<string>("EMAIL_PASSWORD"),
             },
             tls: {
-              ciphers: "SSLv3",
               rejectUnauthorized: false,
             },
           },
           defaults: {
-            from: `"${configService.get("EMAIL_FROM_NAME")}" <${configService.get("EMAIL_FROM_ADDRESS")}>`,
+            from: `"${configService.get<string>("EMAIL_FROM_NAME")}" <${configService.get<string>("EMAIL_FROM_ADDRESS")}>`,
           },
         };
       },
-    }),
-
-    BullModule.registerQueue({
-      name: EMAIL_QUEUE,
     }),
   ],
   providers: [EmailService, EmailProcessor],
