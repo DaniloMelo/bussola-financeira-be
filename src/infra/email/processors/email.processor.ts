@@ -1,4 +1,11 @@
-import { Process, Processor } from "@nestjs/bull";
+/* eslint-disable @typescript-eslint/no-unsafe-member-access */
+import {
+  OnQueueActive,
+  OnQueueCompleted,
+  OnQueueFailed,
+  Process,
+  Processor,
+} from "@nestjs/bull";
 import { EMAIL_QUEUE } from "../constants/email.constant";
 import { MailerService } from "@nestjs-modules/mailer";
 import { EmailJobs } from "../enums/email-queue.enum";
@@ -16,6 +23,29 @@ export class EmailProcessor {
 
   constructor(private readonly mailerService: MailerService) {}
 
+  onModuleInit() {
+    this.logger.log("━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━");
+    this.logger.log(`EmailProcessor INICIALIZADO`);
+    this.logger.log(`Aguardando jobs na fila: ${EMAIL_QUEUE}`);
+    this.logger.log("━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━");
+  }
+
+  @OnQueueActive()
+  onActive(job: Job) {
+    this.logger.log(`[Job ${job.id}] Iniciando processamento: ${job.name}`);
+  }
+
+  @OnQueueCompleted()
+  onCompleted(job: Job) {
+    this.logger.log(`[Job ${job.id}] Concluído com sucesso`);
+  }
+
+  @OnQueueFailed()
+  onFailed(job: Job, error: Error) {
+    this.logger.error(`[Job ${job.id}] Falhou: ${error.message}`);
+    this.logger.error(error.stack);
+  }
+
   @Process(EmailJobs.RESET_PASSWORD)
   async handleResetPassword(job: Job<ResetPasswordParams>) {
     const { userName, email, resetUrl } = job.data;
@@ -32,8 +62,16 @@ export class EmailProcessor {
       });
 
       this.logger.log(`E-mail enviado com sucesso para o job ${job.id}`);
-    } catch (error) {
+    } catch (error: any) {
       this.logger.error(`Falha ao processar o job ${job.id}:`, error);
+      this.logger.error(`Detalhes: ${error.message}`);
+
+      if (error.code) {
+        this.logger.error(`Código de erro: ${error.code}`);
+      }
+      if (error.response) {
+        this.logger.error(`Resposta do servidor: ${error.response}`);
+      }
       throw error;
     }
   }
@@ -56,8 +94,10 @@ export class EmailProcessor {
       });
 
       this.logger.log(`E-mail enviado com sucesso para o job ${job.id}`);
-    } catch (error) {
+    } catch (error: any) {
       this.logger.error(`Falha ao processar o job ${job.id}:`, error);
+      this.logger.error(`Detalhes: ${error.message}`);
+
       throw error;
     }
   }
