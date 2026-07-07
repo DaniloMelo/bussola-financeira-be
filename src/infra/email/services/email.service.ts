@@ -30,7 +30,10 @@ export class EmailService {
         { priority: 1, attempts: 5 },
       );
 
+      this.logger.log(await job.getState());
+      this.logger.log(`Job criado: ${job.id}`);
       this.logger.log(`Job #${job.id} adicionado à fila para: ${email}`);
+      this.logger.log(await this.emailQueue.getJobCounts());
 
       return { jobId: job.id };
     } catch (error: any) {
@@ -51,7 +54,10 @@ export class EmailService {
         { priority: 1, attempts: 5 },
       );
 
+      this.logger.log(await job.getState());
+      this.logger.log(`Job criado: ${job.id}`);
       this.logger.log(`Job #${job.id} adicionado à fila para: ${email}`);
+      this.logger.log(await this.emailQueue.getJobCounts());
 
       return { jobId: job.id };
     } catch (error: any) {
