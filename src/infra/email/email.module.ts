@@ -5,6 +5,7 @@ import { ConfigModule, ConfigService } from "@nestjs/config";
 import { BullModule } from "@nestjs/bull";
 import { EMAIL_QUEUE } from "./constants/email.constant";
 import { EmailProcessor } from "./processors/email.processor";
+import { EmailDebugController } from "./email-debug.controller";
 
 @Module({
   imports: [
@@ -37,6 +38,7 @@ import { EmailProcessor } from "./processors/email.processor";
       },
     }),
   ],
+  controllers: [EmailDebugController],
   providers: [EmailService, EmailProcessor],
   exports: [EmailService],
 })
