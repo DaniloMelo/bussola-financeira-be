@@ -7,7 +7,6 @@ import {
   Processor,
 } from "@nestjs/bull";
 import { EMAIL_QUEUE } from "../constants/email.constant";
-import { MailerService } from "@nestjs-modules/mailer";
 import { EmailJobs } from "../enums/email-queue.enum";
 import { Job } from "bull";
 import { ResetPasswordParams } from "../services/email.service";
@@ -16,12 +15,13 @@ import { resetPasswordTextTemplate } from "../templates/text/reset-password-txt.
 import { resetPasswordNotificationHtmlTemplate } from "../templates/html/reset-password-notification-html.template";
 import { resetPasswordNotificationTextTemplate } from "../templates/text/reset-password-notification-txt.template";
 import { Logger } from "@nestjs/common";
+import { EmailProviderProtocol } from "../providers/email.provider.protocol";
 
 @Processor(EMAIL_QUEUE)
 export class EmailProcessor {
   private readonly logger = new Logger(EmailProcessor.name);
 
-  constructor(private readonly mailerService: MailerService) {}
+  constructor(private readonly emailProvider: EmailProviderProtocol) {}
 
   onModuleInit() {
     this.logger.log("━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━");
@@ -54,7 +54,7 @@ export class EmailProcessor {
     try {
       this.logger.log(`Processando envio de e-mail para o job ${job.id}`);
 
-      await this.mailerService.sendMail({
+      await this.emailProvider.sendMail({
         to: email,
         subject,
         html: resetPasswordHtmlTemplate(userName, resetUrl, subject),
@@ -86,7 +86,7 @@ export class EmailProcessor {
     try {
       this.logger.log(`Processando envio de e-mail para o job ${job.id}`);
 
-      await this.mailerService.sendMail({
+      await this.emailProvider.sendMail({
         to: email,
         subject,
         html: resetPasswordNotificationHtmlTemplate(userName, subject),

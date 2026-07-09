@@ -1,0 +1,53 @@
+import { Injectable, Logger } from "@nestjs/common";
+import { ConfigService } from "@nestjs/config";
+import { Resend } from "resend";
+import {
+  EmailProviderProtocol,
+  SendMailOptions,
+} from "./email.provider.protocol";
+
+@Injectable()
+export class ResendProvider implements EmailProviderProtocol {
+  private resend: Resend | null = null;
+  private readonly logger = new Logger(ResendProvider.name);
+
+  constructor(private readonly configService: ConfigService) {}
+
+  async sendMail(options: SendMailOptions): Promise<void> {
+    const resend = this.getClient();
+
+    const fromName = this.configService.get<string>("EMAIL_FROM_NAME");
+    const fromAddress = this.configService.get<string>("EMAIL_FROM_ADDRESS");
+
+    const { data, error } = await resend.emails.send({
+      from: `${fromName} <${fromAddress}>`,
+      to: options.to,
+      subject: options.subject,
+      html: options.html,
+      text: options.text,
+    });
+
+    if (error) {
+      this.logger.error(`[Resend] Re-throwing the error for queue retry`);
+      throw new Error(`[Resend] Error sending email: ${error.message}`);
+    }
+
+    this.logger.log(`[Resend] Email sent to: ${options.to}. ID: ${data?.id}`);
+  }
+
+  getClient(): Resend {
+    if (!this.resend) {
+      const RESEND_API_KEY = this.configService.get<string>("RESEND_API_KEY");
+      this.resend = new Resend(RESEND_API_KEY);
+    }
+
+    return this.resend;
+  }
+}
+
+// const RESEND_API_KEY = this.configService.get<string>("RESEND_API_KEY");
+// this.resend = new Resend(RESEND_API_KEY);
+
+// const fromName = this.configService.get<string>("EMAIL_FROM_NAME");
+// const fromAddress = this.configService.get<string>("EMAIL_FROM_ADDRESS");
+// this.from = `${fromName} <${fromAddress}>`;

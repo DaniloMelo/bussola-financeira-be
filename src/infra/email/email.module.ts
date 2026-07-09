@@ -6,6 +6,9 @@ import { BullModule } from "@nestjs/bull";
 import { EMAIL_QUEUE } from "./constants/email.constant";
 import { EmailProcessor } from "./processors/email.processor";
 import { EmailDebugController } from "./email-debug.controller";
+import { MailtrapProvider } from "./providers/mailtrap.provider";
+import { ResendProvider } from "./providers/resend.provider";
+import { EmailProviderProtocol } from "./providers/email.provider.protocol";
 
 @Module({
   imports: [
@@ -17,6 +20,15 @@ import { EmailDebugController } from "./email-debug.controller";
       inject: [ConfigService],
       // eslint-disable-next-line @typescript-eslint/require-await
       useFactory: async (configService: ConfigService) => {
+        const isDevelopment =
+          configService.get<string>("NODE_ENV") === "development";
+
+        if (!isDevelopment) {
+          return {
+            transport: { jsonTransport: true },
+          };
+        }
+
         return {
           transport: {
             host: configService.get<string>("EMAIL_HOST"),
@@ -39,7 +51,26 @@ import { EmailDebugController } from "./email-debug.controller";
     }),
   ],
   controllers: [EmailDebugController],
-  providers: [EmailService, EmailProcessor],
+  providers: [
+    EmailService,
+    EmailProcessor,
+    MailtrapProvider,
+    ResendProvider,
+    {
+      provide: EmailProviderProtocol,
+      useFactory: (
+        configService: ConfigService,
+        mailtrapProvider: MailtrapProvider,
+        resendProvider: ResendProvider,
+      ): EmailProviderProtocol => {
+        const isDevelopment =
+          configService.get<string>("NODE_ENV") === "development";
+
+        return isDevelopment ? mailtrapProvider : resendProvider;
+      },
+      inject: [ConfigService, MailtrapProvider, ResendProvider],
+    },
+  ],
   exports: [EmailService],
 })
 export class EmailModule {}
