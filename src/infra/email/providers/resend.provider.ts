@@ -8,22 +8,19 @@ import {
 
 @Injectable()
 export class ResendProvider implements EmailProviderProtocol {
-  private readonly resend: Resend;
-  private readonly from: string;
+  private resend: Resend | null = null;
   private readonly logger = new Logger(ResendProvider.name);
 
-  constructor(private readonly configService: ConfigService) {
-    const RESEND_API_KEY = this.configService.get<string>("RESEND_API_KEY");
-    this.resend = new Resend(RESEND_API_KEY);
+  constructor(private readonly configService: ConfigService) {}
+
+  async sendMail(options: SendMailOptions): Promise<void> {
+    const resend = this.getClient();
 
     const fromName = this.configService.get<string>("EMAIL_FROM_NAME");
     const fromAddress = this.configService.get<string>("EMAIL_FROM_ADDRESS");
-    this.from = `${fromName} <${fromAddress}>`;
-  }
 
-  async sendMail(options: SendMailOptions): Promise<void> {
-    const { data, error } = await this.resend.emails.send({
-      from: this.from,
+    const { data, error } = await resend.emails.send({
+      from: `${fromName} <${fromAddress}>`,
       to: options.to,
       subject: options.subject,
       html: options.html,
@@ -37,4 +34,20 @@ export class ResendProvider implements EmailProviderProtocol {
 
     this.logger.log(`[Resend] Email sent to: ${options.to}. ID: ${data?.id}`);
   }
+
+  getClient(): Resend {
+    if (!this.resend) {
+      const RESEND_API_KEY = this.configService.get<string>("RESEND_API_KEY");
+      this.resend = new Resend(RESEND_API_KEY);
+    }
+
+    return this.resend;
+  }
 }
+
+// const RESEND_API_KEY = this.configService.get<string>("RESEND_API_KEY");
+// this.resend = new Resend(RESEND_API_KEY);
+
+// const fromName = this.configService.get<string>("EMAIL_FROM_NAME");
+// const fromAddress = this.configService.get<string>("EMAIL_FROM_ADDRESS");
+// this.from = `${fromName} <${fromAddress}>`;
