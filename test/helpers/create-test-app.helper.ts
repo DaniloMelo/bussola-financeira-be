@@ -15,6 +15,8 @@ import { AllExceptionsFilter } from "src/common/filters/all-exceptions-filter.fi
 import { TestAuthHelper } from "./test-auth.helper";
 import { TestJwtHelper } from "./test-jwt.helper";
 import { JwtService } from "@nestjs/jwt";
+import { QueueModule } from "src/infra/queue/queue.module";
+import { EmailModule } from "src/infra/email/email.module";
 
 export interface TestContext {
   app: INestApplication;
@@ -32,6 +34,8 @@ export async function createTestApp(): Promise<TestContext> {
         ignoreEnvFile: true,
       }),
       PrismaModule,
+      QueueModule,
+      EmailModule,
       UserModule,
       AuthModule,
       AdminModule,
