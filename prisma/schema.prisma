@@ -11,6 +11,7 @@ model User {
   id        String    @id @default(uuid())
   name      String    @db.VarChar(255)
   email     String    @unique @db.VarChar(255)
+  isActive  Boolean   @default(false) @map(name: "is_active")
   deletedAt DateTime? @map(name: "deleted_at")
   createdAt DateTime  @default(now()) @map(name: "created_at")
   updatedAt DateTime  @updatedAt @map(name: "updated_at")
@@ -22,12 +23,15 @@ model User {
 }
 
 model UserCredentials {
-  id                     String    @id @default(uuid())
-  passwordHash           String    @map(name: "password_hash")
-  refreshTokenHash       String?   @map(name: "refresh_token_hash")
-  resetPasswordTokenHash String?   @map(name: "reset_password_token_hash")
-  resetPasswordExpiresAt DateTime? @map(name: "reset-password-expires-at")
-  lastLoginAt            DateTime? @map(name: "last_login_at")
+  id                      String    @id @default(uuid())
+  passwordHash            String    @map(name: "password_hash")
+  refreshTokenHash        String?   @map(name: "refresh_token_hash")
+  resetPasswordTokenHash  String?   @map(name: "reset_password_token_hash")
+  resetPasswordExpiresAt  DateTime? @map(name: "reset-password-expires-at")
+  activationCode          Int?      @map(name: "activation_code")
+  activationCodeExpiresAt DateTime? @map(name: "activation_code_expires_at")
+  activationCodeAttempts  Int       @default(0) @map(name: "activation_code_attempts")
+  lastLoginAt             DateTime? @map(name: "last_login_at")
 
   userId String @unique @map(name: "user_id")
   user   User   @relation(fields: [userId], references: [id])

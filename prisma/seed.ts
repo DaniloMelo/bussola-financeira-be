@@ -25,10 +25,12 @@ async function main() {
     data: {
       name: "admin",
       email: "admin@email.com",
+      isActive: true,
       userCredentials: {
         create: {
           passwordHash:
             "$2a$12$/HFMFA9GVi/RRK4QW3r0ieTYWkyprQTFbXYBACoMzkPTexQk9rePu", // password123
+          activationCode: 1234,
         },
       },
       roles: {
