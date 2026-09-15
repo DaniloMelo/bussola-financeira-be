@@ -2,6 +2,7 @@ import { Injectable } from "@nestjs/common";
 import { PrismaService } from "src/infra/prisma/prisma.service";
 import { CreateUserDtoV1 } from "../controllers/v1/dto/create-user.dto";
 import { IUpdateUserData } from "../interfaces/update";
+import { UserWithCredentials } from "../interfaces/user";
 
 @Injectable()
 export class UserRepository {
@@ -68,13 +69,19 @@ export class UserRepository {
     });
   }
 
-  async findOneByEmailWithCredentials(email: string) {
+  async findOneByEmailWithCredentials(
+    email: string,
+  ): Promise<UserWithCredentials | null> {
     return await this.prisma.user.findUnique({
       where: {
         email,
         deletedAt: null,
       },
-      include: {
+      select: {
+        id: true,
+        name: true,
+        email: true,
+        isActive: true,
         userCredentials: {
           select: {
             passwordHash: true,
