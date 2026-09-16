@@ -4,6 +4,8 @@ import { BcryptService } from "./hasher/bcrypt.service";
 import { SanitizeService } from "./sanitize/sanitize.service";
 import { SanitizeProtocol } from "./sanitize/sanitize.protocol";
 import { Random } from "./utils/random";
+import { ActivationCodeProtocol } from "./activation-code/activation-code.protocol";
+import { ActivationCodeService } from "./activation-code/activation-code.service";
 
 @Module({
   providers: [
@@ -15,8 +17,12 @@ import { Random } from "./utils/random";
       provide: SanitizeProtocol,
       useClass: SanitizeService,
     },
+    {
+      provide: ActivationCodeProtocol,
+      useClass: ActivationCodeService,
+    },
     Random,
   ],
-  exports: [HasherProtocol, SanitizeProtocol, Random],
+  exports: [HasherProtocol, SanitizeProtocol, ActivationCodeProtocol, Random],
 })
 export class CommonModule {}
