@@ -28,7 +28,7 @@ model UserCredentials {
   refreshTokenHash        String?   @map(name: "refresh_token_hash")
   resetPasswordTokenHash  String?   @map(name: "reset_password_token_hash")
   resetPasswordExpiresAt  DateTime? @map(name: "reset-password-expires-at")
-  activationCode          Int?      @map(name: "activation_code")
+  activationCode          String?   @map(name: "activation_code")
   activationCodeExpiresAt DateTime? @map(name: "activation_code_expires_at")
   activationCodeAttempts  Int       @default(0) @map(name: "activation_code_attempts")
   lastLoginAt             DateTime? @map(name: "last_login_at")

@@ -30,7 +30,7 @@ async function main() {
         create: {
           passwordHash:
             "$2a$12$/HFMFA9GVi/RRK4QW3r0ieTYWkyprQTFbXYBACoMzkPTexQk9rePu", // password123
-          activationCode: 1234,
+          activationCode: "123456",
         },
       },
       roles: {
