@@ -10,6 +10,7 @@ import { ICreateUser } from "../interfaces/user";
 import { EmailService } from "src/infra/email/services/email.service";
 import { SanitizeService } from "src/common/sanitize/sanitize.service";
 import { SanitizeProtocol } from "src/common/sanitize/sanitize.protocol";
+import { ActivationCodeProtocol } from "src/common/activation-code/activation-code.protocol";
 
 const mockUserRepository = {
   create: jest.fn(),
@@ -32,11 +33,20 @@ const mockEmailService = {
   resetPassword: jest.fn(),
 };
 
+const mockActivationCodeService = {
+  generate: jest.fn(),
+  hash: jest.fn(),
+  verify: jest.fn(),
+  generateExp: jest.fn(),
+  verifyExp: jest.fn(),
+};
+
 describe("UserService", () => {
   let userService: UserService;
   let userRepositoryMock: UserRepository;
   let hasherServiceMock: HasherProtocol;
   let sanitizeServiceMock: SanitizeService;
+  let activationCodeServiceMock: ActivationCodeProtocol;
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
   let emailServiceMock: EmailService;
 
@@ -48,6 +58,10 @@ describe("UserService", () => {
         { provide: HasherProtocol, useValue: mockHasherService },
         { provide: EmailService, useValue: mockEmailService },
         { provide: SanitizeProtocol, useValue: mockSanitizeService },
+        {
+          provide: ActivationCodeProtocol,
+          useValue: mockActivationCodeService,
+        },
       ],
     }).compile();
 
@@ -56,6 +70,9 @@ describe("UserService", () => {
     hasherServiceMock = module.get<HasherProtocol>(HasherProtocol);
     emailServiceMock = module.get<EmailService>(EmailService);
     sanitizeServiceMock = module.get<SanitizeProtocol>(SanitizeProtocol);
+    activationCodeServiceMock = module.get<ActivationCodeProtocol>(
+      ActivationCodeProtocol,
+    );
   });
 
   beforeEach(() => {
@@ -98,6 +115,12 @@ describe("UserService", () => {
       mockUserRepository.findOneByEmail.mockResolvedValue(null);
       mockSanitizeService.sanitizeAll.mockReturnValue("John Doe");
       mockHasherService.hash.mockResolvedValue("hashed-password123");
+      mockActivationCodeService.generate.mockReturnValue("123456");
+      mockActivationCodeService.hash.mockReturnValue("hashed-activation-code");
+      mockActivationCodeService.generateExp.mockReturnValue(
+        new Date("2030-01-01T00:00:00.000Z"),
+      );
+
       mockUserRepository.create.mockResolvedValue(createMockStoredUser());
     }
 
@@ -128,11 +151,15 @@ describe("UserService", () => {
         "plain-text-password123",
       );
 
-      expect(userRepositoryMock.create).toHaveBeenCalledWith({
-        email: "john@email.com",
-        name: "John Doe",
-        password: "hashed-password123",
-      });
+      expect(userRepositoryMock.create).toHaveBeenCalledWith(
+        expect.objectContaining({
+          email: "john@email.com",
+          name: "John Doe",
+          password: "hashed-password123",
+        }),
+        expect.any(String),
+        expect.any(Date),
+      );
     });
 
     it("should sanitize name before saving", async () => {
@@ -145,11 +172,55 @@ describe("UserService", () => {
 
       expect(sanitizeServiceMock.sanitizeAll).toHaveBeenCalledWith(input.name);
 
-      expect(userRepositoryMock.create).toHaveBeenCalledWith({
-        email: "john@email.com",
-        name: "John Doe",
-        password: "hashed-password123",
-      });
+      expect(userRepositoryMock.create).toHaveBeenCalledWith(
+        expect.objectContaining({
+          email: "john@email.com",
+          name: "John Doe",
+          password: "hashed-password123",
+        }),
+        expect.any(String),
+        expect.any(Date),
+      );
+    });
+
+    it("should generate user activation code", async () => {
+      createMocksDefaultSetup();
+
+      const input = createUserInput();
+      await userService.create(input);
+
+      expect(activationCodeServiceMock.generate).toHaveBeenCalled();
+    });
+
+    it("should hash user activation code", async () => {
+      createMocksDefaultSetup();
+
+      const input = createUserInput();
+      await userService.create(input);
+
+      expect(activationCodeServiceMock.hash).toHaveBeenCalledWith("123456");
+    });
+
+    it("should generate user activation code expiration", async () => {
+      createMocksDefaultSetup();
+
+      const input = createUserInput();
+      await userService.create(input);
+
+      expect(activationCodeServiceMock.generateExp).toHaveBeenCalled();
+    });
+
+    it("should save user activation data", async () => {
+      createMocksDefaultSetup();
+
+      const input = createUserInput();
+      await userService.create(input);
+
+      expect(userRepositoryMock.create).toHaveBeenCalledWith(
+        expect.anything(),
+        "hashed-activation-code",
+        new Date("2030-01-01T00:00:00.000Z"),
+      );
     });
 
     it("should throw 'BadRequesException' when user already exists", async () => {

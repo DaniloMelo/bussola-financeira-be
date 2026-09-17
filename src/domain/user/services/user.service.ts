@@ -10,6 +10,7 @@ import { IUpdateUserData } from "../interfaces/update";
 import { EmailService } from "src/infra/email/services/email.service";
 import { SanitizeProtocol } from "src/common/sanitize/sanitize.protocol";
 import { USER_CONSTANTS } from "../utils/constants/user.constant";
+import { ActivationCodeProtocol } from "src/common/activation-code/activation-code.protocol";
 
 @Injectable()
 export class UserService {
@@ -17,6 +18,7 @@ export class UserService {
     private readonly userRepository: UserRepository,
     private readonly hasherService: HasherProtocol,
     private readonly sanitizeService: SanitizeProtocol,
+    private readonly activationCodeService: ActivationCodeProtocol,
     private readonly emailService: EmailService,
   ) {}
 
@@ -42,13 +44,16 @@ export class UserService {
       password: await this.hasherService.hash(userData.password),
     };
 
-    // await this.emailService.resetPassword({
-    //   userName: userData.name,
-    //   email: userData.email,
-    //   resetUrl: "https://www.google.com",
-    // });
+    const activationCode = this.activationCodeService.generate();
+    const hashedActivationCode =
+      this.activationCodeService.hash(activationCode);
+    const activationCodeExp = this.activationCodeService.generateExp();
 
-    return this.userRepository.create(newUser);
+    return this.userRepository.create(
+      newUser,
+      hashedActivationCode,
+      activationCodeExp,
+    );
   }
 
   async findMe(userId: string) {

@@ -8,7 +8,11 @@ import { UserWithCredentials } from "../interfaces/user";
 export class UserRepository {
   constructor(private readonly prisma: PrismaService) {}
 
-  async create(userData: CreateUserDtoV1) {
+  async create(
+    userData: CreateUserDtoV1,
+    activationCode: string,
+    ativationCodeExp: Date,
+  ) {
     return this.prisma.user.create({
       data: {
         name: userData.name,
@@ -16,6 +20,8 @@ export class UserRepository {
         userCredentials: {
           create: {
             passwordHash: userData.password,
+            activationCode: activationCode,
+            activationCodeExpiresAt: ativationCodeExp,
             lastLoginAt: null,
           },
         },
