@@ -28,6 +28,7 @@ export class ActivationCodeService extends ActivationCodeProtocol {
   generateExp(): Date {
     const expiresAt = new Date();
     expiresAt.setMinutes(expiresAt.getMinutes() + 15);
+    // expiresAt.setMinutes(expiresAt.getMinutes() + 1);
 
     return expiresAt;
   }
@@ -35,20 +36,6 @@ export class ActivationCodeService extends ActivationCodeProtocol {
   verifyExp(exp: Date): boolean {
     const now = new Date();
 
-    return exp.getTime() > now.getTime();
+    return now.getTime() > exp.getTime();
   }
 }
-
-/*
-  // src/shared/utils/hash-activation-code.util.ts
-import { createHash } from 'crypto' // módulo nativo do Node.js, sem dependências
-
-export function hashActivationCode(code: number): string {
-  return createHash('sha256').update(code.toString()).digest('hex')
-}
-
-export function verifyActivationCode(code: number, hash: string): boolean {
-  const codeHash = hashActivationCode(code)
-  return codeHash === hash
-}
-*/

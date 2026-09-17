@@ -82,22 +82,22 @@ describe("ActivationCodeService", () => {
   });
 
   describe("verifyExp", () => {
-    it("should return true if expiration time is valid", () => {
+    it("should return true if expired", () => {
       const baseDate = new Date("2026-09-16T10:00:00.000Z");
       jest.setSystemTime(baseDate);
       const exp = activationCodeService.generateExp();
-      jest.advanceTimersByTime(14 * 60 * 1000);
+      jest.advanceTimersByTime(16 * 60 * 1000);
 
       const result = activationCodeService.verifyExp(exp);
 
       expect(result).toBe(true);
     });
 
-    it("should return false if expiration time is not valid", () => {
+    it("should return false if not expired", () => {
       const baseDate = new Date("2026-09-16T10:00:00.000Z");
       jest.setSystemTime(baseDate);
       const exp = activationCodeService.generateExp();
-      jest.advanceTimersByTime(16 * 60 * 1000);
+      jest.advanceTimersByTime(14 * 60 * 1000);
 
       const result = activationCodeService.verifyExp(exp);
 
