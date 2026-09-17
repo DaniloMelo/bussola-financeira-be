@@ -141,7 +141,7 @@ describe("UserService", () => {
       expect(result).not.toHaveProperty("password");
     });
 
-    it("should hash password before saving", async () => {
+    it("should hash password", async () => {
       createMocksDefaultSetup();
 
       const input = createUserInput();
@@ -150,6 +150,13 @@ describe("UserService", () => {
       expect(hasherServiceMock.hash).toHaveBeenCalledWith(
         "plain-text-password123",
       );
+    });
+
+    it("should save user with hashed password", async () => {
+      createMocksDefaultSetup();
+
+      const input = createUserInput();
+      await userService.create(input);
 
       expect(userRepositoryMock.create).toHaveBeenCalledWith(
         expect.objectContaining({
@@ -162,7 +169,7 @@ describe("UserService", () => {
       );
     });
 
-    it("should sanitize name before saving", async () => {
+    it("should sanitize name", async () => {
       createMocksDefaultSetup();
 
       const input = createUserInput({
@@ -171,6 +178,16 @@ describe("UserService", () => {
       await userService.create(input);
 
       expect(sanitizeServiceMock.sanitizeAll).toHaveBeenCalledWith(input.name);
+    });
+
+    it("should save sanitized name", async () => {
+      createMocksDefaultSetup();
+
+      const input = createUserInput({
+        name: "<script>alert(XSS)</script>John Doe",
+      });
+
+      await userService.create(input);
 
       expect(userRepositoryMock.create).toHaveBeenCalledWith(
         expect.objectContaining({
@@ -223,7 +240,7 @@ describe("UserService", () => {
       );
     });
 
-    it("should throw 'BadRequesException' when user already exists", async () => {
+    it("should throw BadRequesException when user already exists", async () => {
       createMocksDefaultSetup();
       mockUserRepository.findOneByEmail.mockResolvedValue(
         createMockStoredUser(),
@@ -247,7 +264,7 @@ describe("UserService", () => {
       expect(userRepositoryMock.create).not.toHaveBeenCalled();
     });
 
-    it("should throw 'BadRequesException' if sanitize fail", async () => {
+    it("should throw BadRequesException if sanitize fail", async () => {
       createMocksDefaultSetup();
       mockSanitizeService.sanitizeAll.mockReturnValue("");
 
@@ -367,7 +384,7 @@ describe("UserService", () => {
       expect(result).not.toHaveProperty("password");
     });
 
-    it("should update 'name' only", async () => {
+    it("should update name only", async () => {
       createMocksDefaultSetup();
       mockUserRepository.update.mockResolvedValue(
         createMockStoredUser({ name: "Updated John Doe" }),
@@ -396,7 +413,7 @@ describe("UserService", () => {
       });
     });
 
-    it("should sanitize 'name' before update", async () => {
+    it("should sanitize name", async () => {
       createMocksDefaultSetup();
 
       const userId = "1";
@@ -410,6 +427,18 @@ describe("UserService", () => {
       expect(sanitizeServiceMock.sanitizeAll).toHaveBeenCalledWith(
         "<script>alert('XSS')</script>Updated John Doe",
       );
+    });
+
+    it("should save updated sanitized name", async () => {
+      createMocksDefaultSetup();
+
+      const userId = "1";
+      const input = createUserInput({
+        name: "<script>alert('XSS')</script>Updated John Doe",
+        email: undefined,
+        password: undefined,
+      });
+      await userService.update(userId, input);
 
       expect(userRepositoryMock.update).toHaveBeenCalledWith(userId, {
         name: "Updated John Doe",
@@ -418,7 +447,7 @@ describe("UserService", () => {
       });
     });
 
-    it("should throw 'BadRequestException' when sanitize fail", async () => {
+    it("should throw BadRequestException when sanitize fail", async () => {
       createMocksDefaultSetup();
       mockSanitizeService.sanitizeAll.mockReturnValue("");
 
@@ -436,7 +465,7 @@ describe("UserService", () => {
       expect(userRepositoryMock.update).not.toHaveBeenCalled();
     });
 
-    it("should update 'email' only", async () => {
+    it("should update email only", async () => {
       createMocksDefaultSetup();
       mockUserRepository.update.mockResolvedValue(
         createMockStoredUser({ email: "updated_john@email.com" }),
@@ -466,7 +495,7 @@ describe("UserService", () => {
       });
     });
 
-    it("should throw 'BadRequestException' when email already in use", async () => {
+    it("should throw BadRequestException when email already in use", async () => {
       createMocksDefaultSetup();
       const alreadyExistentUser = createMockStoredUser({
         id: "2",
@@ -498,7 +527,7 @@ describe("UserService", () => {
       expect(userRepositoryMock.update).not.toHaveBeenCalled();
     });
 
-    it("should update 'password' only", async () => {
+    it("should update password only", async () => {
       createMocksDefaultSetup();
       mockUserRepository.update.mockResolvedValue(
         createMockStoredUser({ name: "John Doe", email: "john@email.com" }),
@@ -529,7 +558,7 @@ describe("UserService", () => {
       expect(result).not.toHaveProperty("password");
     });
 
-    it("should hash password before update", async () => {
+    it("should hash password", async () => {
       createMocksDefaultSetup();
       mockUserRepository.update.mockResolvedValue(
         createMockStoredUser({ name: "John Doe", email: "john@email.com" }),
@@ -541,10 +570,24 @@ describe("UserService", () => {
         email: undefined,
         password: "Updated-plain-text-password123",
       });
-
       await userService.update(userId, input);
 
       expect(hasherServiceMock.hash).toHaveBeenCalledWith(input.password);
+    });
+
+    it("should save updated hashed password", async () => {
+      createMocksDefaultSetup();
+      mockUserRepository.update.mockResolvedValue(
+        createMockStoredUser({ name: "John Doe", email: "john@email.com" }),
+      );
+
+      const userId = "1";
+      const input = createUserInput({
+        name: undefined,
+        email: undefined,
+        password: "Updated-plain-text-password123",
+      });
+      await userService.update(userId, input);
 
       expect(userRepositoryMock.update).toHaveBeenCalledWith(userId, {
         name: undefined,
@@ -553,7 +596,7 @@ describe("UserService", () => {
       });
     });
 
-    it("should throw 'BadRequestException' when no data is provided", async () => {
+    it("should throw BadRequestException when no data is provided", async () => {
       createMockStoredUser();
 
       const userId = "1";
@@ -594,7 +637,7 @@ describe("UserService", () => {
       expect(result.deletedAt).not.toBeNull();
     });
 
-    it("should throw 'NotFoundException' if user dont exist", async () => {
+    it("should throw NotFoundException if user dont exist", async () => {
       mockUserRepository.findOneById.mockResolvedValue(null);
 
       const deleteUserPromise = userService.softDelete("unexistent-id");
