@@ -10,6 +10,7 @@ import { ICreateUser } from "../interfaces/user";
 import { EmailService } from "src/infra/email/services/email.service";
 import { SanitizeService } from "src/common/sanitize/sanitize.service";
 import { SanitizeProtocol } from "src/common/sanitize/sanitize.protocol";
+import { ActivationCodeProtocol } from "src/common/activation-code/activation-code.protocol";
 
 const mockUserRepository = {
   create: jest.fn(),
@@ -32,11 +33,20 @@ const mockEmailService = {
   resetPassword: jest.fn(),
 };
 
+const mockActivationCodeService = {
+  generate: jest.fn(),
+  hash: jest.fn(),
+  verify: jest.fn(),
+  generateExp: jest.fn(),
+  verifyExp: jest.fn(),
+};
+
 describe("UserService", () => {
   let userService: UserService;
   let userRepositoryMock: UserRepository;
   let hasherServiceMock: HasherProtocol;
   let sanitizeServiceMock: SanitizeService;
+  let activationCodeServiceMock: ActivationCodeProtocol;
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
   let emailServiceMock: EmailService;
 
@@ -48,6 +58,10 @@ describe("UserService", () => {
         { provide: HasherProtocol, useValue: mockHasherService },
         { provide: EmailService, useValue: mockEmailService },
         { provide: SanitizeProtocol, useValue: mockSanitizeService },
+        {
+          provide: ActivationCodeProtocol,
+          useValue: mockActivationCodeService,
+        },
       ],
     }).compile();
 
@@ -56,6 +70,9 @@ describe("UserService", () => {
     hasherServiceMock = module.get<HasherProtocol>(HasherProtocol);
     emailServiceMock = module.get<EmailService>(EmailService);
     sanitizeServiceMock = module.get<SanitizeProtocol>(SanitizeProtocol);
+    activationCodeServiceMock = module.get<ActivationCodeProtocol>(
+      ActivationCodeProtocol,
+    );
   });
 
   beforeEach(() => {
@@ -98,6 +115,12 @@ describe("UserService", () => {
       mockUserRepository.findOneByEmail.mockResolvedValue(null);
       mockSanitizeService.sanitizeAll.mockReturnValue("John Doe");
       mockHasherService.hash.mockResolvedValue("hashed-password123");
+      mockActivationCodeService.generate.mockReturnValue("123456");
+      mockActivationCodeService.hash.mockReturnValue("hashed-activation-code");
+      mockActivationCodeService.generateExp.mockReturnValue(
+        new Date("2030-01-01T00:00:00.000Z"),
+      );
+
       mockUserRepository.create.mockResolvedValue(createMockStoredUser());
     }
 
@@ -118,7 +141,7 @@ describe("UserService", () => {
       expect(result).not.toHaveProperty("password");
     });
 
-    it("should hash password before saving", async () => {
+    it("should hash password", async () => {
       createMocksDefaultSetup();
 
       const input = createUserInput();
@@ -127,15 +150,26 @@ describe("UserService", () => {
       expect(hasherServiceMock.hash).toHaveBeenCalledWith(
         "plain-text-password123",
       );
-
-      expect(userRepositoryMock.create).toHaveBeenCalledWith({
-        email: "john@email.com",
-        name: "John Doe",
-        password: "hashed-password123",
-      });
     });
 
-    it("should sanitize name before saving", async () => {
+    it("should save user with hashed password", async () => {
+      createMocksDefaultSetup();
+
+      const input = createUserInput();
+      await userService.create(input);
+
+      expect(userRepositoryMock.create).toHaveBeenCalledWith(
+        expect.objectContaining({
+          email: "john@email.com",
+          name: "John Doe",
+          password: "hashed-password123",
+        }),
+        expect.any(String),
+        expect.any(Date),
+      );
+    });
+
+    it("should sanitize name", async () => {
       createMocksDefaultSetup();
 
       const input = createUserInput({
@@ -144,15 +178,69 @@ describe("UserService", () => {
       await userService.create(input);
 
       expect(sanitizeServiceMock.sanitizeAll).toHaveBeenCalledWith(input.name);
-
-      expect(userRepositoryMock.create).toHaveBeenCalledWith({
-        email: "john@email.com",
-        name: "John Doe",
-        password: "hashed-password123",
-      });
     });
 
-    it("should throw 'BadRequesException' when user already exists", async () => {
+    it("should save sanitized name", async () => {
+      createMocksDefaultSetup();
+
+      const input = createUserInput({
+        name: "<script>alert(XSS)</script>John Doe",
+      });
+
+      await userService.create(input);
+
+      expect(userRepositoryMock.create).toHaveBeenCalledWith(
+        expect.objectContaining({
+          email: "john@email.com",
+          name: "John Doe",
+          password: "hashed-password123",
+        }),
+        expect.any(String),
+        expect.any(Date),
+      );
+    });
+
+    it("should generate user activation code", async () => {
+      createMocksDefaultSetup();
+
+      const input = createUserInput();
+      await userService.create(input);
+
+      expect(activationCodeServiceMock.generate).toHaveBeenCalled();
+    });
+
+    it("should hash user activation code", async () => {
+      createMocksDefaultSetup();
+
+      const input = createUserInput();
+      await userService.create(input);
+
+      expect(activationCodeServiceMock.hash).toHaveBeenCalledWith("123456");
+    });
+
+    it("should generate user activation code expiration", async () => {
+      createMocksDefaultSetup();
+
+      const input = createUserInput();
+      await userService.create(input);
+
+      expect(activationCodeServiceMock.generateExp).toHaveBeenCalled();
+    });
+
+    it("should save user activation data", async () => {
+      createMocksDefaultSetup();
+
+      const input = createUserInput();
+      await userService.create(input);
+
+      expect(userRepositoryMock.create).toHaveBeenCalledWith(
+        expect.anything(),
+        "hashed-activation-code",
+        new Date("2030-01-01T00:00:00.000Z"),
+      );
+    });
+
+    it("should throw BadRequesException when user already exists", async () => {
       createMocksDefaultSetup();
       mockUserRepository.findOneByEmail.mockResolvedValue(
         createMockStoredUser(),
@@ -176,7 +264,7 @@ describe("UserService", () => {
       expect(userRepositoryMock.create).not.toHaveBeenCalled();
     });
 
-    it("should throw 'BadRequesException' if sanitize fail", async () => {
+    it("should throw BadRequesException if sanitize fail", async () => {
       createMocksDefaultSetup();
       mockSanitizeService.sanitizeAll.mockReturnValue("");
 
@@ -296,7 +384,7 @@ describe("UserService", () => {
       expect(result).not.toHaveProperty("password");
     });
 
-    it("should update 'name' only", async () => {
+    it("should update name only", async () => {
       createMocksDefaultSetup();
       mockUserRepository.update.mockResolvedValue(
         createMockStoredUser({ name: "Updated John Doe" }),
@@ -325,7 +413,7 @@ describe("UserService", () => {
       });
     });
 
-    it("should sanitize 'name' before update", async () => {
+    it("should sanitize name", async () => {
       createMocksDefaultSetup();
 
       const userId = "1";
@@ -339,6 +427,18 @@ describe("UserService", () => {
       expect(sanitizeServiceMock.sanitizeAll).toHaveBeenCalledWith(
         "<script>alert('XSS')</script>Updated John Doe",
       );
+    });
+
+    it("should save updated sanitized name", async () => {
+      createMocksDefaultSetup();
+
+      const userId = "1";
+      const input = createUserInput({
+        name: "<script>alert('XSS')</script>Updated John Doe",
+        email: undefined,
+        password: undefined,
+      });
+      await userService.update(userId, input);
 
       expect(userRepositoryMock.update).toHaveBeenCalledWith(userId, {
         name: "Updated John Doe",
@@ -347,7 +447,7 @@ describe("UserService", () => {
       });
     });
 
-    it("should throw 'BadRequestException' when sanitize fail", async () => {
+    it("should throw BadRequestException when sanitize fail", async () => {
       createMocksDefaultSetup();
       mockSanitizeService.sanitizeAll.mockReturnValue("");
 
@@ -365,7 +465,7 @@ describe("UserService", () => {
       expect(userRepositoryMock.update).not.toHaveBeenCalled();
     });
 
-    it("should update 'email' only", async () => {
+    it("should update email only", async () => {
       createMocksDefaultSetup();
       mockUserRepository.update.mockResolvedValue(
         createMockStoredUser({ email: "updated_john@email.com" }),
@@ -395,7 +495,7 @@ describe("UserService", () => {
       });
     });
 
-    it("should throw 'BadRequestException' when email already in use", async () => {
+    it("should throw BadRequestException when email already in use", async () => {
       createMocksDefaultSetup();
       const alreadyExistentUser = createMockStoredUser({
         id: "2",
@@ -427,7 +527,7 @@ describe("UserService", () => {
       expect(userRepositoryMock.update).not.toHaveBeenCalled();
     });
 
-    it("should update 'password' only", async () => {
+    it("should update password only", async () => {
       createMocksDefaultSetup();
       mockUserRepository.update.mockResolvedValue(
         createMockStoredUser({ name: "John Doe", email: "john@email.com" }),
@@ -458,7 +558,7 @@ describe("UserService", () => {
       expect(result).not.toHaveProperty("password");
     });
 
-    it("should hash password before update", async () => {
+    it("should hash password", async () => {
       createMocksDefaultSetup();
       mockUserRepository.update.mockResolvedValue(
         createMockStoredUser({ name: "John Doe", email: "john@email.com" }),
@@ -470,10 +570,24 @@ describe("UserService", () => {
         email: undefined,
         password: "Updated-plain-text-password123",
       });
-
       await userService.update(userId, input);
 
       expect(hasherServiceMock.hash).toHaveBeenCalledWith(input.password);
+    });
+
+    it("should save updated hashed password", async () => {
+      createMocksDefaultSetup();
+      mockUserRepository.update.mockResolvedValue(
+        createMockStoredUser({ name: "John Doe", email: "john@email.com" }),
+      );
+
+      const userId = "1";
+      const input = createUserInput({
+        name: undefined,
+        email: undefined,
+        password: "Updated-plain-text-password123",
+      });
+      await userService.update(userId, input);
 
       expect(userRepositoryMock.update).toHaveBeenCalledWith(userId, {
         name: undefined,
@@ -482,7 +596,7 @@ describe("UserService", () => {
       });
     });
 
-    it("should throw 'BadRequestException' when no data is provided", async () => {
+    it("should throw BadRequestException when no data is provided", async () => {
       createMockStoredUser();
 
       const userId = "1";
@@ -523,7 +637,7 @@ describe("UserService", () => {
       expect(result.deletedAt).not.toBeNull();
     });
 
-    it("should throw 'NotFoundException' if user dont exist", async () => {
+    it("should throw NotFoundException if user dont exist", async () => {
       mockUserRepository.findOneById.mockResolvedValue(null);
 
       const deleteUserPromise = userService.softDelete("unexistent-id");
