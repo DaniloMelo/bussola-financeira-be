@@ -26,6 +26,8 @@ import { CurrentUser } from "src/common/decorators/current-user.decorator";
 import { UserPasswordService } from "src/domain/user/services/user-password.service";
 import { RequestResetPasswordDtoV1 } from "./dto/request-reset-password.dto";
 import { ResetPasswordDtoV1 } from "./dto/reset-password.dto";
+import { ActivateUserDtoV1 } from "./dto/activate-user.dto";
+import { UserActivationService } from "src/domain/user/services/user-activation.service";
 
 @Controller({ path: "auth", version: "1" })
 @ApiTags("auth-v1")
@@ -33,6 +35,7 @@ export class AuthController {
   constructor(
     private readonly authService: AuthService,
     private readonly userPasswordService: UserPasswordService,
+    private readonly userActivationService: UserActivationService,
   ) {}
 
   @Post("login")
@@ -130,5 +133,11 @@ export class AuthController {
   })
   resetPassword(@Body() userInputData: ResetPasswordDtoV1) {
     return this.userPasswordService.resetPassword(userInputData);
+  }
+
+  @Post("activation")
+  @ApiOperation({ summary: "Ativa usuário recém criado" })
+  activateUser(@Body() userInputData: ActivateUserDtoV1) {
+    return this.userActivationService.activateUser(userInputData);
   }
 }

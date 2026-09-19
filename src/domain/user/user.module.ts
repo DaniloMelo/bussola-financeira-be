@@ -8,6 +8,7 @@ import { CommonModule } from "src/common/common.module";
 import { EmailModule } from "src/infra/email/email.module";
 import { UserAuthService } from "./services/user-auth.service";
 import { UserPasswordService } from "./services/user-password.service";
+import { UserActivationService } from "./services/user-activation.service";
 
 @Module({
   imports: [PrismaModule, CommonModule, EmailModule],
@@ -17,7 +18,13 @@ import { UserPasswordService } from "./services/user-password.service";
     UserService,
     UserAuthService,
     UserPasswordService,
+    UserActivationService,
   ],
-  exports: [UserService, UserAuthService, UserPasswordService],
+  exports: [
+    UserService,
+    UserAuthService,
+    UserPasswordService,
+    UserActivationService,
+  ],
 })
 export class UserModule {}

@@ -23,8 +23,8 @@ describe("ActivationCodeService", () => {
     it("should generate random code between 1 and 999999", () => {
       const result = activationCodeService.generate();
 
-      expect(Number(result) >= 1).toBeTruthy();
-      expect(Number(result) <= 999999).toBeTruthy();
+      expect(Number(result) >= 1).toBe(true);
+      expect(Number(result) <= 999999).toBe(true);
     });
 
     it("should generate aways 6 lenght code", () => {
@@ -47,7 +47,7 @@ describe("ActivationCodeService", () => {
       const code = activationCodeService.generate();
       const hash = activationCodeService.hash(code);
 
-      expect(hash.trim().length > 1).toBeTruthy();
+      expect(hash.trim().length > 1).toBe(true);
     });
   });
 
@@ -57,7 +57,7 @@ describe("ActivationCodeService", () => {
       const hash = activationCodeService.hash(code);
       const result = activationCodeService.verify(code, hash);
 
-      expect(result).toBeTruthy();
+      expect(result).toBe(true);
     });
 
     it("should return false if the code is not valid", () => {
@@ -65,7 +65,7 @@ describe("ActivationCodeService", () => {
       const hash = activationCodeService.hash(code);
       const result = activationCodeService.verify("invalid", hash);
 
-      expect(result).toBeFalsy();
+      expect(result).toBe(false);
     });
   });
 

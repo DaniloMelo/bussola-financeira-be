@@ -309,4 +309,59 @@ export class UserRepository {
       },
     });
   }
+
+  async findActivationCode(email: string) {
+    return await this.prisma.user.findUnique({
+      where: {
+        email: email,
+        deletedAt: null,
+      },
+      select: {
+        userCredentials: {
+          select: {
+            activationCode: true,
+            activationCodeExpiresAt: true,
+            activationCodeAttempts: true,
+          },
+        },
+      },
+    });
+  }
+
+  async updateActivationCodeAttempts(email: string) {
+    return await this.prisma.user.update({
+      where: {
+        email: email,
+        deletedAt: null,
+      },
+      data: {
+        userCredentials: {
+          update: {
+            activationCodeAttempts: {
+              increment: 1,
+            },
+          },
+        },
+      },
+    });
+  }
+
+  async activateUser(email: string) {
+    return await this.prisma.user.update({
+      where: {
+        email: email,
+        deletedAt: null,
+      },
+      data: {
+        isActive: true,
+        userCredentials: {
+          update: {
+            activationCode: null,
+            activationCodeExpiresAt: null,
+            activationCodeAttempts: 0,
+          },
+        },
+      },
+    });
+  }
 }
