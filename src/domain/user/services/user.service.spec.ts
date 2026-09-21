@@ -36,9 +36,7 @@ const mockEmailService = {
 const mockActivationCodeService = {
   generate: jest.fn(),
   hash: jest.fn(),
-  verify: jest.fn(),
   generateExp: jest.fn(),
-  verifyExp: jest.fn(),
 };
 
 describe("UserService", () => {

@@ -27,7 +27,7 @@ export class UserActivationService {
     }
 
     if (!activationCode || !activationCodeExpiresAt) {
-      throw new BadRequestException("Impossível ativar o usuário.");
+      throw new BadRequestException("Usuário já ativado.");
     }
 
     const isExpired = this.activationCodeService.verifyExp(
@@ -42,10 +42,14 @@ export class UserActivationService {
 
     if (!isValid) {
       await this.userRepository.updateActivationCodeAttempts(email);
-      throw new BadRequestException("Inválido");
+      throw new BadRequestException("Código de ativação inválido.");
     }
 
-    await this.userRepository.activateUser(email);
+    return await this.userRepository.activateUser(email);
+
+    // return {
+    //   message: "Usuário ativado com sucesso.",
+    // };
   }
 
   // async requestNewCode() {}
