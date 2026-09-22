@@ -1,15 +1,16 @@
 import { Injectable } from "@nestjs/common";
 import { ActivationCodeProtocol } from "./activation-code.protocol";
-import { createHash, timingSafeEqual } from "crypto";
+import { createHmac, randomInt, timingSafeEqual } from "node:crypto";
 
 @Injectable()
 export class ActivationCodeService extends ActivationCodeProtocol {
   generate(): string {
-    return String(Math.floor(Math.random() * 1000000)).padStart(6, "1");
+    return randomInt(0, 1_000_000).toString().padStart(6, "0");
   }
 
   hash(code: string): string {
-    return createHash("sha256").update(code.toString()).digest("hex");
+    const secret = process.env.ACTIVATION_USER_SECRET || "local_secret";
+    return createHmac("sha256", secret).update(code).digest("hex");
   }
 
   verify(code: string, storedHash: string): boolean {
