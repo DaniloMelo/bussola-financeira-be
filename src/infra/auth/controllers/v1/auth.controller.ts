@@ -28,6 +28,7 @@ import { RequestResetPasswordDtoV1 } from "./dto/request-reset-password.dto";
 import { ResetPasswordDtoV1 } from "./dto/reset-password.dto";
 import { ActivateUserDtoV1 } from "./dto/activate-user.dto";
 import { UserActivationService } from "src/domain/user/services/user-activation.service";
+import { ResendActivationCodeDtoV1 } from "./dto/resend-activation-code.dto";
 
 @Controller({ path: "auth", version: "1" })
 @ApiTags("auth-v1")
@@ -139,5 +140,11 @@ export class AuthController {
   @ApiOperation({ summary: "Ativa usuário recém criado" })
   activateUser(@Body() userInputData: ActivateUserDtoV1) {
     return this.userActivationService.activateUser(userInputData);
+  }
+
+  @Post("new-activation-code")
+  @ApiOperation({ summary: "Cria um novo código de ativação do usuário" })
+  requestNewActivationCode(@Body() userInputData: ResendActivationCodeDtoV1) {
+    return this.userActivationService.resendActivationCode(userInputData);
   }
 }

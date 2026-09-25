@@ -3,6 +3,7 @@ import { PrismaService } from "src/infra/prisma/prisma.service";
 import { CreateUserDtoV1 } from "../controllers/v1/dto/create-user.dto";
 import { IUpdateUserData } from "../interfaces/update";
 import { UserWithCredentials } from "../interfaces/user";
+import { IUpdateActivationCode } from "../interfaces/user-activation";
 
 @Injectable()
 export class UserRepository {
@@ -317,11 +318,33 @@ export class UserRepository {
         deletedAt: null,
       },
       select: {
+        // isActive: true,
         userCredentials: {
           select: {
             activationCode: true,
             activationCodeExpiresAt: true,
             activationCodeAttempts: true,
+          },
+        },
+      },
+    });
+  }
+
+  async updateActivationCode({
+    email,
+    activationCode,
+    activationCodeExp,
+  }: IUpdateActivationCode) {
+    return await this.prisma.user.update({
+      where: {
+        email: email,
+        deletedAt: null,
+      },
+      data: {
+        userCredentials: {
+          update: {
+            activationCode: activationCode,
+            activationCodeExpiresAt: activationCodeExp,
           },
         },
       },
@@ -340,6 +363,24 @@ export class UserRepository {
             activationCodeAttempts: {
               increment: 1,
             },
+          },
+        },
+      },
+    });
+  }
+
+  async clearActivationData(email: string) {
+    return await this.prisma.user.update({
+      where: {
+        email: email,
+        deletedAt: null,
+      },
+      data: {
+        userCredentials: {
+          update: {
+            activationCode: null,
+            activationCodeExpiresAt: null,
+            activationCodeAttempts: 0,
           },
         },
       },

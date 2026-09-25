@@ -49,6 +49,9 @@ export class UserService {
       this.activationCodeService.hash(activationCode);
     const activationCodeExp = this.activationCodeService.generateExp();
 
+    //TODO: Apagar depois
+    console.log("CÓDIGO ===> ", activationCode);
+
     return this.userRepository.create(
       newUser,
       hashedActivationCode,

@@ -206,9 +206,9 @@ describe("Auth (e2e)", () => {
 
       expect(responseBody.userCredentials.refreshTokenHash).toBeNull();
     });
-  });
 
-  it("Should return 401 if not authehticated", async () => {
-    await request(app.getHttpServer()).post("/v1/auth/logout").expect(401);
+    it("Should return 401 if not authehticated", async () => {
+      await request(app.getHttpServer()).post("/v1/auth/logout").expect(401);
+    });
   });
 });
