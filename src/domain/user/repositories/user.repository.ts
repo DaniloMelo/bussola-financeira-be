@@ -333,6 +333,7 @@ export class UserRepository {
   async updateActivationCode({
     email,
     activationCode,
+    activationCodeAttempts,
     activationCodeExp,
   }: IUpdateActivationCode) {
     return await this.prisma.user.update({
@@ -345,6 +346,7 @@ export class UserRepository {
           update: {
             activationCode: activationCode,
             activationCodeExpiresAt: activationCodeExp,
+            activationCodeAttempts: activationCodeAttempts,
           },
         },
       },

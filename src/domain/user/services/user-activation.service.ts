@@ -62,25 +62,36 @@ export class UserActivationService {
     const { activationCode, activationCodeExpiresAt, activationCodeAttempts } =
       result.userCredentials;
 
-    if (activationCodeAttempts >= 3) {
-      throw new BadRequestException("Atingiu o número máximo de tentativas.");
-    }
-
     if (!activationCode || !activationCodeExpiresAt) {
-      throw new BadRequestException("Usuário já ativado.");
+      throw new Error("Usuário já ativado");
     }
 
     const newCode = this.activationCodeService.generate();
     const newCodeHash = this.activationCodeService.hash(newCode);
-    const newExp = this.activationCodeService.generateExp();
 
-    //TODO: Apagar depois
-    console.log("NEW CODE ===> ", newCode);
+    const isInvalid = activationCodeAttempts >= 3;
+    const isExpired = this.activationCodeService.verifyExp(
+      activationCodeExpiresAt,
+    );
 
-    return await this.userRepository.updateActivationCode({
-      email: email,
-      activationCode: newCodeHash,
-      activationCodeExp: newExp,
-    });
+    if (isInvalid || isExpired) {
+      const newExp = this.activationCodeService.generateExp();
+
+      return await this.userRepository.updateActivationCode({
+        email: email,
+        activationCode: newCodeHash,
+        activationCodeAttempts: 0,
+        activationCodeExp: newExp,
+      });
+    }
+
+    if (!isInvalid || !isExpired) {
+      return await this.userRepository.updateActivationCode({
+        email: email,
+        activationCode: newCodeHash,
+        activationCodeAttempts: activationCodeAttempts,
+        activationCodeExp: activationCodeExpiresAt,
+      });
+    }
   }
 }

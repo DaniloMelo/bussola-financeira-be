@@ -142,9 +142,9 @@ export class AuthController {
     return this.userActivationService.activateUser(userInputData);
   }
 
-  @Post("new-activation-code")
-  @ApiOperation({ summary: "Cria um novo código de ativação do usuário" })
-  requestNewActivationCode(@Body() userInputData: ResendActivationCodeDtoV1) {
+  @Post("resend-activation-code")
+  @ApiOperation({ summary: "Reenvia o código de ativaçao do usuário" })
+  resendActivationCode(@Body() userInputData: ResendActivationCodeDtoV1) {
     return this.userActivationService.resendActivationCode(userInputData);
   }
 }

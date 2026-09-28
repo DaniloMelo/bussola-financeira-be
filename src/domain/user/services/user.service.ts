@@ -50,7 +50,7 @@ export class UserService {
     const activationCodeExp = this.activationCodeService.generateExp();
 
     //TODO: Apagar depois
-    console.log("CÓDIGO ===> ", activationCode);
+    console.log("[UserService.crate] código de ativação ===> ", activationCode);
 
     return this.userRepository.create(
       newUser,
