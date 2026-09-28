@@ -10,17 +10,21 @@ const mockUserRepository = {
   findActivationCode: jest.fn(),
   updateActivationCodeAttempts: jest.fn(),
   activateUser: jest.fn(),
+  updateActivationCode: jest.fn(),
 };
 
 const mockActivationCodeService = {
+  generate: jest.fn(),
+  hash: jest.fn(),
   verify: jest.fn(),
+  generateExp: jest.fn(),
   verifyExp: jest.fn(),
 };
 
 describe("UserActivationService", () => {
   let userActivationService: UserActivationService;
   let userRepositoryMock: UserRepository;
-  // let activationCodeServiceMock: ActivationCodeProtocol;
+  let activationCodeServiceMock: ActivationCodeProtocol;
 
   beforeEach(async () => {
     const module: TestingModule = await Test.createTestingModule({
@@ -41,9 +45,9 @@ describe("UserActivationService", () => {
       UserActivationService,
     );
     userRepositoryMock = module.get<UserRepository>(UserRepository);
-    // activationCodeServiceMock = module.get<ActivationCodeProtocol>(
-    //   ActivationCodeProtocol,
-    // );
+    activationCodeServiceMock = module.get<ActivationCodeProtocol>(
+      ActivationCodeProtocol,
+    );
   });
 
   beforeEach(() => {
@@ -205,6 +209,108 @@ describe("UserActivationService", () => {
       );
 
       await expect(activateUserPromise).rejects.toBeInstanceOf(
+        BadRequestException,
+      );
+    });
+  });
+
+  describe("resendActivationCode", () => {
+    it("should reset atempts and expiration when atempts is greater than 3 or expired", async () => {
+      mockUserRepository.findActivationCode.mockResolvedValue({
+        userCredentials: {
+          activationCode: "hashed-activation-code",
+          activationCodeExpiresAt: new Date("2026-09-16T10:00:00.000Z"),
+          activationCodeAttempts: 3,
+        },
+      });
+
+      mockActivationCodeService.generate.mockReturnValue("new-activation-code");
+
+      mockActivationCodeService.hash.mockReturnValue(
+        "new-activation-code-hashed",
+      );
+
+      mockActivationCodeService.generateExp.mockReturnValue(
+        new Date("2026-09-16T10:15:00.000Z"),
+      );
+
+      await userActivationService.resendActivationCode({
+        email: "john@email.com",
+      });
+
+      expect(userRepositoryMock.updateActivationCode).toHaveBeenCalledWith({
+        email: "john@email.com",
+        activationCode: "new-activation-code-hashed",
+        activationCodeAttempts: 0,
+        activationCodeExp: new Date("2026-09-16T10:15:00.000Z"),
+      });
+    });
+
+    it("should keep the same atempts and expiration when atempts less then 3 or not expired", async () => {
+      mockUserRepository.findActivationCode.mockResolvedValue({
+        userCredentials: {
+          activationCode: "hashed-activation-code",
+          activationCodeExpiresAt: new Date("2026-09-16T10:00:00.000Z"),
+          activationCodeAttempts: 2,
+        },
+      });
+
+      mockActivationCodeService.generate.mockReturnValue("new-activation-code");
+
+      mockActivationCodeService.hash.mockReturnValue(
+        "new-activation-code-hashed",
+      );
+
+      await userActivationService.resendActivationCode({
+        email: "john@email.com",
+      });
+
+      expect(userRepositoryMock.updateActivationCode).toHaveBeenCalledWith({
+        email: "john@email.com",
+        activationCode: "new-activation-code-hashed",
+        activationCodeAttempts: 2,
+        activationCodeExp: new Date("2026-09-16T10:00:00.000Z"),
+      });
+
+      expect(activationCodeServiceMock.generateExp).not.toHaveBeenCalled();
+    });
+
+    it("should throw BadRequestException when user dont exists", async () => {
+      mockUserRepository.findActivationCode.mockResolvedValue(null);
+
+      const resendActivationPromise =
+        userActivationService.resendActivationCode({
+          email: "john@email.com",
+        });
+
+      await expect(resendActivationPromise).rejects.toThrow(
+        /^Impossível enviar novo código de ativação.$/,
+      );
+
+      await expect(resendActivationPromise).rejects.toBeInstanceOf(
+        BadRequestException,
+      );
+    });
+
+    it("should throw BadRequestException if the user try to request new code when user already actvated", async () => {
+      mockUserRepository.findActivationCode.mockResolvedValue({
+        userCredentials: {
+          activationCode: null,
+          activationCodeExpiresAt: null,
+          activationCodeAttempts: 0,
+        },
+      });
+
+      const resendActivationPromise = userActivationService.activateUser({
+        rawCode: "activation-code",
+        email: "john@email.com",
+      });
+
+      await expect(resendActivationPromise).rejects.toThrow(
+        /^Usuário já ativado.$/,
+      );
+
+      await expect(resendActivationPromise).rejects.toBeInstanceOf(
         BadRequestException,
       );
     });
