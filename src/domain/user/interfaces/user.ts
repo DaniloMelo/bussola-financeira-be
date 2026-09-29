@@ -21,3 +21,17 @@ export interface IStoredUser {
     },
   ];
 }
+
+export interface UserWithCredentials {
+  id: string;
+  name: string;
+  email: string;
+  isActive: boolean;
+  userCredentials: {
+    passwordHash: string;
+    refreshTokenHash: string | null;
+  } | null;
+  roles: {
+    name: string;
+  }[];
+}

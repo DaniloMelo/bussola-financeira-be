@@ -2,6 +2,7 @@ import {
   BadRequestException,
   ForbiddenException,
   Injectable,
+  UnauthorizedException,
 } from "@nestjs/common";
 import { ILogin } from "../interfaces/login.interface";
 import { HasherProtocol } from "src/common/hasher/hasher.protocol";
@@ -25,15 +26,19 @@ export class AuthService {
     const existingUser =
       await this.userAuthService.findOneByEmailWithCredentials(loginData.email);
 
-    if (!existingUser) {
+    if (!existingUser || !existingUser.userCredentials) {
       throw new BadRequestException(
         "Falha ao fazer login. Verifique suas credenciais.",
       );
     }
 
+    if (!existingUser.isActive) {
+      throw new UnauthorizedException("Usuário inativo.");
+    }
+
     const isPasswordCorrect = await this.hasherService.compare(
       loginData.password,
-      existingUser.userCredentials!.passwordHash,
+      existingUser.userCredentials.passwordHash,
     );
 
     if (!isPasswordCorrect) {
