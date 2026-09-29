@@ -72,6 +72,7 @@ export class TestDatabaseHelper {
       data: {
         name: "Test Admin User",
         email: credentials.email,
+        isActive: true,
         userCredentials: {
           create: {
             passwordHash:
