@@ -2,12 +2,18 @@ import { Injectable } from "@nestjs/common";
 import { PrismaService } from "src/infra/prisma/prisma.service";
 import { CreateUserDtoV1 } from "../controllers/v1/dto/create-user.dto";
 import { IUpdateUserData } from "../interfaces/update";
+import { UserWithCredentials } from "../interfaces/user";
+import { IUpdateActivationCode } from "../interfaces/user-activation";
 
 @Injectable()
 export class UserRepository {
   constructor(private readonly prisma: PrismaService) {}
 
-  async create(userData: CreateUserDtoV1) {
+  async create(
+    userData: CreateUserDtoV1,
+    activationCode: string,
+    ativationCodeExp: Date,
+  ) {
     return this.prisma.user.create({
       data: {
         name: userData.name,
@@ -15,6 +21,8 @@ export class UserRepository {
         userCredentials: {
           create: {
             passwordHash: userData.password,
+            activationCode: activationCode,
+            activationCodeExpiresAt: ativationCodeExp,
             lastLoginAt: null,
           },
         },
@@ -68,13 +76,19 @@ export class UserRepository {
     });
   }
 
-  async findOneByEmailWithCredentials(email: string) {
+  async findOneByEmailWithCredentials(
+    email: string,
+  ): Promise<UserWithCredentials | null> {
     return await this.prisma.user.findUnique({
       where: {
         email,
         deletedAt: null,
       },
-      include: {
+      select: {
+        id: true,
+        name: true,
+        email: true,
+        isActive: true,
         userCredentials: {
           select: {
             passwordHash: true,
@@ -291,6 +305,103 @@ export class UserRepository {
           update: {
             resetPasswordTokenHash: null,
             resetPasswordExpiresAt: null,
+          },
+        },
+      },
+    });
+  }
+
+  async findActivationCode(email: string) {
+    return await this.prisma.user.findUnique({
+      where: {
+        email: email,
+        deletedAt: null,
+      },
+      select: {
+        // isActive: true,
+        userCredentials: {
+          select: {
+            activationCode: true,
+            activationCodeExpiresAt: true,
+            activationCodeAttempts: true,
+          },
+        },
+      },
+    });
+  }
+
+  async updateActivationCode({
+    email,
+    activationCode,
+    activationCodeAttempts,
+    activationCodeExp,
+  }: IUpdateActivationCode) {
+    return await this.prisma.user.update({
+      where: {
+        email: email,
+        deletedAt: null,
+      },
+      data: {
+        userCredentials: {
+          update: {
+            activationCode: activationCode,
+            activationCodeExpiresAt: activationCodeExp,
+            activationCodeAttempts: activationCodeAttempts,
+          },
+        },
+      },
+    });
+  }
+
+  async updateActivationCodeAttempts(email: string) {
+    return await this.prisma.user.update({
+      where: {
+        email: email,
+        deletedAt: null,
+      },
+      data: {
+        userCredentials: {
+          update: {
+            activationCodeAttempts: {
+              increment: 1,
+            },
+          },
+        },
+      },
+    });
+  }
+
+  async clearActivationData(email: string) {
+    return await this.prisma.user.update({
+      where: {
+        email: email,
+        deletedAt: null,
+      },
+      data: {
+        userCredentials: {
+          update: {
+            activationCode: null,
+            activationCodeExpiresAt: null,
+            activationCodeAttempts: 0,
+          },
+        },
+      },
+    });
+  }
+
+  async activateUser(email: string) {
+    return await this.prisma.user.update({
+      where: {
+        email: email,
+        deletedAt: null,
+      },
+      data: {
+        isActive: true,
+        userCredentials: {
+          update: {
+            activationCode: null,
+            activationCodeExpiresAt: null,
+            activationCodeAttempts: 0,
           },
         },
       },

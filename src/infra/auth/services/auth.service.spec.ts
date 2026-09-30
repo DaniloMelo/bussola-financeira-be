@@ -7,7 +7,11 @@ import { AuthService } from "./auth.service";
 import { HasherProtocol } from "src/common/hasher/hasher.protocol";
 import { JwtService } from "@nestjs/jwt";
 import { ILogin } from "../interfaces/login.interface";
-import { BadRequestException, ForbiddenException } from "@nestjs/common";
+import {
+  BadRequestException,
+  ForbiddenException,
+  UnauthorizedException,
+} from "@nestjs/common";
 import { ConfigService } from "@nestjs/config";
 import { UserAuthService } from "src/domain/user/services/user-auth.service";
 import { Random } from "src/common/utils/random";
@@ -76,6 +80,7 @@ describe("AuthService", () => {
       id: "1",
       name: "John Doe",
       email: "john@email.com",
+      isActive: true,
       deletedAt: null,
       createdAt: new Date(),
       updatedAt: new Date(),
@@ -184,6 +189,24 @@ describe("AuthService", () => {
         mockStoredUser.userCredentials.passwordHash,
       );
 
+      expect(jwtServiceMock.signAsync).not.toHaveBeenCalled();
+      expect(hasherServiceMock.hash).not.toHaveBeenCalled();
+    });
+
+    it("should throw UnauthorizedException when user is not activated", async () => {
+      const mockStoredUser = createMockStoredUser({ isActive: false });
+
+      mockUserAuthService.findOneByEmailWithCredentials.mockResolvedValue(
+        mockStoredUser,
+      );
+
+      const loginPromise = authService.login(loginUserData);
+
+      await expect(loginPromise).rejects.toThrow(/^Usuário inativo.$/);
+
+      await expect(loginPromise).rejects.toBeInstanceOf(UnauthorizedException);
+
+      expect(hasherServiceMock.compare).not.toHaveBeenCalled();
       expect(jwtServiceMock.signAsync).not.toHaveBeenCalled();
       expect(hasherServiceMock.hash).not.toHaveBeenCalled();
     });

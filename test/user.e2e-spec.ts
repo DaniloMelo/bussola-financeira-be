@@ -57,6 +57,7 @@ describe("User (e2e)", () => {
         name: "Jane Doe",
         email: "jane@email.com",
         deletedAt: null,
+        isActive: false,
         createdAt: expect.any(String),
         updatedAt: expect.any(String),
         userCredentials: {
@@ -249,6 +250,7 @@ describe("User (e2e)", () => {
         id: expect.any(String),
         name: "John Doe",
         email: "john@email.com",
+        isActive: true,
         deletedAt: null,
         createdAt: expect.any(String),
         updatedAt: expect.any(String),
@@ -301,6 +303,7 @@ describe("User (e2e)", () => {
         id: expect.any(String),
         name: "John Doe UPDATED",
         email: "john@email.com",
+        isActive: true,
         deletedAt: null,
         createdAt: expect.any(String),
         updatedAt: expect.any(String),
@@ -477,6 +480,7 @@ describe("User (e2e)", () => {
         id: expect.any(String),
         name: "John Doe",
         email: "john@email.com",
+        isActive: true, // TODO: Refatorar delete (service/repository) para isActive: false
         deletedAt: expect.any(String),
         createdAt: expect.any(String),
         updatedAt: expect.any(String),
