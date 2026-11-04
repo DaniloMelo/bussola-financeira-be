@@ -41,7 +41,7 @@ export class UserPasswordService {
     );
 
     const frontUrl = this.configService.get<string>("FRONTEND_URL_ORIGIN");
-    const resetUrl = `${frontUrl}/reset-password?token=${token}&email=${encodeURIComponent(existingUser.email)}`;
+    const resetUrl = `${frontUrl}/password/reset?token=${token}&email=${encodeURIComponent(existingUser.email)}`;
 
     await this.emailService.resetPassword({
       email: existingUser.email,
