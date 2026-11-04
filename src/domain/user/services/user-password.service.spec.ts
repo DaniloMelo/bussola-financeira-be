@@ -150,7 +150,7 @@ describe("UserPasswordService", () => {
       const emailCallArgs = mockEmailService.resetPassword.mock.calls[0][0];
       const resetUrl = new URL(emailCallArgs.resetUrl as string);
 
-      expect(resetUrl.pathname).toBe("/reset-password");
+      expect(resetUrl.pathname).toBe("/password/reset");
       expect(resetUrl.searchParams.get("token")).toBe(rawResetPasswordToken);
       expect(resetUrl.searchParams.get("email")).toBe("john@email.com");
     });
@@ -166,7 +166,7 @@ describe("UserPasswordService", () => {
         email: "john@email.com",
         userName: "John Doe",
         resetUrl:
-          "http://localhost:3000/reset-password?token=raw-reset-password-token&email=john%40email.com",
+          "http://localhost:3000/password/reset?token=raw-reset-password-token&email=john%40email.com",
       });
     });
 
