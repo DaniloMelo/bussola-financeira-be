@@ -4,7 +4,7 @@ import { ActivationCodeProtocol } from "src/common/activation-code/activation-co
 import { UserRepository } from "../repositories/user.repository";
 import { UserActivationService } from "./user-activation.service";
 import { Test, TestingModule } from "@nestjs/testing";
-import { BadRequestException } from "@nestjs/common";
+import { BadRequestException, ConflictException } from "@nestjs/common";
 
 const mockUserRepository = {
   findActivationCode: jest.fn(),
@@ -151,7 +151,7 @@ describe("UserActivationService", () => {
       );
 
       await expect(activateUserPromise).rejects.toBeInstanceOf(
-        BadRequestException,
+        ConflictException,
       );
     });
 
@@ -333,7 +333,7 @@ describe("UserActivationService", () => {
       );
 
       await expect(resendActivationPromise).rejects.toBeInstanceOf(
-        BadRequestException,
+        ConflictException,
       );
     });
   });
