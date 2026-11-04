@@ -1,6 +1,7 @@
 import {
   BadRequestException,
   Body,
+  ConflictException,
   Controller,
   HttpCode,
   HttpStatus,
@@ -137,13 +138,57 @@ export class AuthController {
   }
 
   @Post("activation")
+  @HttpCode(HttpStatus.OK)
   @ApiOperation({ summary: "Ativa usuário recém criado" })
+  @ApiResponse({
+    status: 200,
+    description: "Ativação realizada",
+    example: {
+      message: "Usuário ativado com sucesso.",
+    },
+  })
+  @ApiResponse({
+    status: 400,
+    description:
+      "Atingiu o Número máximo de tentativas, expiração, código errado ou usuário inexistente",
+    example: new BadRequestException([
+      "Impossível ativar o usuário.",
+      "Atingiu o Número máximo de tentativas.",
+      "Código de ativação expirado.",
+      "Código de ativação inválido.",
+    ]).getResponse(),
+  })
+  @ApiResponse({
+    status: 409,
+    description: "Tenta ativar um usuário que já está ativo",
+    example: new ConflictException(["Usuário já ativado."]).getResponse(),
+  })
   activateUser(@Body() userInputData: ActivateUserDtoV1) {
     return this.userActivationService.activateUser(userInputData);
   }
 
   @Post("resend-activation-code")
+  @HttpCode(HttpStatus.OK)
   @ApiOperation({ summary: "Reenvia o código de ativaçao do usuário" })
+  @ApiResponse({
+    status: 200,
+    description: "Reenvia novo código de ativação",
+    example: {
+      message: "Novo código de ativação enviado com sucesso.",
+    },
+  })
+  @ApiResponse({
+    status: 400,
+    description: "Usuário inexistente",
+    example: new BadRequestException([
+      "Impossível enviar novo código de ativação.",
+    ]).getResponse(),
+  })
+  @ApiResponse({
+    status: 409,
+    description: "Tenta ativar um usuário que já está ativo",
+    example: new ConflictException(["Usuário já ativado."]).getResponse(),
+  })
   resendActivationCode(@Body() userInputData: ResendActivationCodeDtoV1) {
     return this.userActivationService.resendActivationCode(userInputData);
   }

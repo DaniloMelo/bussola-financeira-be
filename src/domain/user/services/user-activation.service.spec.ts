@@ -84,13 +84,7 @@ describe("UserActivationService", () => {
       });
 
       expect(result).toEqual({
-        name: "John Doe",
-        email: "john@email.com",
-        id: "1",
-        isActive: true,
-        deletedAt: null,
-        createdAt: new Date("2026-09-16T10:00:00.000Z"),
-        updatedAt: new Date("2026-09-16T10:00:00.000Z"),
+        message: "Usuário ativado com sucesso.",
       });
 
       expect(userRepositoryMock.activateUser).toHaveBeenCalledWith(
@@ -215,6 +209,34 @@ describe("UserActivationService", () => {
   });
 
   describe("resendActivationCode", () => {
+    it("should resend new activation code", async () => {
+      mockUserRepository.findActivationCode.mockResolvedValue({
+        userCredentials: {
+          activationCode: "hashed-activation-code",
+          activationCodeExpiresAt: new Date("2026-09-16T10:00:00.000Z"),
+          activationCodeAttempts: 3,
+        },
+      });
+
+      mockActivationCodeService.generate.mockReturnValue("new-activation-code");
+
+      mockActivationCodeService.hash.mockReturnValue(
+        "new-activation-code-hashed",
+      );
+
+      mockActivationCodeService.generateExp.mockReturnValue(
+        new Date("2026-09-16T10:15:00.000Z"),
+      );
+
+      const result = await userActivationService.resendActivationCode({
+        email: "john@email.com",
+      });
+
+      expect(result).toEqual({
+        message: "Novo código de ativação enviado com sucesso.",
+      });
+    });
+
     it("should reset atempts and expiration when atempts is greater than 3 or expired", async () => {
       mockUserRepository.findActivationCode.mockResolvedValue({
         userCredentials: {

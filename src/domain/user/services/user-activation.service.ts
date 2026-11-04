@@ -1,4 +1,8 @@
-import { BadRequestException, Injectable } from "@nestjs/common";
+import {
+  BadRequestException,
+  ConflictException,
+  Injectable,
+} from "@nestjs/common";
 import { UserRepository } from "../repositories/user.repository";
 import { ActivateUserDtoV1 } from "src/infra/auth/controllers/v1/dto/activate-user.dto";
 import { ActivationCodeProtocol } from "src/common/activation-code/activation-code.protocol";
@@ -28,7 +32,7 @@ export class UserActivationService {
     }
 
     if (!activationCode || !activationCodeExpiresAt) {
-      throw new BadRequestException("Usuário já ativado.");
+      throw new ConflictException("Usuário já ativado.");
     }
 
     const isExpired = this.activationCodeService.verifyExp(
@@ -46,7 +50,11 @@ export class UserActivationService {
       throw new BadRequestException("Código de ativação inválido.");
     }
 
-    return await this.userRepository.activateUser(email);
+    await this.userRepository.activateUser(email);
+
+    return {
+      message: "Usuário ativado com sucesso.",
+    };
   }
 
   async resendActivationCode(userInputData: ResendActivationCodeDtoV1) {
@@ -63,11 +71,14 @@ export class UserActivationService {
       result.userCredentials;
 
     if (!activationCode || !activationCodeExpiresAt) {
-      throw new Error("Usuário já ativado");
+      throw new ConflictException("Usuário já ativado");
     }
 
     const newCode = this.activationCodeService.generate();
     const newCodeHash = this.activationCodeService.hash(newCode);
+
+    //TODO: Apagar depois
+    console.log("Código reenviado", newCode);
 
     const isInvalid = activationCodeAttempts >= 3;
     const isExpired = this.activationCodeService.verifyExp(
@@ -77,21 +88,29 @@ export class UserActivationService {
     if (isInvalid || isExpired) {
       const newExp = this.activationCodeService.generateExp();
 
-      return await this.userRepository.updateActivationCode({
+      await this.userRepository.updateActivationCode({
         email: email,
         activationCode: newCodeHash,
         activationCodeAttempts: 0,
         activationCodeExp: newExp,
       });
+
+      return {
+        message: "Novo código de ativação enviado com sucesso.",
+      };
     }
 
     if (!isInvalid || !isExpired) {
-      return await this.userRepository.updateActivationCode({
+      await this.userRepository.updateActivationCode({
         email: email,
         activationCode: newCodeHash,
         activationCodeAttempts: activationCodeAttempts,
         activationCodeExp: activationCodeExpiresAt,
       });
+
+      return {
+        message: "Novo código de ativação enviado com sucesso.",
+      };
     }
   }
 }
