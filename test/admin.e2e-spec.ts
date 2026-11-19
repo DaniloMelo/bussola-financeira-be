@@ -40,7 +40,7 @@ describe("Admin (e2e)", () => {
     const { access_token } = await authHelper.login(app, adminUserCredentials);
 
     const response = await request(app.getHttpServer())
-      .get("/v1/admin?limit=10&offset=0")
+      .get("/v1/admin/user?limit=10&offset=0")
       .set("Authorization", `Bearer ${access_token}`)
       .expect(200);
 
@@ -52,7 +52,7 @@ describe("Admin (e2e)", () => {
 
   it("Should return 401 when not authenticated", async () => {
     await request(app.getHttpServer())
-      .get("/v1/admin?limit=10&offset=0")
+      .get("/v1/admin/user?limit=10&offset=0")
       .expect(401);
   });
 
@@ -63,7 +63,7 @@ describe("Admin (e2e)", () => {
     );
 
     await request(app.getHttpServer())
-      .get("/v1/admin?limit=10&offset=0")
+      .get("/v1/admin/user?limit=10&offset=0")
       .set("Authorization", `Bearer ${access_token}`)
       .expect(403);
   });

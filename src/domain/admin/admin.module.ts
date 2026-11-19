@@ -7,9 +7,10 @@ import { AdminUserRepository } from "./user/repositories/admin-user.repository";
 import { AdminApplicationController } from "./application/controllers/v1/admin-application.controller";
 import { AdminApplicationService } from "./application/services/admin-application.service";
 import { AdminApplicationRepository } from "./application/repositories/admin-application.repository";
+import { EmailModule } from "src/infra/email/email.module";
 
 @Module({
-  imports: [PrismaModule, CommonModule],
+  imports: [PrismaModule, CommonModule, EmailModule],
   controllers: [AdminUserController, AdminApplicationController],
   providers: [
     AdminUserService,

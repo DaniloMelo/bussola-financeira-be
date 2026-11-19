@@ -9,6 +9,8 @@ import { EmailDebugController } from "./email-debug.controller";
 import { MailtrapProvider } from "./providers/mailtrap.provider";
 import { ResendProvider } from "./providers/resend.provider";
 import { EmailProviderProtocol } from "./providers/email.provider.protocol";
+import { UpstashEmailCounterProcessor } from "./processors/upstash-email-counter.processor";
+import { UpstashEmailCounterService } from "./services/upstash-email-counter.service";
 
 @Module({
   imports: [
@@ -54,6 +56,8 @@ import { EmailProviderProtocol } from "./providers/email.provider.protocol";
   providers: [
     EmailService,
     EmailProcessor,
+    UpstashEmailCounterService,
+    UpstashEmailCounterProcessor,
     MailtrapProvider,
     ResendProvider,
     {
@@ -71,6 +75,6 @@ import { EmailProviderProtocol } from "./providers/email.provider.protocol";
       inject: [ConfigService, MailtrapProvider, ResendProvider],
     },
   ],
-  exports: [EmailService],
+  exports: [EmailService, UpstashEmailCounterService],
 })
 export class EmailModule {}

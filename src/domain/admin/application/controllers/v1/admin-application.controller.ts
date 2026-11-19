@@ -1,5 +1,17 @@
-import { Body, Controller, Get, UseGuards } from "@nestjs/common";
-import { ApiBearerAuth, ApiTags } from "@nestjs/swagger";
+import {
+  Body,
+  Controller,
+  HttpCode,
+  HttpStatus,
+  Post,
+  UseGuards,
+} from "@nestjs/common";
+import {
+  ApiBearerAuth,
+  ApiOperation,
+  ApiResponse,
+  ApiTags,
+} from "@nestjs/swagger";
 import { Roles } from "src/common/decorators/roles.decorator";
 import { Role } from "src/common/enums/role.enum";
 import { RolesGuard } from "src/common/guards/roles.guard";
@@ -14,10 +26,21 @@ export class AdminApplicationController {
     private readonly adminApplicationService: AdminApplicationService,
   ) {}
 
-  @Get()
+  @Post()
   @Roles(Role.ADMIN)
   @UseGuards(JwtAuthGuard, RolesGuard)
+  @HttpCode(HttpStatus.OK)
+  @ApiOperation({
+    summary: "Envia email simples para reiniciar o contador da Upstash.",
+  })
   @ApiBearerAuth("access-token")
+  @ApiResponse({
+    status: 200,
+    description: "Email enviado com sucesso.",
+    example: {
+      message: "Email enviado, contador atualizado.",
+    },
+  })
   updateUpstashDateCount(@Body() data: UpstashCountDtov1) {
     return this.adminApplicationService.updateUpstashDateCount(data);
   }
