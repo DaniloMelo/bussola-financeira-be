@@ -40,6 +40,14 @@ async function main() {
       },
     },
   });
+
+  await prisma.applicationSetting.create({
+    data: {
+      key: "last_upstash_email_sent",
+      value: "2026-11-18T22:35:46.441Z",
+      category: "APPLICATION",
+    },
+  });
 }
 
 void (async () => {

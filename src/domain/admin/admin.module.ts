@@ -1,13 +1,21 @@
 import { Module } from "@nestjs/common";
-import { AdminController } from "./controllers/v1/admin-user.controller";
-import { AdminUserService } from "./services/admin-user.service";
 import { CommonModule } from "src/common/common.module";
 import { PrismaModule } from "src/infra/prisma/prisma.module";
-import { AdminUserRepository } from "./repositories/admin-user.repository";
+import { AdminUserController } from "./user/controllers/v1/admin-user.controller";
+import { AdminUserService } from "./user/services/admin-user.service";
+import { AdminUserRepository } from "./user/repositories/admin-user.repository";
+import { AdminApplicationController } from "./application/controllers/v1/admin-application.controller";
+import { AdminApplicationService } from "./application/services/admin-application.service";
+import { AdminApplicationRepository } from "./application/repositories/admin-application.repository";
 
 @Module({
   imports: [PrismaModule, CommonModule],
-  controllers: [AdminController],
-  providers: [AdminUserService, AdminUserRepository],
+  controllers: [AdminUserController, AdminApplicationController],
+  providers: [
+    AdminUserService,
+    AdminUserRepository,
+    AdminApplicationService,
+    AdminApplicationRepository,
+  ],
 })
 export class AdminModule {}
