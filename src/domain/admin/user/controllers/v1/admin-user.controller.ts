@@ -9,13 +9,13 @@ import { JwtAuthGuard } from "src/infra/auth/guards/jwt-auth.guard";
 import { Roles } from "src/common/decorators/roles.decorator";
 import { Role } from "src/common/enums/role.enum";
 import { RolesGuard } from "src/common/guards/roles.guard";
-import { PaginationDtoV1 } from "./dto/pagination.dto";
-import { AdminUserService } from "src/domain/admin/services/admin-user.service";
+import { AdminUserService } from "../../services/admin-user.service";
 import { AdminFindAllApiResponseDtoV1 } from "./dto/swagger/admin-find-all-api-response.dto";
+import { PaginationDtoV1 } from "./dto/pagination.dto";
 
-@Controller({ path: "admin", version: "1" })
-@ApiTags("admin-v1")
-export class AdminController {
+@Controller({ path: "admin/user", version: "1" })
+@ApiTags("admin-user-v1")
+export class AdminUserController {
   constructor(private readonly adminUserService: AdminUserService) {}
 
   @Get()

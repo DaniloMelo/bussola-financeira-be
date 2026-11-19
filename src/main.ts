@@ -44,7 +44,8 @@ async function bootstrap() {
     .addTag("auth-v1")
     .addTag("user-v1")
     .addTag("user-v2")
-    .addTag("admin-v1")
+    .addTag("admin-application-v1")
+    .addTag("admin-user-v1")
     .addTag("app")
     .addBearerAuth(
       {
