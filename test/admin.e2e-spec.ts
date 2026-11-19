@@ -8,7 +8,7 @@ import { createTestApp, TestContext } from "./helpers/create-test-app.helper";
 import { TestDatabaseHelper } from "./helpers/test-database.helper";
 import { TestAuthHelper } from "./helpers/test-auth.helper";
 import { ILogin } from "src/infra/auth/interfaces/login.interface";
-import { AdminFindAllApiResponseDtoV1 } from "src/domain/admin/controllers/v1/dto/swagger/admin-find-all-api-response.dto";
+import { AdminFindAllApiResponseDtoV1 } from "src/domain/admin/user/controllers/v1/dto/swagger/admin-find-all-api-response.dto";
 
 describe("Admin (e2e)", () => {
   let app: INestApplication;
@@ -40,7 +40,7 @@ describe("Admin (e2e)", () => {
     const { access_token } = await authHelper.login(app, adminUserCredentials);
 
     const response = await request(app.getHttpServer())
-      .get("/v1/admin?limit=10&offset=0")
+      .get("/v1/admin/user?limit=10&offset=0")
       .set("Authorization", `Bearer ${access_token}`)
       .expect(200);
 
@@ -52,7 +52,7 @@ describe("Admin (e2e)", () => {
 
   it("Should return 401 when not authenticated", async () => {
     await request(app.getHttpServer())
-      .get("/v1/admin?limit=10&offset=0")
+      .get("/v1/admin/user?limit=10&offset=0")
       .expect(401);
   });
 
@@ -63,7 +63,7 @@ describe("Admin (e2e)", () => {
     );
 
     await request(app.getHttpServer())
-      .get("/v1/admin?limit=10&offset=0")
+      .get("/v1/admin/user?limit=10&offset=0")
       .set("Authorization", `Bearer ${access_token}`)
       .expect(403);
   });

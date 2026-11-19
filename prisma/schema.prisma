@@ -49,3 +49,18 @@ model Role {
 
   @@map(name: "roles")
 }
+
+enum SettingCategory {
+  APPLICATION
+}
+
+model ApplicationSetting {
+  id        String          @id @default(uuid())
+  key       String          @unique @db.VarChar(50)
+  value     Json
+  category  SettingCategory
+  createdAt DateTime        @default(now()) @map(name: "created_at")
+  updatedAt DateTime        @updatedAt @map(name: "updated_at")
+
+  @@map(name: "application-settings")
+}
