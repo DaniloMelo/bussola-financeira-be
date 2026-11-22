@@ -1,18 +1,13 @@
 import { Injectable } from "@nestjs/common";
 import { PrismaService } from "src/infra/prisma/prisma.service";
-import { UpdateUpstashDateCountRepositoryInput } from "../interfaces/repository/update-upstash-date-count.interface";
+import {
+  FindLastDateRepositoryOutput,
+  UpdateUpstashDateCountRepositoryInput,
+} from "../interfaces/repository/update-upstash-date-count.interface";
 
 @Injectable()
 export class AdminApplicationRepository {
   constructor(private readonly prisma: PrismaService) {}
-
-  async teste() {
-    return await this.prisma.applicationSetting.findUnique({
-      where: {
-        key: "last_upstash_email_sent",
-      },
-    });
-  }
 
   async updateUpstashDateCount(data: UpdateUpstashDateCountRepositoryInput) {
     return await this.prisma.applicationSetting.upsert({
@@ -28,5 +23,28 @@ export class AdminApplicationRepository {
         category: "APPLICATION",
       },
     });
+  }
+
+  async findLastDate(): Promise<FindLastDateRepositoryOutput | null> {
+    const result = await this.prisma.applicationSetting.findUnique({
+      where: {
+        key: "last_upstash_email_sent",
+      },
+      select: {
+        value: true,
+      },
+    });
+
+    if (!result) {
+      return null;
+    }
+
+    if (typeof result.value !== "string") {
+      throw new Error("Invalid setting value");
+    }
+
+    return {
+      value: result.value,
+    };
   }
 }
